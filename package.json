@@ -1,0 +1,29 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "contributors": [
+    "Mateo Chaves <umgd0606@gmail.com>",
+    "Julian Delgado Chaves <juliaaancamilo0.0@gmail.com>",
+    "Diego Rincon <diegorsgh@gmail.com>",
+    "Sebastian Amaya <sebasyrokiamigos1@gmail.com>"
+  ],
+  "description": "API Rest para Sistema de información CFF ",
+  "keywords": [
+    "node",
+    "express",
+    "multer",
+    "mongoose",
+    "bcrypt",
+    "jwt"
+  ],
+  "license": "ISC",
+  "author": "Alberto Camargo Morales <jhx.660@gmail.com>",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
