@@ -1,5 +1,9 @@
 // const express = require('express');   //CommonJS
-import express from 'express';           //ESModule
+import express from 'express';     //ESModule
+
+import PedidosRoute from './routes/pedidos.routes.js';
+
+
 
 const app = express();
 
@@ -9,30 +13,8 @@ app.get('/health', (req, res) => {
   res.send('Servidor del Corralejo Está Funcionando!!')
 });
 
-//Obtener todos los pedidos
-app.get('/pedidos', (req, res) => {
-  res.send('Servidor del pedidos Está Funcionando!!')
-});
-//Crear pedidos
-app.post('/pedidos', (req, res) => {
-  res.send('Registra un pedido!!')
-});
-
-//Actualizar totalmente
-app.put('/pedidos', (req, res) => {
-  res.send('Actualiza todas las propiedades de un pedido!!')
-});
-
-//Actualizar parcialmente
-app.patch('/pedidos', (req, res) => {
-  res.send('Actualiza una o mas propiedades de un pedido!!')
-});
-
-//Eliminar un pedido
-app.delete('/pedidos', (req, res) => {
-  res.send('Elimina un pedido!!')
-});
-
+//Enlazar todas las rutas de la aplicación
+app.use('/api/pedidos', PedidosRoute);
 
 //Iniciar servidor
 const port = 3000;
