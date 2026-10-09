@@ -1,3 +1,4 @@
+//El controllador define quien hace una acción especifica
 const CreatePedidos = (req, res) => {
     res.send('Registra un pedido!!')
 }
