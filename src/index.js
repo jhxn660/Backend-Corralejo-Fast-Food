@@ -1,6 +1,5 @@
 // const express = require('express');   //CommonJS
 import express from 'express';  
-
 import menuRoute from './routes/menu.routes.js'
 
 const app = express();
