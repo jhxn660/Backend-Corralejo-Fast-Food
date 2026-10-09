@@ -10,7 +10,7 @@ app.get('/usuend', (req, res) => {
 });
 
 // Enlazar todas las rutas de aplicación
-app.use( '/api/usuarios', usuarioRoute);
+app.use('/api/usuarios', usuarioRoute);
 
 //Iniciar servidor
 const port = 3000;
