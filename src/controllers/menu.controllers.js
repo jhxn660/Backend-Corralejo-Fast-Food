@@ -1,4 +1,4 @@
-const listarmenu = (req, res) => {
+const listmenu = (req, res) => {
     res.send('Listar todas las categorias');
 }
 
@@ -19,5 +19,5 @@ const deletemenu = (req, res) => {
 }
 
 export {
-    listarmenu, createmenu, updatemenu, updattemenu, deletemenu
+    listmenu, createmenu, updatemenu, updattemenu, deletemenu
 }
