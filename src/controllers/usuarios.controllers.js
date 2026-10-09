@@ -1,3 +1,5 @@
+// Controlador define quien hace una acción especifica
+
 const getUsuario = (req, res) => {
     res.json({ msg: 'Obtiene todos los usuarios' });
 }
