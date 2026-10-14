@@ -2,26 +2,55 @@ import { Schema, model} from "mongoose";
 
 // Parte 1: Definir la estructura de datos de mi Documento
 const UsuarioSchema = new Schema({
+    // role: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'role',
+    //     required: true
+    // },
     name: {
         type: String,       // Tipo Dato
         requiered: true,     // Regla: True: Obligatorio, False: No Obligatorio
-        trim: true          // Modificador: de espacios elimina espacios primeros y ultimos
+        trim: true,          // Modificador: de espacios elimina espacios primeros y ultimos
+        maxlenght: 100
     },
     email: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        unique: true,
+        maxlenght: 100
     },
     password: {
         type: String,
         required: true,
         trim: true
     },
+    phone: {
+        type: String,
+        required: false,
+        trim: true,
+        match: [/^(?:\+57)?3[0-9]{9}$/, 'Por favor ingrese un número de teléfono válido']
+    },
+    state: {
+        type: Boolean,
+        required: false,
+        default: true
+    },
+    empleado_rol: {
+        type: String, // Redifinir el tipo
+        required: false,
+        trim: true,
+        maxlenght: 30
+    },
+    
 },{
     timestamps: true // Crea automaticamente createdAT, updatedAT
 });
 
 // Parte 2: Definir el modelo. Dicho modelo esta atado al nombre de documento
-const UserModel = model();
+const usuarioModel = model(
+    'Usuario',         // Nombre de la colección (pluraliza automaticamente)
+    UsuarioSchema   // Nombre del esquema que define la estructura de los documentos
+);
 
-export default UserModel;
+export default usuarioModel;

@@ -1,19 +1,23 @@
 // Servicio se habla con la base de datos
 // Estas funciones realizaran las consultas a la base de datos
 
+import usuarioModel from "../models/usuario.model.js";
+
 // TODO: Conectar el Modelo de Usuarios con la Base de datos
 
-const dbgetUsuario = () => {}
+const dbCreateUsuario = async ( newUsuario ) => {
+    return await usuarioModel.create(newUsuario); //Promesa Resuelta (await)
+}
 
-const dbcreateUsuario = () => {}
+const dbGetUsuario = () => {}
 
-const dbupdateUsuario = () => {}
+const dbUpdateUsuario = () => {}
 
-const dbdeleteUsuario = () => {}
+const dbDeleteUsuario = () => {}
 
 export {
-    dbcreateUsuario,
-    dbgetUsuario,
-    dbupdateUsuario,
-    dbdeleteUsuario
-}
+    dbCreateUsuario,
+    dbGetUsuario,
+    dbUpdateUsuario,
+    dbDeleteUsuario
+};

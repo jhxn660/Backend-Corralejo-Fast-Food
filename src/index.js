@@ -1,8 +1,14 @@
 // const express = require('express');   //CommonJS
 import express from 'express';           //ESModule
+import conexion from './config/mongo.config.js'; // Conexion a la base de datos
 import usuarioRoute from './routes/usuarios.routes.js';
 
-const app = express();
+const app = express(); // Instancia de Express
+
+conexion(); // Ejecuta la conexion a la base de datos
+
+//Carga la aplicación. Habilita a la aplicación para interpretar JSON
+app.use( express.json());
 
 // Definiendo 1 endpoint (ruta Entrada)
 app.get('/usuend', (req, res) => {
