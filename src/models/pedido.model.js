@@ -1,26 +1,63 @@
 import { Schema, model } from "mongoose";
 
-//Parte 1: Definir la estructura de datos del Documento
-const pedidoSchema = new Schema({
-    clientname: { 
-        type: String,               //Tipo dato
-        required: true,             //Regla: Es obligatorio
-        trim: true                  //Modificador: Elimina espacios al inicio y final
-    },
-    clientemail: {
-        type: String,
+// Subesquema: Detalle de cada producto
+const detallePedidoSchema = new Schema({
+    producto: {
+        type: String, 
         required: true,
         trim: true
     },
-    password: {
-        type: String,
+    cantidad: {
+        type: Number,
         required: true,
-        trim: true
+        min: [1, 'La cantidad mínima es 1']
+    },
+    precio_unitario: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    subtotal: {
+        type: Number,
+        required: true,
+        min: 0
     }
+}, { _id: false }); 
+
+// Esquema Principal: El Pedido completo
+const pedidoSchema = new Schema({
+    numeroPedido: { 
+        type: Number, 
+        required: true, // ¡Muy importante para evitar el error E11000!
+        unique: true
+    },
+    estado: {
+        type: String,
+        enum: ['Preparacion', 'En preparación', 'Resuelto', 'Cancelado'],
+        default: 'En preparación'
+    },
+    hora: {
+        type: String,
+        trim: true
+    },
+    detalles: {
+        type: [detallePedidoSchema], // Aquí se incrustan los subdocumentos
+        required: true,
+        validate: {
+            validator: function(v) {
+                return v && v.length > 0;
+            },
+            message: 'Un pedido debe tener al menos un producto (detalle).'
+        }
+    },
+    totalPedido: {
+        type: Number,
+        required: true,
+        min: 0
+    }
+}, {
+    timestamps: true 
 });
 
-//Parte 2: Definir el modelo. Dicho modelo está atado al nombre de documento
-const pedidoModel = model();
-
-
+const pedidoModel = model('Pedido', pedidoSchema);
 export default pedidoModel;

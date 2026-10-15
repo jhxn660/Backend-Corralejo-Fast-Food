@@ -1,9 +1,23 @@
-//El controllador define quien hace una acción especifica
-const CreatePedidos = (req, res) => {
-    res.send('Registra un pedido!!')
-}
+import { dbCreatePedidos } from "../services/pedidos.services.js";
 
-export {CreatePedidos}
+//El controllador define quien hace una acción especifica
+const CreatePedidos = async (req, res) => {
+    try{
+        // Obtenemos los datos del pedido desde el cuerpo de la solicitud
+    const dpedido = req.body;
+
+    //Conecta con el servicio para crear un nuevo pedido en la base de datos
+    const newpedido = await dbCreatePedidos(dpedido); // Llega como una promesa resuelta, ya que dbCreatePedidos es async y usamos await
+    res.json({msg: 'Crea un pedido!!', 'pedido': newpedido});
+} catch (error) {
+    console.error( error );
+    res.json({
+        msg: 'Error al crear el pedido'
+    });
+}
+};
+
+export {CreatePedidos};
 
 const GetPedidos = (req, res) => {
     res.send('Obten los pedidos!!')
