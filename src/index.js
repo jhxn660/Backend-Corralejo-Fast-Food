@@ -2,6 +2,7 @@
 import express from 'express';           //ESModule
 import conexion from './config/mongo.config.js'; // Conexion a la base de datos
 import usuarioRoute from './routes/usuarios.routes.js';
+import categoriesRoute from './routes/categories.routes.js';
 
 const app = express(); // Instancia de Express
 
@@ -17,6 +18,7 @@ app.get('/usuend', (req, res) => {
 
 // Enlazar todas las rutas de aplicación
 app.use('/api/usuarios', usuarioRoute);
+app.use('/api/categories', categoriesRoute);
 
 //Iniciar servidor
 const port = 3000;
