@@ -1,4 +1,4 @@
-import { dbCreateCategory, dbDeleteCategory, dbGetCategories } from "../services/categories.services.js";
+import { dbCreateCategory, dbDeleteCategory, dbGetCategories, dbGetCategory, dbUpdateCategory } from "../services/categories.services.js";
 
 const createCategory = async (req, res) => {
 
@@ -21,23 +21,66 @@ const createCategory = async (req, res) => {
 }
 
 const getCategories = async (req, res) => {
-    const data = await dbGetCategories();
+    try {
+        const data = await dbGetCategories();
 
-    res.json({
-        msg: 'Lista de Categorias', data: data
-    });
+        res.json({ msg: 'Lista de Categorias', data: data });
+
+    }
+    catch (error) {
+        console.error(error);
+        res.json({ msg: 'No ha podido obtener las categorias indicadas' });
+    }
 }
 
-const deleCategory = async (req, res) => {
-    const id = req.params.id;
+const updateCategory = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const inputData = req.body;
 
-    const data = await dbDeleteCategory(id);
+        const data = await dbUpdateCategory(id, inputData); // <---- Linea suceptible de generar una exception = Excepción
 
-    res.json({ msg: 'Elimina una Categoria', data: data});
+        res.json({ msg: 'Categoria Actualizada', data: data });
+    }
+    catch (error) {
+        console.error(error);
+        res.json({ msg: 'No se actualizo la categoria' });
+    }
+}
+
+const deleteCategory = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        const data = await dbDeleteCategory(id);
+
+        res.json({ msg: 'Elimina una Categoria', data: data });
+    }
+    catch (error) {
+        console.error(error);
+        res.json({ msg: 'No se ha podido eliminar la categoria' });
+    }
+}
+
+const getCategory = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        const data = await dbGetCategory(id);
+
+        res.json({ msg: 'Obtiene una categoria', data: data });
+
+    } 
+    catch (error) {
+        console.error(error);
+        res.json({ msg: 'No se pudo obtener la categoria por id' });
+    }
 }
 
 export {
     createCategory,
     getCategories,
-    deleCategory
+    deleteCategory,
+    updateCategory,
+    getCategory
 }
