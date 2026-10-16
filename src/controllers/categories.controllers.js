@@ -1,4 +1,4 @@
-import { dbCreateCategory, dbDeleteCategory, dbGetCategories } from "../services/categories.services.js";
+import { dbCreateCategory, dbDeleteCategory, dbGetCategories, dbGetCategory, dbUpdateCategory } from "../services/categories.services.js";
 
 const createCategory = async (req, res) => {
     try {
@@ -19,27 +19,85 @@ const createCategory = async (req, res) => {
 }
 
 const getCategories = async (req, res) => {
-    const data = await dbGetCategories();
+    try {
+        const data = await dbGetCategories();
 
-    res.json({
-        msg: 'Lista de categorias',
-        data: data
-    });
+        res.json({
+            msg: 'Lista de categorias',
+            data: data
+        });
+    } catch (error) {
+        console.error( error );
+        res.json({
+            msg: 'No ha podido obtener el listado de las categorias activas'
+        })
+    }
+    
 }
 
 const deleteCategory = async (req, res) => {
-    const id = req.params.id;
+    try {
+        const id = req.params.id;
 
-    const data = await dbDeleteCategory(id);
+        const data = await dbDeleteCategory(id);
 
-    res.json({ 
-        msg: 'Elimina una categoria', 
-        data: data
-     });
+        res.json({ 
+            msg: 'Elimina una categoria', 
+            data: data
+        });
+    } catch (error) {
+        console.error( error );
+
+        res.json({
+            msg: 'No se ha podido eliminar la categoria'
+        })
+    }
+    
+}
+
+const updateCategory = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const inputData = req.body; 
+
+        const data = await dbUpdateCategory( id, inputData );   // Suceptible de generar una excepcion
+
+        res.json({ 
+            msg: 'Categoria Actualizada',
+            data: data
+        });
+    } catch (error) {
+        console.error( error );
+
+        res,json({
+            msg: 'Nose ha podido actuaizar'
+        })
+    }
+    
+}
+
+const getCategory = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        const data = await dbGetCategory( id );
+
+        res.json({
+            msg: 'Obtiene una categoria',
+            data: data
+        });
+    } catch (error) {
+        console.error( error );
+        res.json({
+            msg: 'No se pudo obtener la categoria por ID'
+        });
+    }
 }
 
 export {
     createCategory,
     getCategories,
-    deleteCategory
+    deleteCategory,
+    updateCategory,
+    getCategory
 }

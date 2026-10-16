@@ -13,8 +13,29 @@ const dbDeleteCategory = async ( id ) => {
     return await CategoryModel.findOneAndDelete({ _id: id });
 }
 
+const dbUpdateCategory = async ( id, categoryUpdate ) => {
+    // return await CategoryModel.findByIdAndUpdate(
+    //    id,                 // El id del documento que deseamos actualizar
+    //    categoryUpdate,     // El objeto con los datos del Documento que deseamos actualizar
+    //    { new: true }       // Configuracion para que retorne el documento actualizado
+    // );
+
+    return await CategoryModel.findOneAndUpdate(
+        { _id: id },
+        categoryUpdate,
+        { new: true }
+    );
+}
+
+const dbGetCategory = async ( id ) => {
+    // return await CategoryModel.findById( id );       // Obtiene una categoria por ID
+    return await CategoryModel.findOne({ _id: id });
+}
+
 export {
     dbCreateCategory,
     dbGetCategories,
-    dbDeleteCategory
+    dbDeleteCategory,
+    dbUpdateCategory,
+    dbGetCategory
 }
