@@ -2,8 +2,7 @@
 // ODM: 
 import mongoose from "mongoose";
 
-const URI_LOCAL = 'mongodb://localhost:27017/';
-const URL_REMOTE = 'mongodb+srv://Diego:2103Diego@cluster0.bx7mi6e.mongodb.net/';
+const URI_MONGO = process.env.URI_MONGO || 'mongodb://localhost:27017/';
 
 // se quelize (SQL) -> MySQL, postgreSQL, MariaDB, SQLite, Microsoft SQL Server
 // Prisma (SQL, NoSQL) -> MySQL
