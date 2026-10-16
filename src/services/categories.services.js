@@ -12,7 +12,11 @@ const dbUpdateCategory = async () => {
     return await CategoryModel
 }
 
-const dbDeleteCategory = () => {}
+//
+const dbDeleteCategory = async ( id ) => {
+    // return await CategoryModel.findByIdAndDelete( id );  // Solamente se usa el id
+    return await CategoryModel.findOneAndDelete({ _id: id}); // Puede eliminarse por nombre, id etc...
+}
 
 export {
     dbCreateCategory,
