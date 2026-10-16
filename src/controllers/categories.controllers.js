@@ -1,4 +1,4 @@
-import { dbCreateCategory, dbGetCategories } from "../services/categories.services.js";
+import { dbCreateCategory, dbDeleteCategory, dbGetCategories } from "../services/categories.services.js";
 
 const createCategory = async (req, res) => {
     try {
@@ -27,7 +27,19 @@ const getCategories = async (req, res) => {
     });
 }
 
+const deleteCategory = async (req, res) => {
+    const id = req.params.id;
+
+    const data = await dbDeleteCategory(id);
+
+    res.json({ 
+        msg: 'Elimina una categoria', 
+        data: data
+     });
+}
+
 export {
     createCategory,
-    getCategories
+    getCategories,
+    deleteCategory
 }
