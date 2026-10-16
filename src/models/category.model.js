@@ -6,16 +6,24 @@ const CategorySchema = new Schema(
     {
         name: {
             type: String,
+            minlenght: 3,
             unique: true,
         },
         description: {
             type: String,
             require: false,
         },
+        status: {
+            type: Boolean,
+            default: true
+        }
 
     },
     // Configuraciones de la estructura de datos
-    {}
+    {
+        timestamps: true,   // Agrega los campos createdAt, updatedAt automaticamente
+        versionKey: false   // Elimina la promiedad de versonamineto __v del Schema
+    }
 );
 
 // Definir el modelo a partir de la estructura del documento

@@ -1,26 +1,34 @@
-import { dbCreateCategory } from "../services/categories.services.js";
+import { dbCreateCategory, dbGetCategories } from "../services/categories.services.js";
 
-const createCategory = async ( req, res ) => {
-    
-    try{
+const createCategory = async (req, res) => {
 
-    // Extrae los datos del cuerpo de la petición
-    const inputData = req.body;
+    try {
 
-    // Usar el servicio para registrar
-    const data = await dbCreateCategory( inputData );
+        // Extrae los datos del cuerpo de la petición
+        const inputData = req.body;
 
-    res.json({ msg: 'Registra Categoria', data: data });  
+        // Usar el servicio para registrar
+        const data = await dbCreateCategory(inputData);
+
+        res.json({ msg: 'Registra Categoria', data: data });
 
     }
     catch (error) {
         console.error(error);
-        res.json({ msg: 'No se pudo registrar la categoria'});
+        res.json({ msg: 'No se pudo registrar la categoria' });
     }
-
 
 }
 
+const getCategories = async (req, res) => {
+    const data = await dbGetCategories();
+
+    res.json({
+        msg: 'Lista de Categorias', data: data
+    });
+}
+
 export {
-    createCategory
+    createCategory,
+    getCategories
 }
