@@ -1,15 +1,20 @@
 // Servicio se habla con a base de datos.
 // Estas funciones realizan las consultas a la base de datos
 
-// TODO: conectar el modelo del menu con la base de datos
-const dbListmenu = () => {}
+import menuModel from "../models/menu.model.js";
 
-const dbCreatemenu = () => {}
+// TODO: conectar el modelo del menu con la base de datos
+const dbGetmenu = () => {
+}
+
+const dbCreatemenu = async (newMenu) => {
+    return await menuModel.create(newMenu);
+}
 
 const dbUpdatemenu = () => {}
 
 const dbDeletemenu = () => {}
 
 export {
-    dbListmenu ,dbCreatemenu, dbUpdatemenu, dbDeletemenu
+    dbGetmenu ,dbCreatemenu, dbUpdatemenu, dbDeletemenu
 }

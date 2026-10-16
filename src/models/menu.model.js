@@ -2,26 +2,34 @@ import {Schema, model} from "mongoose";
 
 // Parte 1 Definir la estructura ed datos de mi documento
 const menuSchema = new Schema({
-    name: {
+    nombreCategoria: {
         type: String,           // Tipo dato
         required: true,         // Regla: es obligatorio
         trim: true              // Modificador
     },
-    email: {
+    descripcion: {
         type: String,
         required: true,
         trim: true
     },
-    password: {
-        type: String,
+    price: {
+        type: Number,
         trim: true,
         required: true
+    },
+    combo: {
+        type: String,
+        enum: ['Combobasico', 'Combomaster'],
+        default: 'Combobasico'
     }
 },{
     timestamps: true        // Crea autmaticamente crear y modificar
 });
 
 // Parte 2 Definir el modelo, dicho modelo esta atado al nombre de documento
-const menuModel = model();
+const menuModel = model(
+    'menu',             // Nombre de la coleccion
+    menuSchema          // Nombre del esquema que define la estructura de los datos
+);
 
 export default menuModel;
