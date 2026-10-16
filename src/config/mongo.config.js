@@ -2,11 +2,13 @@
 // ODM:
 import mongoose from "mongoose";
 
-const URL_REMOTE = 'mongodb+srv://Mateo:123456+@cluster0.ztjam83.mongodb.net/'
+
+//const URI_LOCAL = 'mongodb://localhost:27017/'
+const URI_MONGO = process.env.URI_MONGO || 'mongodb://localhost:27017/';
 
 const conexion = async () => {
     try {
-        await mongoose.connect(URL_REMOTE);
+        await mongoose.connect(URI_MONGO);
         // conectado a la base de datos de MongoDB
         console.log('Conectado a la base de datos');
     } catch (error) {
