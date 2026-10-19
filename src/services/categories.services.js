@@ -4,6 +4,11 @@ const dbCreateCategory = async ( newCategory ) => {
     return await CategoryModel.create( newCategory ); // Registrar en la Base de Datos (BD)
 }
 
+const dbGetCategory = async ( id ) => {
+    // return await CategoryModel.findById( id );   // Obtiene una categoria por su ID
+    return await CategoryModel.findOne({ _id: id });
+}
+
 const dbGetCategories = async () => {
     return await CategoryModel.find({ status: true }); // Consultar todas las categorias registradas
 }
@@ -23,16 +28,10 @@ const dbDeleteCategory = async ( id ) => {
     return await CategoryModel.findOneAndDelete({ _id: id}); // Puede eliminarse por nombre, id etc...
 }
 
-const dbGetCategory = async ( id ) => {
-    // return await CategoryModel.findById( id );   // Obtiene una categoria por su ID
-    return await CategoryModel.findOne({ _id: id });
-
-}
-
 export {
     dbCreateCategory,
+    dbGetCategory,
     dbGetCategories,
     dbUpdateCategory,
-    dbDeleteCategory,
-    dbGetCategory
+    dbDeleteCategory
 }

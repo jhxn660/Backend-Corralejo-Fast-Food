@@ -1,4 +1,4 @@
-import { dbCreateCategory, dbDeleteCategory, dbGetCategories, dbGetCategory, dbUpdateCategory } from "../services/categories.services.js";
+import { dbCreateCategory, dbGetCategory, dbGetCategories, dbUpdateCategory, dbDeleteCategory } from "../services/categories.services.js";
 
 const createCategory = async (req, res) => {
 
@@ -20,6 +20,21 @@ const createCategory = async (req, res) => {
 
 }
 
+const getCategory = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        const data = await dbGetCategory(id);
+
+        res.json({ msg: 'Obtiene una categoria', data: data });
+
+    }
+    catch (error) {
+        console.error(error);
+        res.json({ msg: 'No se pudo obtener la categoria por id' });
+    }
+}
+
 const getCategories = async (req, res) => {
     try {
         const data = await dbGetCategories();
@@ -29,7 +44,7 @@ const getCategories = async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        res.json({ msg: 'No ha podido obtener las categorias indicadas' });
+        res.json({ msg: 'No ha podido obtener las categorias' });
     }
 }
 
@@ -62,25 +77,11 @@ const deleteCategory = async (req, res) => {
     }
 }
 
-const getCategory = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        const data = await dbGetCategory(id);
-
-        res.json({ msg: 'Obtiene una categoria', data: data });
-
-    } 
-    catch (error) {
-        console.error(error);
-        res.json({ msg: 'No se pudo obtener la categoria por id' });
-    }
-}
 
 export {
     createCategory,
+    getCategory,
     getCategories,
     deleteCategory,
-    updateCategory,
-    getCategory
+    updateCategory
 }
