@@ -15,7 +15,7 @@ const createCategory = async (req, res) => {
 
         res.json({ msg: 'No se pudo registrar la categoria' })
     }
-
+    
 }
 
 const getCategories = async (req, res) => {
@@ -31,8 +31,7 @@ const getCategories = async (req, res) => {
         res.json({
             msg: 'No ha podido obtener el listado de las categorias activas'
         })
-    }
-    
+    } 
 }
 
 const deleteCategory = async (req, res) => {

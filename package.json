@@ -17,11 +17,11 @@
     "jwt"
   ],
   "license": "ISC",
-  "author": "Alberto Camargo Morales <jhx.660@gmail.com>",
+  "author": "Diego Rincón Reyes <diegorsgh@gmail.com>",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "node --watch src/index.js"
+    "dev": "node --env-file .env --watch src/index.js"
   },
   "dependencies": {
     "express": "^5.2.1",

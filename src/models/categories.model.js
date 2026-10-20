@@ -13,6 +13,11 @@ const CategorySchema = new Schema(
         status: {
             type:Boolean,
             default: true
+        },
+        createdBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'menu',
+            required: true
         }
     }, 
     // Cnfiguraciones de la estructura de datos

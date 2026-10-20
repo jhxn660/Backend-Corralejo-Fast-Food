@@ -21,9 +21,15 @@ const menuSchema = new Schema({
         type: String,
         enum: ['Combobasico', 'Combomaster'],
         default: 'Combobasico'
+    },
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'menu',
+        default: null
     }
 },{
-    timestamps: true        // Crea autmaticamente crear y modificar
+    timestamps: true,        // Crea autmaticamente crear y modificar
+    versionKey: false
 });
 
 // Parte 2 Definir el modelo, dicho modelo esta atado al nombre de documento
