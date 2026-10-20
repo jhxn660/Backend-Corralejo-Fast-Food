@@ -5,10 +5,10 @@ const router = Router();
 
 // Definición de las rutas para los Usuarios.
 
-// Obtener Usuarios
-router.get('/', getUsuario);
 // Crear Usuario
 router.post('/', createUsuario);
+// Obtener Usuarios
+router.get('/:id', getUsuario);
 // Actualizar Totalmente
 router.put('/', updatePUsuario);
 // Actualizar Parcialmente

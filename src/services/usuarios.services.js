@@ -9,7 +9,9 @@ const dbCreateUsuario = async ( newUsuario ) => {
     return await usuarioModel.create(newUsuario); //Promesa Resuelta (await)
 }
 
-const dbGetUsuario = () => {}
+const dbGetUsuario = async ( id ) => { 
+    return await usuarioModel.findOne({ _id: id });
+}
 
 const dbUpdateUsuario = () => {}
 

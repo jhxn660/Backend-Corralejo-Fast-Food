@@ -1,12 +1,16 @@
-import { Schema, model} from "mongoose";
+import { Schema, model } from "mongoose";
 
 // Parte 1: Definir la estructura de datos de mi Documento
 const UsuarioSchema = new Schema({
-    // role: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'role',
-    //     required: true
-    // },
+    role: {
+        type: String,
+        enum: {
+            values: ['Administrador', 'Empleado', 'Usuario', 'UsuarioT' ]
+        },
+        ref: 'role',
+        required: true,
+        default: 'Usuario'
+    },
     name: {
         type: String,       // Tipo Dato
         requiered: true,     // Regla: True: Obligatorio, False: No Obligatorio
@@ -29,7 +33,7 @@ const UsuarioSchema = new Schema({
         type: String,
         required: false,
         trim: true,
-        match: [/^(?:\+57)?3[0-9]{9}$/, 'Por favor ingrese un número de teléfono válido']
+        match: [ /^(?:\+57)?3[0-9]{9}$/, 'Por favor ingrese un número de teléfono válido' ]
     },
     state: {
         type: Boolean,
@@ -42,10 +46,19 @@ const UsuarioSchema = new Schema({
         trim: true,
         maxlenght: 30
     },
-    
-},{
-    timestamps: true // Crea automaticamente createdAT, updatedAT
-});
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'Usuario',
+        default: null
+    }
+
+},
+    // Opciones del esquema
+    {
+        timestamps: true, // Crea automaticamente createdAT, updatedAT
+        versionKey: false // Elimina el __V
+    }
+);
 
 // Parte 2: Definir el modelo. Dicho modelo esta atado al nombre de documento
 const usuarioModel = model(

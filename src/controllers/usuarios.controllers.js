@@ -1,6 +1,6 @@
 // Controlador define quien hace una acción especifica
 
-import { dbCreateUsuario } from "../services/usuarios.services.js";
+import { dbCreateUsuario, dbGetUsuario } from "../services/usuarios.services.js";
 
 //Controlador define quien hace una accion especifica
 const createUsuario = async (req, res) => {
@@ -20,9 +20,21 @@ const createUsuario = async (req, res) => {
     }
 }
 
-const getUsuario = (req, res) => {
+const getUsuario = async (req, res) => {
+    try {
 
-    res.json({ msg: 'Obtiene todos los usuarios' });
+        const id = req.params.id;
+
+        const data = await dbGetUsuario(id);
+
+        res.json({ msg: 'Obtiene un Usuario por ID', data: data });
+
+    } catch (error) {
+
+        console.error(error);
+        res.json({ msg: 'No se pudo obtener el Usuario por id' });
+
+    }
 }
 
 const updatePUsuario = (req, res) => {

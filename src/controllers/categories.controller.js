@@ -15,6 +15,19 @@ const createCategory = async (req, res) => {
     }
     catch (error) {
         console.error(error);
+
+        if( error.name == 'ValidationError' ) {
+            const errors = {};
+
+            // Iterar los errores para extraer el nombre de la propiedad y el error especifico
+            for( const field in error.errors ) {
+                errors[field] = error.errors[field].message;
+            }
+
+            res.json({ errors });
+        }
+
+        // Error generico   
         res.json({ msg: 'No se pudo registrar la categoria' });
     }
 

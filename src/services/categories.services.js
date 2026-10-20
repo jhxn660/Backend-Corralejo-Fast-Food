@@ -10,8 +10,9 @@ const dbGetCategory = async ( id ) => {
 }
 
 const dbGetCategories = async () => {
-    return await CategoryModel.find({ status: true }); // Consultar todas las categorias registradas
-}
+    // return await CategoryModel.find({ status: true }); // Si el status en el codigo se determina true solamente trae lo indicado (true)
+    return await CategoryModel.find().populate( 'createdBy' ); // Consultar todas las categorias registradas
+}                      // Poblar los campos                                 
 
 // Se usa PATCH acá para cambiar uno o mas datos de la colección
 // "id" que se desea actualizar, 
