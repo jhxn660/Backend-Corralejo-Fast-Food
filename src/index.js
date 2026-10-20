@@ -3,6 +3,10 @@ import express from 'express';     //ESModule
 
 import conexion from './config/mongo.config.js';
 import PedidosRoute from './routes/pedidos.routes.js';
+import ventasRoute from './routes/ventas.routes.js';
+import indicadoresRoute from './routes/indicadores.routes.js';
+
+const port = process.env.PORT || 3000; // Puerto del servidor
 
 const app = express();
 
@@ -22,9 +26,10 @@ app.get( '/api/pedidos', PedidosRoute);
 
 //Enlazar todas las rutas de la aplicación
 app.use('/api/pedidos', PedidosRoute);
+app.use('/api/ventas', ventasRoute);
+app.use('/api/indicadores', indicadoresRoute);
 
 //Iniciar servidor
-const port = 3000;
 app.listen(port, () => {
   console.log(`Servidor está corriendo en http://localhost:${port}`);
 });
