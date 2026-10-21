@@ -1,0 +1,23 @@
+info:
+  name: Listar Categoria
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:3000/api/categories
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Entradas-CFF",
+        "descripcion": "Entradas para el paladar del cliente y disguste de cualquiera que desee ordenar"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

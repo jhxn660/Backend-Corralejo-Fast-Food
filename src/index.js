@@ -16,7 +16,7 @@ app.use(express.json() );
 
 // Definiendo 1 endpoint (ruta de entrada)
 app.get('/healt', (req, res) => {
-  res.send('Apartado CFF - Corralejo Fast Food panel menu compuesto Funcionado a la perfección!')
+  res.json({msg: 'Apartado CFF - Corralejo Fast Food panel menu compuesto Funcionado a la perfección!'});
 });
 
 // Enlazar todas las rutas de la app

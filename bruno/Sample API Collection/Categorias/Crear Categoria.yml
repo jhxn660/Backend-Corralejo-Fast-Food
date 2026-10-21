@@ -1,0 +1,24 @@
+info:
+  name: Crear Categoria
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/categories
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Entradas",
+        "descripcion": "Entradas deliciosas para empezar con el plato fuerte",
+        "createdBy": "6ad64a424b5770d77562b2c0"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

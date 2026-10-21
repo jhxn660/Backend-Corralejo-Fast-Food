@@ -13,7 +13,21 @@ const createCategory = async (req, res) => {
     catch (error) {
         console.error(error);
 
-        res.json({ msg: 'No se pudo registrar la categoria' })
+        // Verificar si el error es por duplicidad 
+        if(error.code == 11000){
+            //console.log('>1>>>', error.keyValue );
+            //console.log('>2>>>', Object.keys(error.keyValue));
+            //console.log('>3>>>', Object.keys(error.keyValue)[0]);
+            const field = Object.keys(error.keyValue)[0];
+
+            // Mensaje de error que se envia al cliente
+            return res.json({
+                msg: `Error por duplicidad en el campo '${field}'`,
+                [field]: `El campo '${ field }' con el valor '${ error.keyValue[ field ]}', ya se encuentra registrado`
+            });
+        }
+
+        res.json({ msg: 'No se pudo registrar la categoria' });
     }
     
 }
@@ -87,6 +101,7 @@ const getCategory = async (req, res) => {
         });
     } catch (error) {
         console.error( error );
+
         res.json({
             msg: 'No se pudo obtener la categoria por ID'
         });
