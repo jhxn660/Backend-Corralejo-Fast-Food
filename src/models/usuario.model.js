@@ -32,6 +32,7 @@ const UsuarioSchema = new Schema({
     phone: {
         type: String,
         required: false,
+        unique: true,
         trim: true,
         match: [ /^(?:\+57)?3[0-9]{9}$/, 'Por favor ingrese un número de teléfono válido' ]
     },

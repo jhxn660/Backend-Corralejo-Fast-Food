@@ -10,21 +10,22 @@ const createCategory = async (req, res) => {
         // Usar el servicio para registrar
         const data = await dbCreateCategory(inputData);
 
-        res.json({ msg: 'Registra Categoria', data: data });
+        res.status(201).json({ msg: 'Registra Categoria', data: data });
 
     }
     catch (error) {
         console.error(error);
 
-        if( error.name == 'ValidationError' ) {
+        // Personaliza los mensajes de error definidos en el Modelo
+        if (error.name == 'ValidationError') {
             const errors = {};
 
             // Iterar los errores para extraer el nombre de la propiedad y el error especifico
-            for( const field in error.errors ) {
+            for (const field in error.errors) {
                 errors[field] = error.errors[field].message;
             }
 
-            res.json({ errors });
+            res.status(400).json({ errors });
         }
 
         // Error generico   
@@ -39,7 +40,7 @@ const getCategory = async (req, res) => {
 
         const data = await dbGetCategory(id);
 
-        res.json({ msg: 'Obtiene una categoria', data: data });
+        res.status(200).json({ msg: 'Obtiene una categoria', data: data });
 
     }
     catch (error) {
@@ -52,12 +53,12 @@ const getCategories = async (req, res) => {
     try {
         const data = await dbGetCategories();
 
-        res.json({ msg: 'Lista de Categorias', data: data });
+        res.status(200).json({ msg: 'Lista de Categorias', data: data });
 
     }
     catch (error) {
         console.error(error);
-        res.json({ msg: 'No ha podido obtener las categorias' });
+        res.status(500).json({ msg: 'No ha podido obtener las categorias' });
     }
 }
 
@@ -68,11 +69,11 @@ const updateCategory = async (req, res) => {
 
         const data = await dbUpdateCategory(id, inputData); // <---- Linea suceptible de generar una exception = Excepción
 
-        res.json({ msg: 'Categoria Actualizada', data: data });
+        res.status(200).json({ msg: 'Categoria Actualizada', data: data });
     }
     catch (error) {
         console.error(error);
-        res.json({ msg: 'No se actualizo la categoria' });
+        res.status(500).json({ msg: 'No se actualizo la categoria' });
     }
 }
 
@@ -82,11 +83,11 @@ const deleteCategory = async (req, res) => {
 
         const data = await dbDeleteCategory(id);
 
-        res.json({ msg: 'Elimina una Categoria', data: data });
+        res.status(200).json({ msg: 'Categoria Eliminada', data: data });
     }
     catch (error) {
         console.error(error);
-        res.json({ msg: 'No se ha podido eliminar la categoria' });
+        res.status(501).json({ msg: 'No se ha podido eliminar la categoria' });
     }
 }
 

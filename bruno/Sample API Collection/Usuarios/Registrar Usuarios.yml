@@ -1,0 +1,29 @@
+info:
+  name: Registrar Usuarios
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:3000/api/usuarios
+  body:
+    type: json
+    data: |-
+      {
+        "role": "Empleado",
+        "name": "Mateo",
+        "email": "Mateo@gmail.com",
+        "password": "123456+",
+        "phone": "3246305432",
+        "state": true,
+        "empleado_rol": "Cocinero",
+        "createdBy": "6ad7a3c2c17d255d4aa4dc4a"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

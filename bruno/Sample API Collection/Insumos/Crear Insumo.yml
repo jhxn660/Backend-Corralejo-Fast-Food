@@ -1,0 +1,28 @@
+info:
+  name: Crear Insumo
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/insumos
+  body:
+    type: json
+    data: |
+      {
+        "name": "swaat",
+        "description": "Harina de wasa",
+        "medida": "10 KG",
+        "cost": "30000",
+        "stock": "3",
+        "state": "Con_Stock",
+        "createdBy": "Mateo"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -16,7 +16,7 @@ app.use( express.json());
 
 // Definiendo 1 endpoint (ruta Entrada)
 app.get('/usuend', (req, res) => {
-  res.send({ msg: 'Servidor de Usuarios Funcionando!' });
+  res.status(200).json({ msg: 'Servidor de Usuarios Funcionando!' });
 });
 
 // Enlazar todas las rutas de aplicación

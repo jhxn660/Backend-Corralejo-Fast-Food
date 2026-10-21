@@ -1,0 +1,25 @@
+info:
+  name: Crear Categoria
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/categories
+  body:
+    type: json
+    data: |-
+      {
+        "name": "fsd",
+        "description": "fsgsgdsgdgrggd",
+        "status": false,
+        "createdBy": "6ad79884f646ab5d5540a5f3"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
