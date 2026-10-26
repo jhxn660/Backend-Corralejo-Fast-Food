@@ -53,10 +53,17 @@ const dbDeleteUsuario = async ( id ) => {
         .select('-password');         // No devolver la contraseña del usuario eliminado
 }
 
+// Consultar por correo para Authentication en Controllers
+// email: tralelero@correo.co
+const dbGetUserByEmail = async ( email ) => {
+    return await usuarioModel.findOne({ email: email })
+}
+
 export {
     dbCreateUsuario,
     dbGetUsuario,
     dbGetUsuarios,
     dbUpdateUsuario,
-    dbDeleteUsuario
+    dbDeleteUsuario,
+    dbGetUserByEmail
 };
