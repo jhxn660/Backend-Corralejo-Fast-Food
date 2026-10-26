@@ -1,9 +1,7 @@
 import { dbCreateCategory, dbGetCategory, dbGetCategories, dbUpdateCategory, dbDeleteCategory } from "../services/categories.services.js";
 
 const createCategory = async (req, res) => {
-
     try {
-
         // Extrae los datos del cuerpo de la petición
         const inputData = req.body;
 
@@ -11,27 +9,31 @@ const createCategory = async (req, res) => {
         const data = await dbCreateCategory(inputData);
 
         res.status(201).json({ msg: 'Registra Categoria', data: data });
-
     }
     catch (error) {
         console.error(error);
 
-        // Personaliza los mensajes de error definidos en el Modelo
-        if (error.name == 'ValidationError') {
+        // 1. Personaliza los mensajes de error definidos en el Modelo
+        if (error.name === 'ValidationError') {
             const errors = {};
-
-            // Iterar los errores para extraer el nombre de la propiedad y el error especifico
             for (const field in error.errors) {
                 errors[field] = error.errors[field].message;
             }
-
-            res.status(400).json({ errors });
+            return res.status(400).json({ errors });
         }
 
-        // Error generico   
-        res.json({ msg: 'No se pudo registrar la categoria' });
-    }
+        // 2. Verificar si el error es por duplicidad (campo unique)
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyValue)[0];
+            return res.status(400).json({
+                msg: `ERROR: por duplicidad en el campo '${field}'`,
+                [field]: `El campo '${field}' con el valor '${error.keyValue[field]}', ya se encuentra registrado.`
+            });
+        }
 
+        // Error genérico del servidor
+        res.status(500).json({ msg: 'No se pudo registrar la categoria' });
+    }
 }
 
 const getCategory = async (req, res) => {
@@ -41,11 +43,20 @@ const getCategory = async (req, res) => {
         const data = await dbGetCategory(id);
 
         res.status(200).json({ msg: 'Obtiene una categoria', data: data });
-
     }
     catch (error) {
         console.error(error);
-        res.json({ msg: 'No se pudo obtener la categoria por id' });
+
+        // 3. Verificar formato del ID (ObjectId) enviado por la ruta
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                msg: `El ID debe tener 24 caracteres y el enviado tiene ${error.value.length}`,
+                [error.path]: `El identificador '${error.value}' no tiene el formato valido que requiere MongoDB`
+            });
+        }
+
+        // Error genérico del servidor
+        res.status(500).json({ msg: 'No se pudo obtener la categoria por id' });
     }
 }
 
@@ -54,7 +65,6 @@ const getCategories = async (req, res) => {
         const data = await dbGetCategories();
 
         res.status(200).json({ msg: 'Lista de Categorias', data: data });
-
     }
     catch (error) {
         console.error(error);
@@ -67,12 +77,40 @@ const updateCategory = async (req, res) => {
         const id = req.params.id;
         const inputData = req.body;
 
-        const data = await dbUpdateCategory(id, inputData); // <---- Linea suceptible de generar una exception = Excepción
+        const data = await dbUpdateCategory(id, inputData);
 
         res.status(200).json({ msg: 'Categoria Actualizada', data: data });
     }
     catch (error) {
         console.error(error);
+
+        // 1. Personaliza los mensajes de error definidos en el Modelo
+        if (error.name === 'ValidationError') {
+            const errors = {};
+            for (const field in error.errors) {
+                errors[field] = error.errors[field].message;
+            }
+            return res.status(400).json({ errors });
+        }
+
+        // 2. Verificar si el error es por duplicidad (campo unique)
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyValue)[0];
+            return res.status(400).json({
+                msg: `ERROR: por duplicidad en el campo '${field}'`,
+                [field]: `El campo '${field}' con el valor '${error.keyValue[field]}', ya se encuentra registrado.`
+            });
+        }
+
+        // 3. Verificar formato del ID (ObjectId) enviado por la ruta
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                msg: `El ID debe tener 24 caracteres y el enviado tiene ${error.value.length}`,
+                [error.path]: `El identificador '${error.value}' no tiene el formato valido que requiere MongoDB`
+            });
+        }
+
+        // Error genérico del servidor
         res.status(500).json({ msg: 'No se actualizo la categoria' });
     }
 }
@@ -87,7 +125,17 @@ const deleteCategory = async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        res.status(501).json({ msg: 'No se ha podido eliminar la categoria' });
+
+        // 3. Verificar formato del ID (ObjectId) enviado por la ruta
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                msg: `El ID debe tener 24 caracteres y el enviado tiene ${error.value.length}`,
+                [error.path]: `El identificador '${error.value}' no tiene el formato valido que requiere MongoDB`
+            });
+        }
+
+        // Error genérico del servidor
+        res.status(500).json({ msg: 'No se ha podido eliminar la categoria' });
     }
 }
 

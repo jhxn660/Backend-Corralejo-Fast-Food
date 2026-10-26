@@ -1,6 +1,6 @@
 // Controlador define quien hace una acción especifica
 
-import { dbCreateUsuario, dbGetUsuario } from "../services/usuarios.services.js";
+import { dbCreateUsuario, dbDeleteUsuario, dbGetUsuario, dbGetUsuarios, dbUpdateUsuario } from "../services/usuarios.services.js";
 
 //Controlador define quien hace una accion especifica
 const createUsuario = async (req, res) => {
@@ -53,7 +53,7 @@ const getUsuario = async (req, res) => {
 
         // Verificar formato del ID (ObjectId) en case de que se envie un ID en el body
         if( error.name === 'CastError' ) {
-            res.status(400).json({
+            return res.status(400).json({
                 msg: `El ID debe tener 24 caracteres y el enviado tiene ${id.length}`,
                 [error.path]: `El identificador ${ error.value } no tiene el formato valido que requiere MongoDB`
             });
@@ -65,19 +65,100 @@ const getUsuario = async (req, res) => {
     }
 }
 
+const getUsuarios = async (req, res) => {
+    try {
+        const { role, state } = req.query; // GET /api/usuarios?role=Empleado&state=true
+
+        const data = await dbGetUsuarios(role, state);
+
+        res.status(200).json({ msg: 'Lista de Usuarios', data: data });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'No se ha podido obtener los usuarios' });
+    }
+}
+
 const updatePUsuario = (req, res) => {
     res.status(200).json({ msg: 'Actualizar todas las propiedades de un usuario' });
 }
 
-const updateMPUsuario = (req, res) => {
-    res.status(200).json({ msg: 'Actualizar una o mas propiedades del usuario' });
+const updateMPUsuario = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        // Se descarta el password del body: findOneAndUpdate no ejecuta el hook de encriptación
+        const { password, ...usuarioUpdated } = req.body;
+
+        const data = await dbUpdateUsuario(id, usuarioUpdated);
+
+        res.status(200).json({ msg: 'Usuario Actualizado', data: data });
+    }
+    catch (error) {
+        console.error(error);
+
+        // 1. Personaliza los mensajes de error definidos en el Modelo
+        if (error.name === 'ValidationError') {
+            const errors = {};
+            for (const field in error.errors) {
+                errors[field] = error.errors[field].message;
+            }
+            return res.status(400).json({ errors });
+        }
+
+        // 2. Verificar si el error es por duplicidad (email, phone)
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyValue)[0];
+            return res.status(400).json({
+                msg: `ERROR: por duplicidad en el campo '${field}'`,
+                [field]: `El campo '${field}' con el valor '${error.keyValue[field]}', ya se encuentra registrado.`
+            });
+        }
+
+        // 3. Verificar formato del ID (ObjectId) enviado por la ruta
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                msg: `El ID debe tener 24 caracteres y el enviado tiene ${error.value.length}`,
+                [error.path]: `El identificador '${error.value}' no tiene el formato valido que requiere MongoDB`
+            });
+        }
+
+        // Error genérico del servidor
+        res.status(500).json({ msg: 'No se ha podido actualizar el usuario' });
+    }
 }
 
-const deleteUsuario = (req, res) => {
-    res.status(200).json({ msg: 'Elimina un Usuario' });
+const deleteUsuario = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        const data = await dbDeleteUsuario(id);
+
+        res.status(200).json({ msg: 'Usuario Eliminado', data: data });
+    }
+    catch (error) {
+        console.error(error);
+
+        // 3. Verificar formato del ID (ObjectId) enviado por la ruta
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                msg: `El ID debe tener 24 caracteres y el enviado tiene ${error.value.length}`,
+                [error.path]: `El identificador '${error.value}' no tiene el formato valido que requiere MongoDB`
+            });
+        }
+
+        // Error genérico del servidor
+        res.status(500).json({ msg: 'No se ha podido eliminar el usuario' });
+    }
 }
 
 
 export {
-    getUsuario, createUsuario, updatePUsuario, updateMPUsuario, deleteUsuario
+    
+    getUsuario,
+    getUsuarios,
+    createUsuario, 
+    updatePUsuario, 
+    updateMPUsuario, 
+    deleteUsuario
 }

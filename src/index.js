@@ -4,6 +4,7 @@ import conexion from './config/mongo.config.js'; // Conexion a la base de datos
 import usuarioRoute from './routes/usuarios.routes.js';
 import categoriesRoute from './routes/categories.routes.js';
 import insumosRoute from './routes/insumos.routes.js';
+import authRoute from './routes/auth.routes.js';
 
 const port = process.env.PORT || 3001;
 
@@ -20,9 +21,10 @@ app.get('/usuend', (req, res) => {
 });
 
 // Enlazar todas las rutas de aplicación
-app.use('/api/usuarios', usuarioRoute);
-app.use('/api/categories', categoriesRoute);
-app.use('/api/insumos', insumosRoute);
+app.use( '/api/usuarios', usuarioRoute );
+app.use( '/api/categories', categoriesRoute );
+app.use( '/api/insumos', insumosRoute );
+app.use( '/api/auth', authRoute );
 
 //Iniciar servidor
 app.listen(port, () => {
