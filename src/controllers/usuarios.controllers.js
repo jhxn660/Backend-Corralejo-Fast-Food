@@ -1,5 +1,6 @@
 // Controlador define quien hace una acción especifica
 
+import { generatePassword } from "../helpers/bcrypt.helpers.js";
 import { dbCreateUsuario, dbDeleteUsuario, dbGetUsuario, dbGetUsuarios, dbUpdateUsuario } from "../services/usuarios.services.js";
 
 //Controlador define quien hace una accion especifica
@@ -8,6 +9,9 @@ const createUsuario = async (req, res) => {
 
         //Obtenemos el usuario 
         const usuario = req.body;
+
+        // Encripte la contraseña de guardarla en la base de datos.
+        usuario.password = generatePassword(usuario.password);
 
         const newUsuario = await dbCreateUsuario(usuario);
 
