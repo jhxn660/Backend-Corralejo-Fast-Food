@@ -5,7 +5,19 @@ info:
 
 http:
   method: PATCH
-  url: http://localhost:3000/api/usuarios
+  url: http://localhost:3000/api/usuarios/6adf714670a3c153e6b40af3
+  body:
+    type: json
+    data: |-
+      {
+        "role": "Empleado",
+        "name": "Mateo",
+        "email": "Mateo2@gmail.com",
+        "password": "123456+",
+        "phone": "3246205432",
+        "state": true,
+        "empleado_rol": "Mesero"
+      }
   auth: inherit
 
 settings:
