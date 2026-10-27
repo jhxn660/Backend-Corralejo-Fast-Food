@@ -8,7 +8,7 @@ const CreateIndicadores = async (req, res) => {
         res.json({ msg: 'Indicadores creados con éxito', data: newIndicadores });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: 'Error al crear indicadores', error: error.message });
+        res.status(500).json({ msg: 'Error al crear indicadores.', error: error.message });
     }
 };
 
