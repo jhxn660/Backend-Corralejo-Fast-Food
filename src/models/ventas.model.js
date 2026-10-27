@@ -1,72 +1,76 @@
 import { Schema, model } from "mongoose";
 
-// Subesquema para los detalles de los productos facturados
-const detalleVentasSchema = new Schema({
-    producto: {
+const detalleVentaSchema = new Schema({
+    producto: { 
         type: String, 
-        required: true
+        required: [true, 'Debes especificar el nombre del producto vendido.'] 
     },
-    cantidad: {
-        type: Number,
-        required: true
+    cantidad: { 
+        type: Number, 
+        required: [true, 'Debes especificar la cantidad vendida.'],
+        min: [1, 'La cantidad vendida debe ser de al menos 1.']
     },
-    precio_unitario: {
-        type: Number,
-        required: true
+    precio_unitario: { 
+        type: Number, 
+        required: [true, 'El precio unitario es requerido para facturación.'] 
     },
-    subtotal: {
-        type: Number,
-        required: true
+    subtotal: { 
+        type: Number, 
+        required: [true, 'El subtotal del producto es requerido en la venta.'] 
     }
 }, { _id: false });
 
-// Esquema Principal de la Venta
 const ventasSchema = new Schema({
     idVenta: { 
-        type: String, // Ej: "V-3"
-        required: true,
-        unique: true
+        type: String, 
+        required: [true, 'El ID alfanumérico de la venta es obligatorio (ej. V-10).'], 
+        unique: true 
     },
-    fecha: {
-        type: String, // Ej: "05/10 1:17 PM"
-        required: true
+    fecha: { 
+        type: String, 
+        required: [true, 'La fecha y hora de la venta es obligatoria.'] 
     },
-    cliente: {
-        type: String,
-        default: 'Consumidor Final'
+    cliente: { 
+        type: String, 
+        required: [true, 'El nombre del cliente es obligatorio (puede ser "Consumidor Final").'] 
     },
-    totalPagado: {
-        type: Number,
-        required: true
+    totalPagado: { 
+        type: Number, 
+        required: [true, 'El total pagado en caja es obligatorio.'],
+        min: [0, 'El total pagado no puede ser un número negativo.']
     },
-    idTicketVenta: {
-        type: String, // Ej: "T-0003"
-        required: true,
-        unique: true
+    idTicketVenta: { 
+        type: String, 
+        required: [true, 'El ID del ticket/factura es obligatorio.'], 
+        unique: true 
     },
-    empleadoResponsable: {
-        type: String, // Ej: "E-007"
-        required: true
+    empleadoResponsable: { 
+        type: String, 
+        required: [true, 'Debes registrar qué cajero o empleado realizó la venta.'] 
     },
-    pedidoAsociado: {
-        type: String, // Ej: "P-224"
-        required: true
+    pedidoAsociado: { 
+        type: Schema.Types.ObjectId, 
+        ref: 'Pedido', 
+        required: [true, 'Error crítico: Toda venta debe estar asociada al ID interno de un pedido previo.'] 
     },
-    estadoPedido: {
-        type: String, // Ej: "Entregado"
-        required: true
+    estadoPedido: { 
+        type: String, 
+        required: [true, 'El estado de entrega del pedido es obligatorio en la venta.'] 
     },
-    direccionEntrega: {
-        type: String, // Ej: "Local / Mostrador"
-        required: true
+    direccionEntrega: { 
+        type: String, 
+        required: [true, 'La ubicación de entrega (ej. Local, Domicilio, Mesa 4) es obligatoria.'] 
     },
     detalles: {
-        type: [detalleVentasSchema], 
-        required: true
+        type: [detalleVentaSchema],
+        validate: {
+            validator: function(arreglo) {
+                return arreglo != null && arreglo.length > 0;
+            },
+            message: 'Factura inválida: La venta debe contener al menos un producto facturado.'
+        }
     }
-}, {
-    timestamps: true 
-});
+}, { timestamps: true });
 
 const ventasModel = model('Venta', ventasSchema);
 export default ventasModel;

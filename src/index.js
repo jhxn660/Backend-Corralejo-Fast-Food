@@ -29,6 +29,7 @@ app.use('/api/pedidos', PedidosRoute);
 app.use('/api/ventas', ventasRoute);
 app.use('/api/indicadores', indicadoresRoute);
 
+
 //Iniciar servidor
 app.listen(port, () => {
   console.log(`Servidor está corriendo en http://localhost:${port}`);

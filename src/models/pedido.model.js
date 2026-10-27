@@ -1,63 +1,60 @@
 import { Schema, model } from "mongoose";
 
-// Subesquema: Detalle de cada producto
 const detallePedidoSchema = new Schema({
-    producto: {
+    producto: { 
         type: String, 
-        required: true,
-        trim: true
+        required: [true, 'El nombre del producto es obligatorio.'] 
     },
-    cantidad: {
-        type: Number,
-        required: true,
-        min: [1, 'La cantidad mínima es 1']
+    cantidad: { 
+        type: Number, 
+        required: [true, 'Debes ingresar la cantidad del producto.'],
+        min: [1, 'La cantidad mínima por producto debe ser al menos 1. No puedes registrar 0.']
     },
-    precio_unitario: {
-        type: Number,
-        required: true,
-        min: 0
+    precio_unitario: { 
+        type: Number, 
+        required: [true, 'El precio unitario del producto es obligatorio.'],
+        min: [0, 'El precio unitario no puede ser un número negativo.']
     },
-    subtotal: {
-        type: Number,
-        required: true,
-        min: 0
+    subtotal: { 
+        type: Number, 
+        required: [true, 'El subtotal del producto es obligatorio.'] 
     }
-}, { _id: false }); 
+}, { _id: false });
 
-// Esquema Principal: El Pedido completo
 const pedidoSchema = new Schema({
     numeroPedido: { 
         type: Number, 
-        required: true, // ¡Muy importante para evitar el error E11000!
-        unique: true
+        required: [true, 'El número de pedido consecutivo es obligatorio.'], 
+        unique: true 
     },
-    estado: {
-        type: String,
-        enum: ['Preparacion', 'En preparación', 'Resuelto', 'Cancelado'],
-        default: 'En preparación'
-    },
-    hora: {
-        type: String,
-        trim: true
-    },
-    detalles: {
-        type: [detallePedidoSchema], // Aquí se incrustan los subdocumentos
-        required: true,
-        validate: {
-            validator: function(v) {
-                return v && v.length > 0;
-            },
-            message: 'Un pedido debe tener al menos un producto (detalle).'
+    estado: { 
+        type: String, 
+        required: [true, 'El estado del pedido es obligatorio.'],
+        enum: {
+            values: ['En preparación', 'Listo', 'Entregado', 'Cancelado'],
+            message: 'El estado "{VALUE}" no es válido. Solo se acepta: En preparación, Listo, Entregado o Cancelado.'
         }
     },
-    totalPedido: {
-        type: Number,
-        required: true,
-        min: 0
+    hora: { 
+        type: String, 
+        required: [true, 'La hora de recepción del pedido es obligatoria.'] 
+    },
+    totalPedido: { 
+        type: Number, 
+        required: [true, 'El total a pagar del pedido es obligatorio.'],
+        min: [0, 'El total del pedido no puede ser un valor negativo.']
+    },
+    detalles: {
+        type: [detallePedidoSchema],
+        validate: {
+            // Esta función verifica que el arreglo exista y tenga al menos 1 elemento
+            validator: function(arreglo) {
+                return arreglo != null && arreglo.length > 0;
+            },
+            message: 'Un pedido no puede estar vacío. Debes agregar al menos 1 producto en los detalles.'
+        }
     }
-}, {
-    timestamps: true 
-});
+}, { timestamps: true });
 
 const pedidoModel = model('Pedido', pedidoSchema);
 export default pedidoModel;

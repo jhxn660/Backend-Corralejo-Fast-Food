@@ -1,18 +1,19 @@
 import ventasModel from "../models/ventas.model.js";
 
-// Crear una nueva venta
 const dbCreateVentas = async (newVenta) => {
     return await ventasModel.create(newVenta); 
 }
 
-// Obtener todas las ventas
+// AQUÍ ESTÁ EL CAMBIO CON POPULATE:
 const dbReadVentas = async () => {
-    return await ventasModel.find();
+    return await ventasModel.find()
+        .populate('pedidoAsociado'); // <-- Busca la referencia y trae todos los datos del pedido
 }
 
-// Aquí puedes ir agregando las demás funciones para actualizar o eliminar
-const dbUpdateAllVentas = () => {}
-const dbUpdatePartialVentas = () => {}
-const dbDeleteVentas = () => {}
+// Si quieres una función para buscar una sola venta por su ID:
+const dbReadVentaById = async (id) => {
+    return await ventasModel.findById(id)
+        .populate('pedidoAsociado');
+}
 
-export { dbCreateVentas, dbReadVentas, dbUpdateAllVentas, dbUpdatePartialVentas, dbDeleteVentas };
+export { dbCreateVentas, dbReadVentas, dbReadVentaById };
