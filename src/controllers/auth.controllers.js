@@ -46,7 +46,8 @@ const loginUser = async ( req, res ) => {
             _id: userFound._id,
             name: userFound.name,
             email: userFound.email,
-            role: userFound.role
+            role: userFound.role,
+            state: userFound.state
         }
 
         const token = generateToken( payload );
@@ -70,9 +71,26 @@ const loginUser = async ( req, res ) => {
 
 const verifyAuthenticate = ( req, res) =>  {
 
+    const data = req.holaatodos;
+    console.log( ':::::', data)
+
+    console.log('soy el controlador verifyAuthenticate')
     res.json({
         msg: 'Verifica y Actualiza las credenciales del usuario'
-    })
+    });
+
+    // 4. Generar un nuevo Token (Debe de tener las mismas propiedades del payload 
+    // original)
+
+    // const newPayload = {
+    //     _id: userFound._id,
+    //      name: userFound.name,
+    //     email: userFound.email,
+    //     role: userFound.role,
+    //     status: userFound.state
+    // }
+
+    // const token = generateToken( newPayload );
 
 }
 

@@ -5,7 +5,7 @@ info:
 
 http:
   method: DELETE
-  url: http://localhost:3000/api/usuarios/6adf714670a3c153e6b40af3
+  url: http://localhost:3000/api/usuarios/6ae0d279712bce3f2eefa10e
   auth: inherit
 
 settings:

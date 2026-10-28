@@ -10,14 +10,14 @@ http:
     type: json
     data: |-
       {
-        "role": "Usuario",
-        "name": "Juan",
-        "email": "Mateo@gmail.com",
+        "role": "Empleado",
+        "name": "Jhon JairoZZZZZ",
+        "email": "JairoJairoZZZZZ@gmail.com",
         "password": "123456+",
-        "phone": "3246305432",
+        "phone": "3295405432",
         "state": true,
         "empleado_rol": "Cocinero",
-        "createdBy": "6ad7a3c2c17d255d4aa4dc4a"
+        "createdBy": "6ae0d5f426ba706283c4f922"
       }
   auth: inherit
 

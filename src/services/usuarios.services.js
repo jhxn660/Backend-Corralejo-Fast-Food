@@ -55,8 +55,8 @@ const dbDeleteUsuario = async ( id ) => {
 
 // Consultar por correo para Authentication en Controllers
 // email: tralelero@correo.co
-const dbGetUserByEmail = async ( email ) => {
-    return await usuarioModel.findOne({ email: email })
+const dbGetUserByEmail = async ( email, state = true ) => {
+    return await usuarioModel.findOne({ email: email, state: state })
 }
 
 export {
