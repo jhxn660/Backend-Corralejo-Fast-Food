@@ -5,6 +5,7 @@ import menuRoute from './routes/menu.routes.js';
 import categoriesRoute from './routes/categories.routes.js';
 import productRoute from './routes/products.routes.js';
 import authRoute from './routes/auth.routes.js'
+import usersRoute from './routes/users.routes.js';
 
 const port = process.env.PORT || 3001;
 
@@ -16,7 +17,7 @@ conexion();   // Ejecuta la conexion a la base de datos
 app.use(express.json() );
 
 // Definiendo 1 endpoint (ruta de entrada)
-app.get('/healt', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({msg: 'Apartado CFF - Corralejo Fast Food panel menu compuesto Funcionado a la perfección!'});
 });
 
@@ -25,6 +26,7 @@ app.use( '/api/menu', menuRoute );
 app.use( '/api/categories', categoriesRoute );
 app.use( '/api/products', productRoute);
 app.use( '/api/auth', authRoute);
+app.use( '/api/users', usersRoute );
 
 
 //Iniciar servidor

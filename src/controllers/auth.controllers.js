@@ -1,3 +1,5 @@
+import { verifyPassword } from "../helpers/bcrypt.helpers.js";
+import { generateToken } from "../helpers/jwt.helpers.js";
 import { dbGetUserByEmail } from "../services/users.services.js"
 
 const loginUser = async ( req, res ) => {
@@ -30,22 +32,58 @@ const loginUser = async ( req, res ) => {
     }
 
     // paso 3 Verificar si la contraseña es valida
+    const isValid = verifyPassword( inputData.password, userFound.password )
+
+    if( ! isValid ) {
+        res.json({
+            msg: 'El password es invalido'
+        });
+    }
 
     // paso 4 Generar el token (tarjeta que presento que atentica y autoriza)
+    const payload = {
+        _id: userFound._id,
+        name: userFound.name,
+        email: userFound.email,
+        role: userFound.role,
+        status : userFound.status
+    }
 
-    // paso 5 Responder al cliente (enviar el token, importante no devolver la contraseña)
+    const token = generateToken( payload );
 
+    // paso 5 Responder al cliente (enviar el token, importante no devolver la contrasena)
+    const jsonObj = userFound.toObject();
 
+    // Eliminar propiedades no deseadas
+    delete jsonObj.password;
+    
     res.json({
-        msg: 'Login de usuario',
-        credentials
+        msg: 'Login de usuario ',
+        token: token,
+        data: jsonObj
     });
 }
 
 const verifyAuthenticate = ( req, res ) => {
+    const data = req-holaatodos;
+    console.log('')
+    
+    console.log('Soy el controlador')
+
     res.json({
         msg: 'Verifica y actualiza las credenciales del usuario'
     });
+
+    // Generar un nuevo Token
+    const newPayload = {
+        _id: userFound._id,
+        name: userFound.name,
+        email: userFound.email,
+        role: userFound.role,
+        status: userFound.status
+    }
+
+    const token = generateToken( newPayload );
 }
 
 export {

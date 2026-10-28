@@ -10,8 +10,8 @@ http:
     type: json
     data: |-
       {
-        "nombre": "Hamburguesa CFF",
-        "description": "Hamburguesa con carne de res o de cerdo, pan, lechuga, tomate",
+        "nombre": "Alitas CFF",
+        "description": "Alitas deliciosas para el paladar y gusto personal",
         "price": 35000,
         "stock": 54,
         "state": "disponible",
