@@ -3,6 +3,7 @@ import { createUsuario } from "../controllers/usuarios.controllers.js";
 import { loginUser, verifyAuthenticate } from "../controllers/auth.controllers.js";
 import { authMiddleware } from "../middlewares/authenticate.middleware.js";
 import { authorizationMiddleware } from "../middlewares/authorization.middleware.js";
+import withoutRoleMiddleware from "../middlewares/without-role.middleware.js";
 
 // Crea una instancia de las rutas de Express
 const router = Router();
@@ -10,7 +11,7 @@ const router = Router();
 // Define las rutas para la autenticación
 // 1. Registro público de usuarios. [Usuario]
 // Aplicar Middleware para que solo se registre el Customer.
-router.post( '/register', createUsuario );
+router.post( '/register', withoutRoleMiddleware, createUsuario );
 
 // 2. Login de Usuarios.
 router.post ( '/login', loginUser );

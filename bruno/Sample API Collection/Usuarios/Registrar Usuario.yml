@@ -6,6 +6,9 @@ info:
 http:
   method: POST
   url: http://localhost:3000/api/usuarios
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUyMjEwNzRjOTIyMjA2ODI4ZmE0MzciLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNAZ21haWwuY29tIiwicm9sZSI6IlVzdWFyaW8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMjk2NjA3LCJleHAiOjE3OTMzMDAyMDd9.CnDDZJ3OuL3EUFTzRIUHGZek0__RKCBBAxkmgl0-lck
   body:
     type: json
     data: |-

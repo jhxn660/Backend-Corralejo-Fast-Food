@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { createInsumo, deleteInsumo, getInsumo, getInsumos, updateInsumo } from "../controllers/insumos.controllers.js";
+import { authMiddleware } from "../middlewares/authenticate.middleware.js";
 
 const router = Router ();
 
@@ -9,10 +10,10 @@ const router = Router ();
 //     res.json({msg: 'Registra un produto'});
 // });
 
-router.post('/', createInsumo);
-router.get('/:id', getInsumo);
-router.get('/', getInsumos);
-router.patch('/:id', updateInsumo);
-router.delete('/:id', deleteInsumo);
+router.post('/', authMiddleware, createInsumo);
+router.get('/:id', authMiddleware, getInsumo);
+router.get('/', authMiddleware, getInsumos);
+router.patch('/:id', authMiddleware, updateInsumo);
+router.delete('/:id', authMiddleware, deleteInsumo);
 
 export default router;

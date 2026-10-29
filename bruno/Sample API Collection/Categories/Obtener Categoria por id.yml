@@ -5,7 +5,14 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/categories/6ad790637301518ae78a7866
+  url: http://localhost:3000/api/categories/6ad7af987fa5e4a9487a2ee4?X-Token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUyMjEwNzRjOTIyMjA2ODI4ZmE0MzciLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNAZ21haWwuY29tIiwicm9sZSI6IlVzdWFyaW8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMjk0NTc5LCJleHAiOjE3OTMyOTgxNzl9.vVVRY5YnDJDPQ8M1iEENJfwemZXbKWiP7xFuke-a-Rc
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUyMjEwNzRjOTIyMjA2ODI4ZmE0MzciLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNAZ21haWwuY29tIiwicm9sZSI6IlVzdWFyaW8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMjk0NTYzLCJleHAiOjE3OTMyOTgxNjN9.PUQs-s9b6hy0nWUKElILJg90CMX9BI0ObHcdP66jPXA
+  params:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUyMjEwNzRjOTIyMjA2ODI4ZmE0MzciLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNAZ21haWwuY29tIiwicm9sZSI6IlVzdWFyaW8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMjk0NTc5LCJleHAiOjE3OTMyOTgxNzl9.vVVRY5YnDJDPQ8M1iEENJfwemZXbKWiP7xFuke-a-Rc
+      type: query
   auth: inherit
 
 settings:

@@ -6,11 +6,14 @@ info:
 http:
   method: POST
   url: http://localhost:3000/api/categories
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUyMjEwNzRjOTIyMjA2ODI4ZmE0MzciLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNAZ21haWwuY29tIiwicm9sZSI6IlVzdWFyaW8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMjk0NTc5LCJleHAiOjE3OTMyOTgxNzl9.vVVRY5YnDJDPQ8M1iEENJfwemZXbKWiP7xFuke-a-Rc
   body:
     type: json
     data: |-
       {
-        "name": "fsd",
+        "name": "fsdssss",
         "description": "fsgsgdsgdgrggd",
         "status": false,
         "createdBy": "6ad79884f646ab5d5540a5f3"
