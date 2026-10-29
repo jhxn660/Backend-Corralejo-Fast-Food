@@ -45,7 +45,7 @@ const authMiddleware = async ( req, res, next ) => {
         });
     }
 
-    res.holaatodos = 'Hola Terricolas'
+    req.userFound = userFound;
 
     console.log( 'userFound', userFound);
 
