@@ -2,100 +2,114 @@ import { generatePassword, verifyPassword } from "../helpers/bcrypt.helpers.js";
 import { generateToken } from "../helpers/jwt.helpers.js";
 import { dbGetUserByEmail } from "../services/usuarios.services.js";
 
-const loginUser = async ( req, res ) => {
-    
+// Login de usuario: valida las credenciales, genera el token y devuelve el usuario sin el password
+const loginUser = async (req, res) => {
     try {
-        // Paso 1: Obtener las credxenciales del usuario { email: '...', password: '...'}
+
+        // Paso 1: Obtener las credenciales del usuario { email: '...', password: '...' }
         const inputData = req.body;
 
-        // Valida si el campo email esta dentro del formulario
-        if( ! inputData.email ) {
+        // Valida si el campo email está dentro del formulario
+        if (!inputData.email) {
             // Crea una Exception --- Desarrollador
             // throw new Error( 'Se olvido pasar el correo en el campo email' );
-            res.json({ msg: 'Se olvido pasar el correo en el campo email'});
+            res.json({ msg: 'Se olvido pasar el correo en el campo email' });
         }
 
-        if( ! inputData.password ) {
+        // Valida si el campo password está dentro del formulario
+        if (!inputData.password) {
             // throw new Error( 'Se le olvido pasar la contraseña en el campo password' );
-            res.json({ msg: 'Se le olvido pasar la contraseña en el campo password'});
+            res.json({ msg: 'Se le olvido pasar la contraseña en el campo password' });
         }
 
-        // Paso 2: Verificar si el Usuario existe ( ¿email, Está registrado en la BD?)
-        // TODO: Hacer una peticion a nuestra base de datos -- PENDIENTE EJEMPLO
-        const userFound = await dbGetUserByEmail( inputData.email );
+        // Paso 2: Verificar si el usuario existe (¿el email está registrado en la BD?)
+        // TODO: Hacer una petición a nuestra base de datos -- PENDIENTE EJEMPLO
+        const userFound = await dbGetUserByEmail(inputData.email);
 
-        if( ! userFound ) {
+        if (!userFound) {
             res.json({ msg: 'El Email no existe. Por favor registrese' });
         }
 
+        // Paso 3: Verificar si la contraseña es válida
+        // Encriptar la contraseña antes de validarla (createUsuario, dbcreateUsuario)
+        const isValid = verifyPassword(inputData.password, userFound.password);
 
-        // Paso 3: Verificar si la contraseña es valida
-        // TODO: Encryptar la Contraseña antes de validarla (createUsuario, dbcreateUsuario)
-
-        const isValid = verifyPassword( inputData.password, userFound.password )
-
-        if ( ! isValid ) {
-            res.json({
-                msg: 'El password es invalido'
-            });
+        if (!isValid) {
+            res.json({ msg: 'El password es invalido' });
         }
 
-        // Paso 4: Generar el Token "Es Como una Tarjeta que presento que Autentica y Autoriza"
-
+        // Paso 4: Generar el token
+        // "Es como una tarjeta que presento que autentica y autoriza"
         const payload = {
             _id: userFound._id,
             name: userFound.name,
             email: userFound.email,
             role: userFound.role,
             state: userFound.state
-        }
+        };
 
-        const token = generateToken( payload );
+        const token = generateToken(payload);
 
-        // Paso 5: Responder al cliente (Enviar el Token, Importante: No devolver el Password),
-        // Eliminar el campo password del objeto
-        const jsonObj = userFound.toObject(); // Convertir un BJSON a un objeto de JavaScript
+        // Paso 5: Responder al cliente
+        // Enviar el token. Importante: NO devolver el password
+        const jsonObj = userFound.toObject();   // Convierte el documento (BSON) en un objeto de JavaScript
 
-        // Eliminar propiedades no deseadas
-        delete jsonObj.password;
+        delete jsonObj.password;                // Elimina las propiedades no deseadas
 
-        res.json({ 
+        res.json({
             msg: 'Login de Usuario',
             token: token,
             data: jsonObj
         });
+
     } catch (error) {
-        
+        console.error(error);
+
+        res.json({
+            msg: 'No se pudo verificar la autenteicidad de las credenciales'
+        });
     }
-}
+};
 
-const verifyAuthenticate = ( req, res) =>  {
+// Verificar autenticación: recibe el usuario desde el middleware de autenticación y renueva el token
+const verifyAuthenticate = (req, res) => {
+    try {
 
-    const data = req.holaatodos;
-    console.log( ':::::', data)
+        // Paso 1: Obtener los datos del usuario que envía el middleware de autenticación
+        const userFound = req.userFound;
 
-    console.log('soy el controlador verifyAuthenticate')
-    res.json({
-        msg: 'Verifica y Actualiza las credenciales del usuario'
-    });
+        // Paso 2: Crear el nuevo payload y generar el token
+        const newPayload = {
+            _id: userFound._id,
+            name: userFound.name,
+            email: userFound.email,
+            role: userFound.role,
+            state: userFound.state
+        };
 
-    // 4. Generar un nuevo Token (Debe de tener las mismas propiedades del payload 
-    // original)
+        const newToken = generateToken(newPayload);
 
-    // const newPayload = {
-    //     _id: userFound._id,
-    //      name: userFound.name,
-    //     email: userFound.email,
-    //     role: userFound.role,
-    //     status: userFound.state
-    // }
+        // Paso 3: Eliminar las propiedades sensibles del objeto que se retorna
+        const jsObj = userFound.toObject();     // Convierte el documento (BSON) en un objeto de JavaScript
 
-    // const token = generateToken( newPayload );
+        delete jsObj.password;                  // Elimina el campo password del objeto que retornamos al usuario
 
-}
+        res.json({
+            msg: 'Autenticidad del token Verficado con exito',
+            token: newToken,
+            data: jsObj
+        });
 
+    } catch (error) {
+        console.error(error);
+
+        res.json({
+            msg: 'No se pudo verificar la autenteicidad de las credenciales'
+        });
+    }
+};
 
 export {
-    loginUser, 
+    loginUser,
     verifyAuthenticate
-}
+};

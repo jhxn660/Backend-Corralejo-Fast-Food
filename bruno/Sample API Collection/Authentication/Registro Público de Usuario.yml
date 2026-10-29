@@ -11,10 +11,10 @@ http:
     data: |-
       {
         "role": "Usuario",
-        "name": "Holmedads",
-        "email": "asfadsdsdfs@gmail.com",
+        "name": "Holmsssds",
+        "email": "5sfsfs@gmail.com",
         "password": "123456+",
-        "phone": "3144405432",
+        "phone": "3145477432",
         "state": true
       }
   auth: inherit
