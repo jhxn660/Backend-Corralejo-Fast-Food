@@ -1,23 +1,22 @@
 // Controlador define quien hace una accion especifica
-
 import { generatePassword } from '../helpers/bcrypt.helpers.js';
-import {
-    dbCreateUser,
-    dbGetUser,
-    dbGetUsers,
-    dbUpdateUser,
-    dbDeleteUser
-} from '../services/users.services.js';
+import { dbCreateUser, dbGetUser, dbGetUsers, dbUpdateUser, dbDeleteUser } from '../services/users.services.js';
 
 const createUser = async (req, res) => {
     try {
-        // Obtenemos el usuario
-        const user = req.body;
+        // Extrae el _id del userFound usando una desestructuración del payload que envia en la petición (req) el middleware de Autentication
+        const userFound = req.userFound;
 
+        // Usa un operador ternario para asignar el valor de _id a la variable id, o null si no existe
+        const id = userFound?._id ? userFound._id : null;
+        
+        // Extrae los datos del cuerpo de la petición
+        const inputData = req.body;
+        inputData.createdBy = id;
+        
         // Encripta la contraseña antes de guardarla en la base de datos
-        user.password = generatePassword(user.password);
-
-        const newUser = await dbCreateUser(user);
+        inputData.password = generatePassword(inputData.password);
+        const newUser = await dbCreateUser(inputData);
 
         res.status(201).json({ msg: 'Registra Usuario', user: newUser });
 

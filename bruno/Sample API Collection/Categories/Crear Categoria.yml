@@ -8,16 +8,16 @@ http:
   url: http://localhost:3000/api/categories
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzMwNzkzLCJleHAiOjE3OTMzMzQzOTN9.Ymr-pl1lIrL5YDk9o-tdfHXDLlTsYvsbmGCNMTFz9Ks
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzc0OTI0LCJleHAiOjE3OTMzNzg1MjR9.r-dfkFYvUNs51pyU5heIgGUhzFvwOTWHQEAUadR_u_c
   body:
     type: json
     data: |-
       {
-        "name": "Panaderia",
+        "name": "Pana222s",
         "type": "Insumo",
-        "description": "Panes y masas para hamburguesas",
-        "createdBy": "6ae40e237c859c142ba70bad"
+        "description": "Panes y masas para hamburguesas"
       }
+      // "createdBy": "6ae40e237c859c142ba70bad" Ya no se usa el id. Se pone de forma automatica.
   auth: inherit
 
 settings:

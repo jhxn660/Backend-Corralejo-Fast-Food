@@ -1,15 +1,13 @@
-import {
-    dbCreateCategory,
-    dbGetCategory,
-    dbGetCategories,
-    dbUpdateCategory,
-    dbDeleteCategory
-} from '../services/categories.services.js';
+import { dbCreateCategory, dbGetCategory, dbGetCategories, dbUpdateCategory, dbDeleteCategory } from '../services/categories.services.js';
 
 const createCategory = async (req, res) => {
     try {
+        // Extrae el _id del userFound usando una desestructuración del payload que envia en la petición (req) el middleware de Autentication
+        const { _id } = req.userFound;
+
         // Extrae los datos del cuerpo de la peticion
         const inputData = req.body;
+        inputData.createdBy = _id; // <--- Agrega el ID del usuario que registra la categoria
 
         // El creador es el usuario autenticado, no el que venga en el body
         inputData.createdBy = req.userFound._id;

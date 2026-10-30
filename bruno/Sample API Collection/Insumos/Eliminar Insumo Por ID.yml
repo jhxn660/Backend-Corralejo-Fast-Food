@@ -8,7 +8,7 @@ http:
   url: http://localhost:3000/api/insumos/6ad79096801be531b1117b32
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MDA1MzhlYjA2N2ZiYzQ1Mjk3ZTYiLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNzZmZhZGZzQGdtYWlsLmNvbSIsInJvbGUiOiJVc3VhcmlvIiwic3RhdGUiOnRydWUsImlhdCI6MTc5MzMyNzkzMiwiZXhwIjoxNzkzMzMxNTMyfQ.qGPks2GmmdT2grYjdF_D1BrI2979GBnv0oZEs4cgwT4
+      value: ""
   auth: inherit
 
 settings:

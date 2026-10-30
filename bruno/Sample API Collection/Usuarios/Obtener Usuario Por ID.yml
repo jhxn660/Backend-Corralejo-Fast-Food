@@ -5,10 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/users/6ae400a08eb067fbc45297e7
+  url: http://localhost:3000/api/users/6ae40e237c859c142ba70bad
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MDA1MzhlYjA2N2ZiYzQ1Mjk3ZTYiLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNzZmZhZGZzQGdtYWlsLmNvbSIsInJvbGUiOiJVc3VhcmlvIiwic3RhdGUiOnRydWUsImlhdCI6MTc5MzMyNzI1NCwiZXhwIjoxNzkzMzMwODU0fQ.1iJ3alGFCuAZ-E-B_iFGLut8RnNMeB4L_d5cxspuwCQ
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzc3MDc3LCJleHAiOjE3OTMzODA2Nzd9.pJYmhda064HwFFT6uyfai131P6jDc9R59tZxb-Jr1vE
   auth: inherit
 
 settings:

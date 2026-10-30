@@ -8,7 +8,7 @@ http:
   url: http://localhost:3000/api/auth/renew-token
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzMwNzgyLCJleHAiOjE3OTMzMzQzODJ9.rKkAu87dbHkXPIpYLClnjcb8Iwxx1U1apaSPpQqaRgQ
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzgwMjUzLCJleHAiOjE3OTMzODM4NTN9.Zn7cAw_fqwFg4YhGBadtc6UXL9-lOtya893S7LFFuAc
   auth: inherit
 
 settings:

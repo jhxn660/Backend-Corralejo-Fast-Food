@@ -1,18 +1,13 @@
 import { Router } from 'express';
-import {
-    createInsumo,
-    getInsumo,
-    getInsumos,
-    updateInsumo,
-    deleteInsumo
-} from '../controllers/insumos.controllers.js';
+import { createInsumo, getInsumo, getInsumos, updateInsumo, deleteInsumo } from '../controllers/insumos.controllers.js';
 import { authMiddleware } from '../middlewares/authenticate.middleware.js';
+import { authorizationMiddleware } from '../middlewares/authorization.middleware.js';
 
 // Crea una instancia de las rutas de Express
 const router = Router();
 
 // Define las rutas para los insumos
-router.post('/', authMiddleware, createInsumo);
+router.post('/', [ authMiddleware, authorizationMiddleware ], createInsumo);
 router.get('/:id', authMiddleware, getInsumo);
 router.get('/', authMiddleware, getInsumos);
 router.patch('/:id', authMiddleware, updateInsumo);

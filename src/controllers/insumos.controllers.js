@@ -1,14 +1,12 @@
-import {
-    dbCreateInsumo,
-    dbGetInsumo,
-    dbGetInsumos,
-    dbUpdateInsumo,
-    dbDeleteInsumo
-} from '../services/insumos.services.js';
+import { dbCreateInsumo, dbGetInsumo, dbGetInsumos, dbUpdateInsumo, dbDeleteInsumo } from '../services/insumos.services.js';
 
 const createInsumo = async (req, res) => {
     try {
+        // Extrae el ID del usuario encontrado por el Middleware de Authentication
+        const user_id = req.userFound._id;
+
         const inputData = req.body;
+        inputData.createdBy = user_id; // <--- Agrega el ID del usuario que registra la categoria
 
         // El creador es el usuario autenticado, no el que venga en el body
         inputData.createdBy = req.userFound._id;

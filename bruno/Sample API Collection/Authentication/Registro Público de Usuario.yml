@@ -6,19 +6,14 @@ info:
 http:
   method: POST
   url: http://localhost:3000/api/auth/register
-  headers:
-    - name: X-Token
-      value: ""
-      disabled: true
   body:
     type: json
     data: |-
       {
-        "role": "Empleado",
-        "name": "Holmsssds",
-        "email": "5sfsfssffadfs@gmail.com",
+        "name": "Juan",
+        "email": "45547833@gmail.com",
         "password": "123456+",
-        "phone": "3145244432",
+        "phone": "3155248932",
         "state": true
       }
   auth: inherit

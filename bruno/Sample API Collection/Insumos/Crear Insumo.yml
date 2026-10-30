@@ -8,19 +8,19 @@ http:
   url: http://localhost:3000/api/insumos
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzMwNzkzLCJleHAiOjE3OTMzMzQzOTN9.Ymr-pl1lIrL5YDk9o-tdfHXDLlTsYvsbmGCNMTFz9Ks
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzc2Njk3LCJleHAiOjE3OTMzODAyOTd9.1vHfMDs6EH3DqRMCuN5t9QgkSiEElIUKr98bjrnLq64
   body:
     type: json
     data: |-
       {
-        "name": "Pan Bsrioche",
+        "name": "Pan Bsrisfdoche",
         "description": "Pan artesanal para hamburguesa",
         "medida": "Unidades",
         "cost": 1200,
         "stock": 300,
-        "category": "6ae40e8a7c859c142ba70bae",
-        "createdBy": "6ae40e237c859c142ba70bad"
+        "category": "6ae40e8a7c859c142ba70bae"
       }
+      // "createdBy": "6ae40e237c859c142ba70bad" ya no se necesita porque se estrae el id en el middleware
   auth: inherit
 
 settings:

@@ -18,7 +18,8 @@ router.post('/register', withoutRoleMiddleware, createUser);
 router.post('/login', loginUser);
 
 // 3. Renovacion de Credenciales (token)
-router.get('/renew-token', authMiddleware, authorizationMiddleware, verifyAuthenticate);
+router.get('/renew-token', authMiddleware, // authorizationMiddleware, 
+verifyAuthenticate);
 
 // 4. Recuperar contraseña
 // 5. Habilitar cuenta registrada publicamente

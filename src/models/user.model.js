@@ -6,10 +6,9 @@ const UserSchema = new Schema(
         role: {
             type: String,
             enum: {
-                values: ['Administrador', 'Empleado', 'Usuario', 'UsuarioT'],
+                values: ['Administrador', 'Empleado', 'Usuario', 'UsuarioT', 'Owner'],
                 message: 'El rol {VALUE} no es valido'  // {VALUE} muestra el valor que se envio
             },
-            required: [true, 'El rol es obligatorio'],
             default: 'Usuario'
         },
         name: {
