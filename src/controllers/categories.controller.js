@@ -11,6 +11,9 @@ const createCategory = async (req, res) => {
         // Extrae los datos del cuerpo de la peticion
         const inputData = req.body;
 
+        // El creador es el usuario autenticado, no el que venga en el body
+        inputData.createdBy = req.userFound._id;
+
         // Usar el servicio para registrar
         const data = await dbCreateCategory(inputData);
 

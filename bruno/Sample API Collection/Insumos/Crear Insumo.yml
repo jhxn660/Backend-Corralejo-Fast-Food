@@ -8,18 +8,18 @@ http:
   url: http://localhost:3000/api/insumos
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MDA1MzhlYjA2N2ZiYzQ1Mjk3ZTYiLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNzZmZhZGZzQGdtYWlsLmNvbSIsInJvbGUiOiJVc3VhcmlvIiwic3RhdGUiOnRydWUsImlhdCI6MTc5MzMyNzkzMiwiZXhwIjoxNzkzMzMxNTMyfQ.qGPks2GmmdT2grYjdF_D1BrI2979GBnv0oZEs4cgwT4
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzMwNzkzLCJleHAiOjE3OTMzMzQzOTN9.Ymr-pl1lIrL5YDk9o-tdfHXDLlTsYvsbmGCNMTFz9Ks
   body:
     type: json
-    data: |
+    data: |-
       {
-        "name": "swfdasfaat",
-        "description": "Harina de wasa",
-        "medida": "10 KG",
-        "cost": "30000",
-        "stock": "3",
-        "state": "Con_Stock",
-        "createdBy": "Mateo"
+        "name": "Pan Bsrioche",
+        "description": "Pan artesanal para hamburguesa",
+        "medida": "Unidades",
+        "cost": 1200,
+        "stock": 300,
+        "category": "6ae40e8a7c859c142ba70bae",
+        "createdBy": "6ae40e237c859c142ba70bad"
       }
   auth: inherit
 

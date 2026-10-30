@@ -1,33 +1,39 @@
 import CategoryModel from '../models/category.model.js';
 
-// Registrar en la Base de Datos (BD)
+// Registrar la categoria y devolver quien la creo
 const dbCreateCategory = async (newCategory) => {
-    return await CategoryModel.create(newCategory);
+    const category = await CategoryModel.create(newCategory);
+
+    return await category.populate('createdBy', 'name email role');
 };
 
-// Obtiene una categoria por su ID
+// Obtener una categoria por su ID
 const dbGetCategory = async (id) => {
-    return await CategoryModel.findOne({ _id: id });
+    return await CategoryModel
+        .findOne({ _id: id })
+        .populate('createdBy', 'name email role');
 };
 
-// Consultar todas las categorias registradas, poblando los campos
+// Listar todas las categorias
 const dbGetCategories = async () => {
-    return await CategoryModel.find().populate('createdBy');
+    return await CategoryModel
+        .find()
+        .populate('createdBy', 'name email role');
 };
 
-// Se usa PATCH aca para cambiar uno o mas datos de la coleccion
-// "id" que se desea actualizar
-// "categoryUpdated" objeto donde entrara el parametro de la categoria actualizada
-// { new: true } configuracion para que retorne el documento actualizado
+// Actualizar uno o mas campos de una categoria (PATCH)
 const dbUpdateCategory = async (id, categoryUpdated) => {
     return await CategoryModel.findOneAndUpdate(
         { _id: id },
         categoryUpdated,
-        { new: true }
+        {
+            new: true,           // Devuelve el documento ya actualizado
+            runValidators: true  // Aplica las reglas del modelo tambien al actualizar
+        }
     );
 };
 
-// Puede eliminarse por nombre, id, etc...
+// Eliminar una categoria por su ID
 const dbDeleteCategory = async (id) => {
     return await CategoryModel.findOneAndDelete({ _id: id });
 };

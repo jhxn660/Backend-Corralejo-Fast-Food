@@ -1,16 +1,24 @@
-// Servicio se habla con la base de datos
-// Estas funciones realizaran las consultas a la base de datos
-
 import userModel from '../models/user.model.js';
 
+// Crear un usuario y devolverlo sin la contraseña
 const dbCreateUser = async (newUser) => {
-    return await userModel.create(newUser);  // Promesa Resuelta (await)
+    const user = await userModel.create(newUser);
+
+    // Separa la contraseña del resto de datos y devuelve solo el resto
+    const { password, ...userWithoutPassword } = user.toObject();
+
+    return userWithoutPassword;
 };
 
+// Obtener un usuario por su ID
 const dbGetUser = async (id) => {
-    return await userModel.findOne({ _id: id });
+    return await userModel
+        .findOne({ _id: id })
+        .select('-password')                        // Excluye la contraseña
+        .populate('createdBy', 'name email role');
 };
 
+// Listar usuarios con filtros opcionales por rol y estado
 const dbGetUsers = async (role, state) => {
     let filter = {};
 
@@ -28,10 +36,11 @@ const dbGetUsers = async (role, state) => {
 
     return await userModel
         .find(filter)
-        .select('-password')                        // Excluye la contraseña
-        .populate('createdBy', 'name email role');  // Pobla solo datos seguros del creador
+        .select('-password')
+        .populate('createdBy', 'name email role');
 };
 
+// Actualizar un usuario por su ID
 const dbUpdateUser = async (id, userUpdated) => {
     return await userModel
         .findOneAndUpdate(
@@ -39,19 +48,22 @@ const dbUpdateUser = async (id, userUpdated) => {
             userUpdated,
             {
                 new: true,           // Devuelve el documento ya actualizado
-                runValidators: true  // Aplica las reglas del esquema (match, enum, maxlength...)
+                runValidators: true  // Aplica las reglas del modelo tambien al actualizar
             }
         )
-        .select('-password');        // No devolver la contraseña
+        .select('-password');
 };
 
+// Eliminar un usuario por su ID
 const dbDeleteUser = async (id) => {
     return await userModel
         .findOneAndDelete({ _id: id })
-        .select('-password');        // No devolver la contraseña del usuario eliminado
+        .select('-password');
 };
 
-// Consultar por correo para Authentication en Controllers
+// Consultar por correo para el login
+// Ojo: SI devuelve la contraseña, porque el login la necesita para compararla
+// No usar en rutas que respondan datos al cliente
 const dbGetUserByEmail = async (email, state = true) => {
     return await userModel.findOne({ email: email, state: state });
 };

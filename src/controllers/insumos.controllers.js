@@ -10,6 +10,9 @@ const createInsumo = async (req, res) => {
     try {
         const inputData = req.body;
 
+        // El creador es el usuario autenticado, no el que venga en el body
+        inputData.createdBy = req.userFound._id;
+
         const data = await dbCreateInsumo(inputData);
 
         res.status(201).json({ msg: 'Registra Insumo', data: data });

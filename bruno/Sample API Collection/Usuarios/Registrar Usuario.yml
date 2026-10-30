@@ -14,13 +14,11 @@ http:
     data: |-
       {
         "role": "Empleado",
-        "name": "Jhon JaixxZZZZ",
-        "email": "JairoJaixxZZZZ@gmail.com",
+        "name": "Laura Gomez",
+        "email": "laura@correo.com",
         "password": "123456+",
-        "phone": "3295423432",
-        "state": true,
-        "empleado_rol": "Cocinero",
-        "createdBy": "6ae0d5f426ba706283c4f922"
+        "phone": "3109876543",
+        "empleado_rol": "Cajero"
       }
   auth: inherit
 

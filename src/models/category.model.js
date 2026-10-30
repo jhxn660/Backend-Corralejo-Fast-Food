@@ -1,40 +1,47 @@
 import { Schema, model } from 'mongoose';
 
-// Definir la estructura de mi documento
 const CategorySchema = new Schema(
     {
         name: {
             type: String,
-            minlength: [4, 'El nombre de la categoria debe tener al menos 3 caracteres.'],
+            required: [true, 'El nombre de la categoria es obligatorio'],
+            trim: true,
             unique: true,
-            required: [true, 'El nombre de la categoria es obligatorio.']
+            minlength: [3, 'El nombre de la categoria debe tener al menos 3 caracteres'],
+            maxlength: [100, 'El nombre de la categoria no puede superar 100 caracteres']
+        },
+        // Indica si la categoria agrupa productos o insumos (MER: categoria_tipo)
+        type: {
+            type: String,
+            enum: {
+                values: ['Producto', 'Insumo'],
+                message: 'El tipo {VALUE} no es valido'  // {VALUE} muestra el valor que se envio
+            },
+            required: [true, 'El tipo de la categoria es obligatorio']
         },
         description: {
             type: String,
             required: false
         },
+        // true = activa, false = inactiva
         status: {
             type: Boolean,
             default: true
         },
+        // Usuario que registro la categoria
         createdBy: {
             type: Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
+            ref: 'User',  // Permite traer los datos de ese usuario con populate
+            required: [true, 'El usuario que registra la categoria es obligatorio']
         }
     },
-    // Configuraciones de la estructura de datos
     {
-        timestamps: true,  // Agrega los campos createdAt, updatedAt automaticamente
-        versionKey: false  // Elimina la propiedad de versionamiento __v del Schema
+        timestamps: true,  // Crea createdAt y updatedAt automaticamente
+        versionKey: false  // Elimina el campo __v
     }
 );
 
-// Definir el modelo a partir de la estructura del documento
-const CategoryModel = model(
-    'category',     // Nombre de la coleccion donde se guardaran los documentos
-    CategorySchema  // Schema que se guardara en la coleccion
-);
+// Mongoose crea la coleccion en plural: categories
+const CategoryModel = model('category', CategorySchema);
 
-// Exportamos el modelo para que pueda ser usado por los servicios
 export default CategoryModel;

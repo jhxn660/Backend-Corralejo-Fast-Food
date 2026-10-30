@@ -8,15 +8,15 @@ http:
   url: http://localhost:3000/api/categories
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUyMjEwNzRjOTIyMjA2ODI4ZmE0MzciLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNAZ21haWwuY29tIiwicm9sZSI6IlVzdWFyaW8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzI2MTAwLCJleHAiOjE3OTMzMjk3MDB9.8UzHlhF-BBRRvlIL-L5fV4HI8B-6hZJFoEErm4nO_Eo
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzMwNzkzLCJleHAiOjE3OTMzMzQzOTN9.Ymr-pl1lIrL5YDk9o-tdfHXDLlTsYvsbmGCNMTFz9Ks
   body:
     type: json
     data: |-
       {
-        "name": "fsd6778ssss",
-        "description": "fsgsgdsgdgrggd",
-        "status": false,
-        "createdBy": "6ad79884f646ab5d5540a5f3"
+        "name": "Panaderia",
+        "type": "Insumo",
+        "description": "Panes y masas para hamburguesas",
+        "createdBy": "6ae40e237c859c142ba70bad"
       }
   auth: inherit
 
