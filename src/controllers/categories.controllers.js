@@ -2,13 +2,17 @@ import { dbCreateCategory, dbDeleteCategory, dbGetCategories, dbGetCategory, dbU
 
 const createCategory = async (req, res) => {
     try {
-    // Exportar los datos del cuerpo de la peticion
-    const inputData = req.body;
+        // Extrae el ID del usuario encntrado por el middleware de autenticacion
+        const { _id } = req.userFound;
 
-    // Usar el servicio para registrar
-    const data = await dbCreateCategory( inputData );
+        // Exportar los datos del cuerpo de la peticion
+        const inputData = req.body;
+        inputData.createdBy = _id;       // Agrega el ID del usuario que registra la categoria
 
-    res.json({ msg: 'Registra categoria', data: data })
+        // Usar el servicio para registrar
+        const data = await dbCreateCategory( inputData );
+
+        res.json({ msg: 'Registra categoria', data: data })
     } 
     catch (error) {
         console.error(error);

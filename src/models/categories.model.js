@@ -19,6 +19,9 @@ const CategorySchema = new Schema(
             ref: 'menu',
             required: true
         }
+
+        // mirar como grabar el id de la persona que elimino el la categoria
+        
     }, 
     // Cnfiguraciones de la estructura de datos
     {

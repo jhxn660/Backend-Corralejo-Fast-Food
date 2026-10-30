@@ -2,8 +2,12 @@ import { dbCreateProduct, dbDeleteProduct, dbGetProducts, dbUpdateProduct, dbGet
 
 const createProduct = async ( req, res ) => {
     try {
+        // Extrae el ID del usuario
+        const { _id } = req.userFound;
+
         // Extraer los datos del cuerpo de la peticion
         const inputData = req.body;
+        inputData.createdBy = _id;
 
         // Usar el servicio para registrar
         const data = await dbCreateProduct(inputData);

@@ -49,10 +49,10 @@ const UserSchema = new Schema(
         role: {
             type: String,
             enum: {
-                values: ['ADMIN', 'SELLER', 'CUSTOMER'],
-                message: 'El rol {VALUE} no es válido, debe ser ADMIN, SELLER o CUSTOMER'
+                values: ['ADMIN', 'EMPLEADO', 'CLIENTE'],
+                message: 'El rol {VALUE} no es válido, debe ser ADMIN, EMPLEADO o CLIENTE'
             },
-            default: 'CUSTOMER'
+            default: 'CLIENTE'
         },
         status: {
             type: Boolean,

@@ -1,7 +1,6 @@
 // const express = require('express');   //CommonJS
 import express from 'express';  
 import conexion from './config/mongo.config.js';  // Conexion a la base de datos
-import menuRoute from './routes/menu.routes.js';
 import categoriesRoute from './routes/categories.routes.js';
 import productRoute from './routes/products.routes.js';
 import authRoute from './routes/auth.routes.js'
@@ -22,7 +21,6 @@ app.get('/health', (req, res) => {
 });
 
 // Enlazar todas las rutas de la app
-app.use( '/api/menu', menuRoute );
 app.use( '/api/categories', categoriesRoute );
 app.use( '/api/products', productRoute);
 app.use( '/api/auth', authRoute);

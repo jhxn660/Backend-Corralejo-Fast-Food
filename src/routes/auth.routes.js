@@ -3,12 +3,13 @@ import { createUser } from '../controllers/users.controllers.js';
 import { loginUser, verifyAuthenticate } from '../controllers/auth.controllers.js'
 import { authMiddleware } from '../middlewares/authenticate.middleware.js';
 import { authorizationMiddleware } from '../middlewares/authorization.middleware.js';
+import withoutRoleMiddleware from '../middlewares/without-role.middleware.js';
 
 // Crea una instancia de las rutas de express
 const router = Router();
 
 // Registro publico de usuarios
-router.post('/register', createUser);
+router.post('/register', withoutRoleMiddleware, createUser);
 
 // Login de usuarios
 router.post('/login', loginUser);

@@ -1,10 +1,16 @@
 import { generatePassword } from "../helpers/bcrypt.helpers.js";
+import handleMongooseError from "../helpers/handle-mongoose-error.helper.js";
 import { dbCreateUser, dbDeleteUser, dbGetUsers, dbGetUser, dbUpdateUser } from "../services/users.services.js";
 
 const createUser = async (req, res) => {
     try {
+        const userFound = req.userFound;
+
+        const id = userFound?._id ? userFound._id : null;
+
         // Extrae los datos del cuerpo de la petición
         const inputData = req.body;
+        inputData.createdBy = id;
 
         inputData.password = generatePassword(inputData.password)
 
