@@ -7,7 +7,7 @@ import { authorizationMiddleware } from '../middlewares/authorization.middleware
 const router = Router();       
 
 // Define las rutas para las categorias 
-router.post( '/', [ authMiddleware, authorizationMiddleware ], createCategory );
+router.post( '/', [ authMiddleware, authorizationMiddleware(['ADMIN', 'EMPLEDO']) ], createCategory );
 router.get( '/', getCategories );
 router.delete( '/:id', authMiddleware, deleteCategory );
 router.patch( '/:id', authMiddleware, updateCategory );
