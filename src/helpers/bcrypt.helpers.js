@@ -1,33 +1,33 @@
 import bcrypt from 'bcrypt';
 
 // const generatePassword = async ( originalPassword ) => {
-//     const salt = await bcrypt.genSalt( 9 );                            // Generar una cadena aleatoria N Veces
-
-//     const hashPassword = await bcrypt.hash( originalPassword, salt );  // Mezclando y encriptando el salt con con la contraseña original
-
+//     // Generar una cadena aleatoria N Veces
+//     const salt = await bcrypt.genSalt( 9 );
+//     // Mezclando y encriptando el salt con la contraseña original
+//     const hashPassword = await bcrypt.hash( originalPassword, salt );
 //     return hashPassword;
 // }
 
-const generatePassword =  ( originalPassword ) => {
-     // Generar una cadena aleatoria N Veces
-    const salt = bcrypt.genSaltSync( 9 );                                 
+const generatePassword = (originalPassword) => {
+    // Generar una cadena aleatoria N veces
+    const salt = bcrypt.genSaltSync(9);
 
-    // Mezclando y encriptando el salt con con la contraseña original
-    const hashPassword = bcrypt.hashSync( originalPassword, salt );    
+    // Mezclando y encriptando el salt con la contraseña original
+    const hashPassword = bcrypt.hashSync(originalPassword, salt);
 
     return hashPassword;
-}
+};
 
-// Usar solamente await o Solamente sync 
-const verifyPassword = ( originalPassword , hashPassword ) => {
-    // Retorna true o false True si ambas contraseñas son iguales False si no son iguales las contraseñas
+// Usar solamente await o solamente sync
+const verifyPassword = (originalPassword, hashPassword) => {
+    // Retorna true si ambas contraseñas son iguales, false si no son iguales
     return bcrypt.compareSync(
-        originalPassword,   // 123456...
-        hashPassword        // contraseña encriptada que viene de la base de datos
-    )
-}
+        originalPassword,  // 123456...
+        hashPassword       // Contraseña encriptada que viene de la base de datos
+    );
+};
 
 export {
-    generatePassword, 
+    generatePassword,
     verifyPassword
-}
+};

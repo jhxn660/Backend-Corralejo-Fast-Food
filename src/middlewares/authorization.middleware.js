@@ -1,9 +1,9 @@
-const authorizationMiddleware = ( req, res, next ) => {
+const authorizationMiddleware = (req, res, next) => {
+    console.log('Hola soy el Middleware de Autorización');
 
-    console.log( 'Hola soy el Middleware de Autorización' );
     next();
-}
+};
 
 export {
     authorizationMiddleware
-}
+};

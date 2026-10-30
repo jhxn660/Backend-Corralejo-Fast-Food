@@ -1,5 +1,5 @@
-import { generateToken, validateToken } from "../helpers/jwt.helpers.js";
-import { dbGetUserByEmail } from "../services/usuarios.services.js";
+import { validateToken } from '../helpers/jwt.helpers.js';
+import { dbGetUserByEmail } from '../services/users.services.js';
 
 const authMiddleware = async (req, res, next) => {
     try {
@@ -8,7 +8,7 @@ const authMiddleware = async (req, res, next) => {
 
         console.log('token: ', token);
 
-        // 2.1: Verifica que haya recibido una cadena (Token)... En Teoria pero es una cadena
+        // 2.1: Verifica que haya recibido una cadena (Token)
         if (!token) {
             return res.status(401).json({
                 msg: 'Cadena de token vacia'
@@ -17,28 +17,29 @@ const authMiddleware = async (req, res, next) => {
 
         // 2.2: Divide la cadena en partes usando el (.) como referencia
         const tokenParts = token.split('.');
-        // console.log ( 'Token parts: ', tokenParts );
 
-        // 2.3 Verificar que la cadena tenga 3 partes separadas por puntos (Forma base de un token) 1parte.2segunda.3tercera
+        // 2.3: Verificar que la cadena tenga 3 partes separadas por puntos
+        // (forma base de un token) 1parte.2segunda.3tercera
         if (tokenParts.length !== 3) {
             return res.json({
                 msg: 'Formato del token no es valido'
             });
         }
 
-        // 2.4: Verificar la autenticidad del token (si fue generado por jwt de esta aplicación)
+        // 2.4: Verificar la autenticidad del token
+        // (si fue generado por el jwt de esta aplicacion)
         const payload = validateToken(token);
 
         if (!payload) {
             return res.json({
-                msg: 'Token invalido o inativo'
+                msg: 'Token invalido o inactivo'
             });
         }
 
         console.log('payload (middleware): ', payload);
 
-        // Paso 3: Verificar si el usuario existe en la base de datos (true)
-        // ( si el usuario fue eliminado o su estado)
+        // Paso 3: Verificar si el usuario existe en la base de datos
+        // (si el usuario fue eliminado o cambio su estado)
         const userFound = await dbGetUserByEmail(payload.email);
 
         if (!userFound) {
@@ -55,15 +56,15 @@ const authMiddleware = async (req, res, next) => {
         next();
 
     } catch (error) {
-        // Se responde con un JSON en lugar de terminar en el error genérico de Express
+        // Se responde con un JSON en lugar de terminar en el error generico de Express
         console.error(error);
 
         return res.status(401).json({
             msg: 'No se pudo verificar la autenticacion del token'
         });
     }
-}
+};
 
 export {
     authMiddleware
-}
+};

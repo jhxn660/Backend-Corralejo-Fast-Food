@@ -6,11 +6,14 @@ info:
 http:
   method: POST
   url: http://localhost:3000/api/insumos
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MDA1MzhlYjA2N2ZiYzQ1Mjk3ZTYiLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNzZmZhZGZzQGdtYWlsLmNvbSIsInJvbGUiOiJVc3VhcmlvIiwic3RhdGUiOnRydWUsImlhdCI6MTc5MzMyNzkzMiwiZXhwIjoxNzkzMzMxNTMyfQ.qGPks2GmmdT2grYjdF_D1BrI2979GBnv0oZEs4cgwT4
   body:
     type: json
     data: |
       {
-        "name": "swaat",
+        "name": "swfdasfaat",
         "description": "Harina de wasa",
         "medida": "10 KG",
         "cost": "30000",

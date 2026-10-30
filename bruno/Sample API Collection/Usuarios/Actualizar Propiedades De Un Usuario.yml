@@ -5,7 +5,7 @@ info:
 
 http:
   method: PUT
-  url: http://localhost:3000/api/usuarios
+  url: http://localhost:3000/api/users
   auth: inherit
 
 settings:
