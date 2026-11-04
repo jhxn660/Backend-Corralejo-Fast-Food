@@ -1,0 +1,23 @@
+info:
+  name: Actualizar PQRS
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: http://localhost:3000/api/pqrs/6ae4c4c2808e67cd201db68a
+  body:
+    type: json
+    data: |-
+      {
+        "estado": "En proceso",
+        "asunto": "Consulta de horarios actualizada"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

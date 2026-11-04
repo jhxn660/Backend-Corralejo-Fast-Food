@@ -1,19 +1,36 @@
-// const express = require('express');   //CommonJS
-import express from 'express';  
-import menuRoute from './routes/menu.routes.js'
+import 'dotenv/config'; // <-- Agrega esta línea al inicio absoluto
+import express from 'express';
+import conexion from './config/mongo.config.js';
+
+import comentarioRoute from './routes/Comentario.routes.js';
+import informacionRoute from './routes/Informacion.routes.js';
+import pqrsRoute from './routes/PQRS.routes.js';
+import usuarioRoute from './routes/Usuario.routes.js';
 
 const app = express();
 
-// Definiendo 1 endpoint (ruta de entrada)
-app.get('/healt', (req, res) => {
-  res.send('Apartado CFF - Corralejo Fast Food panel menu compuesto Funcionado a la perfección!')
+conexion();
+
+app.use(express.json());
+
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        estado: 'OK',
+        proyecto: 'Corralejo Fast Food - CFF',
+        mensaje: 'Servidor Backend funcionando correctamente'
+    });
 });
 
-// Enlazar todas las rutas de la app
-app.use( '/api/menu', menuRoute );
+// Rutas de la API
+app.use('/api/comentario', comentarioRoute);
+app.use('/api/pqrs', pqrsRoute);
+app.use('/api', informacionRoute);
+app.use('/api/usuarios', usuarioRoute);
 
-//Iniciar servidor
-const port = 3000;
-app.listen(port, () => {
-  console.log(`Servidor está corriendo en http://localhost:${port}`);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log();
+    console.log(`http://localhost:${PORT}`);
+    console.log();
 });
