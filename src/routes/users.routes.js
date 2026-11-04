@@ -11,22 +11,23 @@ const router = Router();
 // Crear Usuario
 // 1. Registro Privado (lo realiza el Role: Administrador)
 // El administrador podra asignar el rol que quiera
-router.post('/', [ authMiddleware, authorizationMiddleware ], createUser);
+router.post('/', [ authMiddleware, authorizationMiddleware([ 'Owner', 'Administrador' ]) ], createUser);
 
-// Obtener Usuario
-router.get('/:id', authMiddleware, getUser);
 
 // Obtener Usuarios
-router.get('/', authMiddleware, getUsers);
+router.get('/', [ authMiddleware, authorizationMiddleware(['Owner', 'Administrador' ]) ], getUsers);
 
 // Actualizar Totalmente
-router.put('/', authMiddleware, updatePUser);
+router.put('/', [ authMiddleware, authorizationMiddleware([ 'Owner', 'Administrador' ]) ], updatePUser);
+
+// Obtener Usuario
+router.get('/:id', [ authMiddleware, authorizationMiddleware([ 'Owner', 'Administrador' ]) ], getUser);
 
 // Actualizar Parcialmente
-router.patch('/:id', authMiddleware, updateMPUser);
+router.patch('/:id', [ authMiddleware, authorizationMiddleware([ 'Owner', 'Administrador', 'Empleado' ]) ], updateMPUser);
 
 // Eliminar un Usuario
-router.delete('/:id', authMiddleware, deleteUser);
+router.delete('/:id', [ authMiddleware, authorizationMiddleware([ 'Owner', 'Administrador' ]) ], deleteUser);
 
 // Exportar las rutas definidas en este archivo
 export default router;
