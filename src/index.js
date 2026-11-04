@@ -1,36 +1,31 @@
-// const express = require('express');   //CommonJS
-import express from 'express';     //ESModule
-
+import express from 'express';
 import conexion from './config/mongo.config.js';
 import PedidosRoute from './routes/pedidos.routes.js';
 import ventasRoute from './routes/ventas.routes.js';
 import indicadoresRoute from './routes/indicadores.routes.js';
+import authRoute from './routes/auth.routes.js'; // NUEVO
+import usersRoute from './routes/users.routes.js'; // NUEVO
 
-const port = process.env.PORT || 3000; // Puerto del servidor
+const port = process.env.PORT || 3000;
 
 const app = express();
 
-conexion(); // Conectar a la base de datos
+conexion(); 
 
-app.use(express.json() ); // Habilita a la aplicación para interpretar datos en formato JSON
+app.use(express.json()); 
 
-
-// Definiendo 1 endpoint (ruta de entrada)
 app.get('/health', (req, res) => {
-  res.send('Servidor del Corralejo Está Funcionando!!')
+  res.send('Servidor del Corralejo Está Funcionando!!');
 });
 
-//Enlazar rutas de pedidos
-app.get( '/api/pedidos', PedidosRoute);
-
-
-//Enlazar todas las rutas de la aplicación
+// Enlazar todas las rutas de la aplicación
 app.use('/api/pedidos', PedidosRoute);
 app.use('/api/ventas', ventasRoute);
 app.use('/api/indicadores', indicadoresRoute);
+app.use('/api/auth', authRoute);   // NUEVO
+app.use('/api/users', usersRoute); // NUEVO
 
-
-//Iniciar servidor
+// Iniciar servidor
 app.listen(port, () => {
   console.log(`Servidor está corriendo en http://localhost:${port}`);
 });
