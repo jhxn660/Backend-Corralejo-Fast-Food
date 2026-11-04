@@ -6,16 +6,20 @@ info:
 http:
   method: POST
   url: http://localhost:3000/api/products
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUzN2Q1N2MzNzVlZmE1MjI4ZWJjNDQiLCJuYW1lIjoiRGllZ29ycyIsImVtYWlsIjoiZGllZ29yLnJAZ21haWwuY29tIiwicm9sZSI6IkNVU1RPTUVSIiwic3RhdHVzIjp0cnVlLCJpYXQiOjE3OTMyOTM2NjcsImV4cCI6MTc5MzI5NzI2N30.-ohDEFw3ZF9uwjPizD4orTmHU3hj6-QIh0NwLBTfDJ0
   body:
     type: json
     data: |-
       {
-        "nombre": "Alitas CFF",
-        "description": "Alitas deliciosas para el paladar y gusto personal",
-        "price": 35000,
-        "stock": 54,
+        "nombre": "Tortillas",
+        "description": "Tortillas con rellenas de salsa BBQ",
+        "price": 15000,
+        "stock": 125,
         "state": "disponible",
-        "createdBy": "Karen Matin"
+        "category": "6ad64a424b5770d77562b2c0",
+        "createdBy": "6ad65aa5a894a7eac00d79e1"
       }
   auth: inherit
 

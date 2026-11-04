@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/categories/6ad2571f3463e4cbd06f3b4b
+  url: http://localhost:3000/api/categories/6ad79104cece8c6bbee45920
   auth: inherit
 
 settings:
