@@ -23,4 +23,4 @@ router.get( '/:id', authMiddleware, getUser );
 
 
 // Exportar las rutas definidas en este archivo
-export default router;
+export default router;               
