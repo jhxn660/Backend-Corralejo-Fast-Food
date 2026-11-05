@@ -1,0 +1,22 @@
+info:
+  name: Actualizar Categoria
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: http://localhost:3000/api/categories/6ad2571f3463e4cbd06f3b4b
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Burritos-CFF"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

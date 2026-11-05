@@ -1,14 +1,20 @@
-// Encripta contraseñas antes de guardarlas y verifica si coinciden al iniciar sesión.
+import bcrypt from 'bcrypt';
 
-import bcrypt from 'bcryptjs';
+const generatePassword =  ( originalPassword ) => {
+    // Generar una cadena aleatoria de N veces
+    const salt =  bcrypt.genSaltSync( 9 );                    
+    
+    // Mezclando y encriptando el salt con las contrasena original
+    const hashPassword =  bcrypt.hashSync( originalPassword, salt );   
 
-const hashPassword = async (password) => {
-    const salt = await bcrypt.genSalt(10);
-    return await bcrypt.hash(password, salt);
-};
+    return hashPassword;
+}
 
-const comparePassword = async (password, receivedPassword) => {
-    return await bcrypt.compare(password, receivedPassword);
-};
+const verifyPassword =  ( originalPassword, hashPassword ) => {
+    return  bcrypt.compareSync( originalPassword, hashPassword);
+}
 
-export { hashPassword, comparePassword };
+export {
+    generatePassword,
+    verifyPassword
+}

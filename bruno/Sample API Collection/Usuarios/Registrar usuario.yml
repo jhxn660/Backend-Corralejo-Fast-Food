@@ -1,0 +1,28 @@
+info:
+  name: Registrar usuario
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/users
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWViNWY0NTIxOTQ1MDk4ZjdlMTNmZmUiLCJuYW1lIjoiZnJhbmsiLCJlbWFpbCI6ImZyYW5rQGdtYWlsLmNvbSIsInJvbGUiOiJDTElFTlRFIiwic3RhdHVzIjp0cnVlLCJpYXQiOjE3OTM4MTA5NzQsImV4cCI6MTc5MzgxNDU3NH0.yFtCPN0RXIlxjLg-1QTVGc1XBmRTMp7Xpdc8a2bvGUM
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Melany",
+        "email": "melany@gmail.com",
+        "password": "2103D",
+        "role": "ADMIN"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

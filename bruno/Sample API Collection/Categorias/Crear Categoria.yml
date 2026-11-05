@@ -1,0 +1,27 @@
+info:
+  name: Crear Categoria
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/categories
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUzN2Q1N2MzNzVlZmE1MjI4ZWJjNDQiLCJuYW1lIjoiRGllZ29ycyIsImVtYWlsIjoiZGllZ29yLnJAZ21haWwuY29tIiwicm9sZSI6IkNVU1RPTUVSIiwic3RhdHVzIjp0cnVlLCJpYXQiOjE3OTMyOTYxNDEsImV4cCI6MTc5MzI5OTc0MX0.9pZ7tAoh1Utv5hDoVLSzGm2o-PT8jW6E7vo_qe2SJPI
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Hamburguesa",
+        "descripcion": "Hamburguesas deliciosas para ti y para toda la familia",
+        "createdBy": "6ad64a424b5770d77562b2c0"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

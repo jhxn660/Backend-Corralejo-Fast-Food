@@ -1,6 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
+  "author": "Diego Rincón Reyes <diegorsgh@gmail.com>",
   "contributors": [
     "Mateo Chaves <umgd0606@gmail.com>",
     "Julian Delgado Chaves <juliaaancamilo0.0@gmail.com>",
@@ -17,14 +18,13 @@
     "jwt"
   ],
   "license": "ISC",
-  "author": "Alberto Camargo Morales <jhx.660@gmail.com>",
   "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "node --env-file .env --watch src/index.js"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.3",
+    "bcrypt": "^6.0.0",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.11.1"
