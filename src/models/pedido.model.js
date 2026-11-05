@@ -24,21 +24,18 @@ const detallePedidoSchema = new Schema({
 const pedidoSchema = new Schema({
     numeroPedido: { 
         type: Number, 
-        required: [true, 'El número de pedido consecutivo es obligatorio.'], 
+       
         unique: true 
     },
     estado: { 
         type: String, 
-        required: [true, 'El estado del pedido es obligatorio.'],
+
         enum: {
             values: ['En preparación', 'Listo', 'Entregado', 'Cancelado'],
             message: 'El estado "{VALUE}" no es válido. Solo se acepta: En preparación, Listo, Entregado o Cancelado.'
         }
     },
-    hora: { 
-        type: String, 
-        required: [true, 'La hora de recepción del pedido es obligatoria.'] 
-    },
+  
     totalPedido: { 
         type: Number, 
         required: [true, 'El total a pagar del pedido es obligatorio.'],
