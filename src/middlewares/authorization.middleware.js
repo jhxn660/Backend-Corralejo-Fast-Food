@@ -1,4 +1,4 @@
-const authorizationMiddleware = ( allowedRoles ) => {
+const authorizationMiddleware = ( allowedRoles =[] ) => {
    
     return (req, res, next) => {     
         // Paso 1: Extraer el rol del usuario del payload del token que valida el Middleware Autentication
@@ -16,9 +16,10 @@ const authorizationMiddleware = ( allowedRoles ) => {
         }
 
         console.log(`Usuario Autorizado con rol ${role}`);
+
+        next();
     }
 
-    // next();
 };
 
 export {
