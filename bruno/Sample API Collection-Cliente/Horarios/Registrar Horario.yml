@@ -1,0 +1,24 @@
+info:
+  name: Registrar Horario
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/horario
+  body:
+    type: json
+    data: |-
+      {
+          "dia": "Martes",
+          "horaApertura": "08:00 AM",
+          "horaCierre": "10:00 PM"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

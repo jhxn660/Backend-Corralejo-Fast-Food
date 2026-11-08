@@ -1,0 +1,27 @@
+info:
+  name: Registrar Ubicacion
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/ubicacion
+  body:
+    type: json
+    data: |-
+      {
+          "titulo": "Sede Norte",
+          "descripcion": "Punto de atención y domicilios Corralejo Fast Food",
+          "telefono": "3009876543",
+          "direccion": "Carrera 45 # 128-20",
+          "ciudad": "Bogotá",
+          "referencia": "Frente al centro comercial"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

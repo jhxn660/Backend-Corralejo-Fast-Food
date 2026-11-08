@@ -8,6 +8,9 @@ import ventasRoute from './routes/ventas.routes.js';
 import indicadoresRoute from './routes/indicadores.routes.js';
 import authRoute from './routes/auth.routes.js'
 import usersRoute from './routes/users.routes.js';
+import comentarioRoute from './routes/comentario.routes.js';
+import pqrsRoute from './routes/pqrs.routes.js';
+import informacionRoute from './routes/informacion.routes.js';
 
 const port = process.env.PORT || 3001;
 
@@ -44,6 +47,9 @@ app.use('/api/ventas', ventasRoute);
 app.use('/api/indicadores', indicadoresRoute);
 app.use('/api/auth', authRoute);   // NUEVO
 app.use('/api/users', usersRoute); // NUEVO
+app.use('/api/comentario', comentarioRoute);
+app.use('/api/pqrs', pqrsRoute);
+app.use('/api', informacionRoute);
 
 // Iniciar servidor
 app.listen(port, () => {
