@@ -5,12 +5,15 @@ info:
 
 http:
   method: PATCH
-  url: http://localhost:3000/api/categories/6ad2571f3463e4cbd06f3b4b
+  url: http://localhost:3000/api/categories/6aecc2ccf255eff88f600bd6
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWVjYmZlMjE2OWMzNTY0YmY4YzU4NjgiLCJuYW1lIjoiRGllZ29yLnIiLCJlbWFpbCI6ImRpZWd1aXRvQGdtYWlsLmNvbSIsInJvbGUiOiJBRE1JTiIsInN0YXR1cyI6dHJ1ZSwiaWF0IjoxNzkzOTAwNTMyLCJleHAiOjE3OTM5MDQxMzJ9.A0T7BvUGD_NwQ1LBKNCnQZNQDcZEGek5ju5ZNnKw1vA
   body:
     type: json
     data: |-
       {
-        "nombre": "Burritos-CFF"
+        "nombre": "Pizza"
       }
   auth: inherit
 

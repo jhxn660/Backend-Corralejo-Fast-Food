@@ -6,13 +6,9 @@ info:
 http:
   method: GET
   url: http://localhost:3000/api/categories
-  body:
-    type: json
-    data: |-
-      {
-        "nombre": "Entradas-CFF",
-        "descripcion": "Entradas para el paladar del cliente y disguste de cualquiera que desee ordenar"
-      }
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWVjYmZlMjE2OWMzNTY0YmY4YzU4NjgiLCJuYW1lIjoiRGllZ29yLnIiLCJlbWFpbCI6ImRpZWd1aXRvQGdtYWlsLmNvbSIsInJvbGUiOiJBRE1JTiIsInN0YXR1cyI6dHJ1ZSwiaWF0IjoxNzkzOTAwNTMyLCJleHAiOjE3OTM5MDQxMzJ9.A0T7BvUGD_NwQ1LBKNCnQZNQDcZEGek5ju5ZNnKw1vA
   auth: inherit
 
 settings:

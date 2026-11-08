@@ -8,13 +8,13 @@ http:
   url: http://localhost:3000/api/users
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWViNWY0NTIxOTQ1MDk4ZjdlMTNmZmUiLCJuYW1lIjoiZnJhbmsiLCJlbWFpbCI6ImZyYW5rQGdtYWlsLmNvbSIsInJvbGUiOiJDTElFTlRFIiwic3RhdHVzIjp0cnVlLCJpYXQiOjE3OTM4MTA5NzQsImV4cCI6MTc5MzgxNDU3NH0.yFtCPN0RXIlxjLg-1QTVGc1XBmRTMp7Xpdc8a2bvGUM
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWVjYmUwZjE2OWMzNTY0YmY4YzU4NjciLCJuYW1lIjoiZnJhbmsiLCJlbWFpbCI6ImZyYW5rQGdtYWlsLmNvbSIsInJvbGUiOiJDTElFTlRFIiwic3RhdHVzIjp0cnVlLCJpYXQiOjE3OTM5MDA0ODksImV4cCI6MTc5MzkwNDA4OX0.H_5pJZufPDs4EtPEoKs1SgCUKPdTyfy51oR30jCKf-4
   body:
     type: json
     data: |-
       {
-        "name": "Melany",
-        "email": "melany@gmail.com",
+        "name": "Diegor.r",
+        "email": "dieguito@gmail.com",
         "password": "2103D",
         "role": "ADMIN"
       }

@@ -5,7 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/products/6ad64a424b5770d77562b2c00
+  url: http://localhost:3000/api/products/6aecc372f255eff88f600bd7
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWVjYmZlMjE2OWMzNTY0YmY4YzU4NjgiLCJuYW1lIjoiRGllZ29yLnIiLCJlbWFpbCI6ImRpZWd1aXRvQGdtYWlsLmNvbSIsInJvbGUiOiJBRE1JTiIsInN0YXR1cyI6dHJ1ZSwiaWF0IjoxNzkzOTAxNDQ2LCJleHAiOjE3OTM5MDUwNDZ9.i5kXcsMMU0NYzTTYnuco69B2srBNYiTFKYYhTladnR8
   auth: inherit
 
 settings:

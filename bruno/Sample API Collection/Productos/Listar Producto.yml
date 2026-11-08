@@ -6,16 +6,16 @@ info:
 http:
   method: GET
   url: http://localhost:3000/api/products?status=en garantia
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWVjYmZlMjE2OWMzNTY0YmY4YzU4NjgiLCJuYW1lIjoiRGllZ29yLnIiLCJlbWFpbCI6ImRpZWd1aXRvQGdtYWlsLmNvbSIsInJvbGUiOiJBRE1JTiIsInN0YXR1cyI6dHJ1ZSwiaWF0IjoxNzkzOTAxNDQ2LCJleHAiOjE3OTM5MDUwNDZ9.i5kXcsMMU0NYzTTYnuco69B2srBNYiTFKYYhTladnR8
   params:
     - name: status
       value: en garantia
       type: query
   body:
     type: json
-    data: |-
-      {
-         
-      }
+    data: ""
   auth: inherit
 
 settings:

@@ -8,15 +8,15 @@ http:
   url: http://localhost:3000/api/products
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUzN2Q1N2MzNzVlZmE1MjI4ZWJjNDQiLCJuYW1lIjoiRGllZ29ycyIsImVtYWlsIjoiZGllZ29yLnJAZ21haWwuY29tIiwicm9sZSI6IkNVU1RPTUVSIiwic3RhdHVzIjp0cnVlLCJpYXQiOjE3OTMyOTM2NjcsImV4cCI6MTc5MzI5NzI2N30.-ohDEFw3ZF9uwjPizD4orTmHU3hj6-QIh0NwLBTfDJ0
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWVjYmZlMjE2OWMzNTY0YmY4YzU4NjgiLCJuYW1lIjoiRGllZ29yLnIiLCJlbWFpbCI6ImRpZWd1aXRvQGdtYWlsLmNvbSIsInJvbGUiOiJBRE1JTiIsInN0YXR1cyI6dHJ1ZSwiaWF0IjoxNzkzOTAwNTMyLCJleHAiOjE3OTM5MDQxMzJ9.A0T7BvUGD_NwQ1LBKNCnQZNQDcZEGek5ju5ZNnKw1vA
   body:
     type: json
     data: |-
       {
-        "nombre": "Tortillas",
-        "description": "Tortillas con rellenas de salsa BBQ",
-        "price": 15000,
-        "stock": 125,
+        "nombre": "Carnes",
+        "description": "Carne de res",
+        "price": 18000,
+        "stock": 138,
         "state": "disponible",
         "category": "6ad64a424b5770d77562b2c0",
         "createdBy": "6ad65aa5a894a7eac00d79e1"
