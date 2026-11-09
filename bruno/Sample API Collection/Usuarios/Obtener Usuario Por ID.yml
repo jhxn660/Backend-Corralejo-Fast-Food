@@ -1,0 +1,19 @@
+info:
+  name: Obtener Usuario Por ID
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:3000/api/users/6ae40e237c859c142ba70bad
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzc3MDc3LCJleHAiOjE3OTMzODA2Nzd9.pJYmhda064HwFFT6uyfai131P6jDc9R59tZxb-Jr1vE
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

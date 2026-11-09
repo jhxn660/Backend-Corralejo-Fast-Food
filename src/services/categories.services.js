@@ -1,41 +1,47 @@
-import CategoryModel from "../models/categories.model.js"
+import CategoryModel from '../models/category.model.js';
 
-const dbCreateCategory = async ( newCategory) => {
-    return await CategoryModel.create(newCategory);     // Registrar en la BD
-}
+// Registrar la categoria y devolver quien la creo
+const dbCreateCategory = async (newCategory) => {
+    const category = await CategoryModel.create(newCategory);
 
+    return await category.populate('createdBy', 'name email role');
+};
+
+// Obtener una categoria por su ID
+const dbGetCategory = async (id) => {
+    return await CategoryModel
+        .findOne({ _id: id })
+        .populate('createdBy', 'name email role');
+};
+
+// Listar todas las categorias
 const dbGetCategories = async () => {
-    return await CategoryModel.find({ status: true }).populate('createdBy');  // Consultar todas las categorias registradas
-}
+    return await CategoryModel
+        .find()
+        .populate('createdBy', 'name email role');
+};
 
-const dbDeleteCategory = async ( id ) => {
-    // return await CategoryModel.findByIdAndDelete( id );
-    return await CategoryModel.findOneAndDelete({ _id: id });
-}
-
-const dbUpdateCategory = async ( id, categoryUpdate ) => {
-    // return await CategoryModel.findByIdAndUpdate(
-    //    id,                 // El id del documento que deseamos actualizar
-    //    categoryUpdate,     // El objeto con los datos del Documento que deseamos actualizar
-    //    { new: true }       // Configuracion para que retorne el documento actualizado
-    // );
-
+// Actualizar uno o mas campos de una categoria (PATCH)
+const dbUpdateCategory = async (id, categoryUpdated) => {
     return await CategoryModel.findOneAndUpdate(
         { _id: id },
-        categoryUpdate,
-        { new: true }
+        categoryUpdated,
+        {
+            new: true,           // Devuelve el documento ya actualizado
+            runValidators: true  // Aplica las reglas del modelo tambien al actualizar
+        }
     );
-}
+};
 
-const dbGetCategory = async ( id ) => {
-    // return await CategoryModel.findById( id );       // Obtiene una categoria por ID
-    return await CategoryModel.findOne({ _id: id });
-}
+// Eliminar una categoria por su ID
+const dbDeleteCategory = async (id) => {
+    return await CategoryModel.findOneAndDelete({ _id: id });
+};
 
 export {
     dbCreateCategory,
+    dbGetCategory,
     dbGetCategories,
-    dbDeleteCategory,
     dbUpdateCategory,
-    dbGetCategory
-}
+    dbDeleteCategory
+};

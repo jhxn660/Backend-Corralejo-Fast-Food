@@ -1,0 +1,31 @@
+info:
+  name: Registrar Usuario
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/users
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzgwMjgxLCJleHAiOjE3OTMzODM4ODF9.w1AwqynK9hzvgqn-yASNhbfgw_KBPx5sjN35Ngftuds
+  body:
+    type: json
+    data: |-
+      {
+        "role": "Administrador",
+        "name": "Tom Gomez",
+        "email": "Tom77@correo.com",
+        "password": "123456+",
+        "phone": "3116876543",
+        "empleado_rol": "Cajero"
+      }
+      // createdBy no es necesario ponerlo manualmente 
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

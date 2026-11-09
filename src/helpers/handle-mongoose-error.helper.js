@@ -25,15 +25,18 @@ const handleMongooseError = ( error ) => {
 
     // 2. Error de clave única duplicada en MongoDB (código 11000, ej: email o name ya existente)
     if ( error.code === 11000 ) {
+        // keyValue muestra el item repetido con el parametro sin Object.keys
+        // Object.keys( error.keyValue ) muestra solamente la variable
         const field = Object.keys( error.keyValue )[0];
         return {
-            [field]: `El ${field} '${error.keyValue[field]}' ya se encuentra registrado`
+            [field]: `El campo ${field}' con el valor ${error.keyValue[field]}', ya se encuentra registrado.`
         };
     }
 
     // 3. Error de CastError (cuando se pasa un ID que no cumple el formato ObjectId de Mongo)
     if ( error.name === 'CastError' ) {
         return {
+            msg: `El ID debe tener 24 caracteres y el enviado tiene ${error.value.length}`,
             [error.path]: `El identificador '${error.value}' no tiene un formato válido de MongoDB`
         };
     }

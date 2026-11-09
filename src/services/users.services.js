@@ -1,11 +1,48 @@
-import UserModel from "../models/user.model.js";
+import { generatePassword } from "../helpers/bcrypt.helpers.js";
+import userModel from "../models/user.model.js";
 
-const dbCreateUser = async ( newUser ) => {
-    return await UserModel.create( newUser );  // Registrar en la BD
-}
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`])[^\s]{7,60}$/;
 
-// Obtener la lista de usuarios con paginación y filtro de estado (activos, inactivos o todos)
-const dbGetUsers = async ( page = 1, limit = 10, status = 'true' ) => {
+// Crear un usuario y devolverlo sin la contraseña 
+
+// {
+//   "name": "Juan",
+//   "email": "45547833@gmail.com",
+//   "password": "Hol@hol4",
+//   "phone": "3155248932",
+//   "state": true
+// }
+
+const dbCreateUser = async (newUser) => {
+    if (!passwordRegex.test(newUser.password)) {
+        const error = new Error( 'La contraseña debe tener entre 7 y 50 caracteres, incluir al menos una mayúscula, una minúscula, un número y un símbolo' );
+        error.name = 'PasswordValidationError';
+        error.statusCode = 400;
+        
+        throw error;
+    }
+
+    const user = await userModel.create({
+        ...newUser,
+        password: generatePassword(newUser.password)
+    });
+
+    // Separa la contraseña del resto de datos y devuelve solo el resto
+    const { password, ...userWithoutPassword } = user.toObject();
+
+    return userWithoutPassword;
+};
+
+// Obtener un usuario por su ID
+const dbGetUser = async (id) => {
+    return await userModel
+        .findOne({ _id: id })
+        .select('-password')                        // Excluye la contraseña
+        .populate('createdBy', 'name email role');
+};
+
+// Obtener la lista de usuarios con paginación, filtro de estado (activos, inactivos o todos) y filtro opcional por rol
+const dbGetUsers = async ( page = 1, limit = 10, status = 'true', role ) => {
     // Paso 1: Sanitizar los valores de paginación (números enteros >= 1)
     const pageNumber = Math.max( 1, Number( page ) || 1 );
     const limitNumber = Math.max( 1, Number( limit ) || 10 );
@@ -14,12 +51,14 @@ const dbGetUsers = async ( page = 1, limit = 10, status = 'true' ) => {
     // Fórmula: (página - 1) * límite
     const skip = ( pageNumber - 1 ) * limitNumber;
 
-    // Paso 3: Construir el filtro dinámico según el query param 'status'
+    // Paso 3: Construir el filtro dinámico según los query params 'status' y 'role'
     //   - status === 'true'  -> solo usuarios activos ({ status: true })
     //   - status === 'false' -> solo usuarios inactivos ({ status: false })
     //   - status === 'all'   -> todos sin distingo de status ({})
     //   - por defecto        -> solo usuarios activos ({ status: true })
     let filter = {};
+
+    const availableRoles = ['Administrador', 'Empleado', 'Usuario', 'UsuarioT'];
 
     if ( status === 'true' || status === true ) {
         filter.status = true;
@@ -31,16 +70,22 @@ const dbGetUsers = async ( page = 1, limit = 10, status = 'true' ) => {
         filter.status = true; // Valor por defecto
     }
 
+    // Filtrar por rol (si se envía y es válido)
+    if ( role && availableRoles.includes( role ) ) {
+        filter.role = role;
+    }
+
     // Paso 4: Ejecutar en paralelo la consulta paginada y el conteo total con el mismo filtro
     const [ users, total ] = await Promise.all([
         // 4.1: Consulta los documentos aplicando el filtro, skip (saltar) y limit (cantidad máxima)
-        UserModel.find( filter )
+        userModel.find( filter )
+            .select('-password')
             .skip( skip )
             .limit( limitNumber )
-            .populate('createdBy'),
+            .populate('createdBy', 'name email role'),
 
         // 4.2: Cuenta el total de documentos que coinciden exactamente con el filtro aplicado
-        UserModel.countDocuments( filter )
+        userModel.countDocuments( filter )
     ]);
 
     // Paso 5: Retornar los datos obtenidos junto con la metadata de paginación y filtro
@@ -51,40 +96,39 @@ const dbGetUsers = async ( page = 1, limit = 10, status = 'true' ) => {
         limit: limitNumber,                           // Cantidad de registros devueltos por página
         totalPages: Math.ceil( total / limitNumber ) // Total de páginas disponibles
     };
-}
-
-const dbDeleteUser = async ( id ) => {
-    // return await UserModel.findByIdAndDelete( id );
-    return await UserModel.findOneAndDelete({ _id: id });
-}
+};
 
 const dbUpdateUser = async ( id, userUpdated ) => {
-    return await UserModel.findOneAndUpdate(
+    return await userModel.findOneAndUpdate(
         { _id: id },            // Objeto de consulta para buscar el documento que deseamos actualizar
         userUpdated,            // El objeto con los datos del Documento que deseamos actualizar
         {
             new: true,          // Retorna el documento ya actualizado
             runValidators: true // Ejecuta las validaciones definidas en el Schema de Mongoose al actualizar
         }
-    );
-}
+    )
+    .select('-password');
+};
 
-const dbGetUser = async ( id ) => {
-    // return await UserModel.findById( id );       // Obtiene un usuario por su ID
-    return await UserModel.findOne({ _id: id });
-}
+// Eliminar un usuario por su ID
+const dbDeleteUser = async (id) => {
+    return await userModel
+        .findOneAndDelete({ _id: id })
+        .select('-password');
+};
 
-// email: jcarlosj@correo.co
-const dbGetUserByEmail = async ( email, status = true ) => {
-    return await UserModel.findOne({ email: email, status: status });
-}
-
+// Consultar por correo para el login
+// Ojo: SI devuelve la contraseña, porque el login la necesita para compararla
+// No usar en rutas que respondan datos al cliente
+const dbGetUserByEmail = async (email, state = true) => {
+    return await userModel.findOne({ email: email, state: state });
+};
 
 export {
     dbCreateUser,
-    dbGetUsers,
-    dbDeleteUser,
-    dbUpdateUser,
     dbGetUser,
+    dbGetUsers,
+    dbUpdateUser,
+    dbDeleteUser,
     dbGetUserByEmail
-}
+};
