@@ -1,0 +1,28 @@
+info:
+  name: Registrar Comentario NO ID
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/comments
+  headers:
+    - name: X-Token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI2YWU0YmI5MDk0NzBiZDQzZDg4OWU5YTMiLCJub21icmUiOiJUdSBOb21icmUiLCJpYXQiOjE3OTMzNzUxMjAsImV4cCI6MTc5MzM4MjMyMH0.SL25f_vkKV4wjGYcRvs6G1wG4qeetTeJHnKxoti4QQc
+      disabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "nombreCliente": "Andrea Andrade",
+        "codigo": "#C0001",
+        "comentario": "Excelente atención y la comida llegó calientita. Definitivamente vuelvo a pedir."
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,22 @@
+info:
+  name: Actualizar Horario ID
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: http://localhost:3000/api/horario/6ad8f8a629a03b167e44a73f
+  body:
+    type: json
+    data: |-
+      {
+          "horaCierre": "11:00 PM"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

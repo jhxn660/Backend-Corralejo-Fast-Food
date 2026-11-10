@@ -7,11 +7,11 @@ import { authorizationMiddleware } from '../middlewares/authorization.middleware
 const router = Router();
 
 // Define las rutas para los insumos
-router.post('/', [ authMiddleware,  authorizationMiddleware([ 'Administrador' ]) ], createSupply);
-router.get('/', [ authMiddleware,  authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getSupplies);
-router.get('/:id', [ authMiddleware,  authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getSupply);
-router.patch('/:id', [ authMiddleware,  authorizationMiddleware([ 'Administrador' ]) ], updateSupply);
-router.delete('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], deleteSupply);
+router.post('/', [ authMiddleware,  authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], createSupply);
+router.get('/', [ authMiddleware,  authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getSupplies);
+router.get('/:id', [ authMiddleware,  authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getSupply);
+router.patch('/:id', [ authMiddleware,  authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], updateSupply);
+router.delete('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], deleteSupply);
 
 // Exportar las rutas definidas en este archivo
 export default router;

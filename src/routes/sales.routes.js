@@ -5,10 +5,10 @@ import { authorizationMiddleware } from '../middlewares/authorization.middleware
 
 const router = Router();
 
-router.post('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], CreateSales);
-router.get('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], GetSales);
-router.put('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], UpdateAllSales);
-router.patch('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], UpdatePartialSales);
-router.delete('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], DeleteSales);
+router.post('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], CreateSales);
+router.get('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], GetSales);
+router.put('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], UpdateAllSales);
+router.patch('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], UpdatePartialSales);
+router.delete('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], DeleteSales);
 
 export default router;

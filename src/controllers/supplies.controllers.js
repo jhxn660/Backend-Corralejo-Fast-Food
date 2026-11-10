@@ -72,8 +72,15 @@ const getSupplies = async (req, res) => {
 
 const updateSupply = async (req, res) => {
     try {
+        const user_id = req.userFound._id;
+        
         const id = req.params.id;
+
         const inputData = req.body;
+        inputData.createdBy = user_id; // <--- Agrega el ID del usuario que registra la categoria
+
+        // El creador es el usuario autenticado, no el que venga en el body
+        inputData.createdBy = req.userFound._id;
 
         const data = await dbUpdateSupply(id, inputData);
 

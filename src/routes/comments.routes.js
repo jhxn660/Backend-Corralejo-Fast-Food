@@ -18,9 +18,9 @@ const router = Router();
 router.post('/', optionalAuthMiddleware, createComment);
 
 // El resto son operaciones de gestión/moderación: requieren sesión y rol autorizado.
-router.get('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getComment);
-router.get('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getComments);
-router.patch('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], updateComment);
-router.delete('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], deleteComment);
+router.get('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getComment);
+router.get('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getComments);
+router.patch('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], updateComment);
+router.delete('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], deleteComment);
 
 export default router;

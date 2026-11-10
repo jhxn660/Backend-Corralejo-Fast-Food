@@ -1,0 +1,23 @@
+info:
+  name: Actualizar Información Establecimiento ID
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: http://localhost:3000/api/establecimiento/6ad8fe448c5ab285aba46a9d
+  body:
+    type: json
+    data: |-
+      {
+          "telefono": "3109998877",
+          "email": "servicioalcliente@corralejofastfood.com"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

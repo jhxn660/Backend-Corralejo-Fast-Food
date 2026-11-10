@@ -8,11 +8,11 @@ const router = Router();
 
 // '/', Ruta. []. Lista de Controla
 // Define las rutas para las categorias
-router.post('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ],  createCategory);
-router.get('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getCategories);
-router.get('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getCategory);
-router.patch('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], updateCategory);
-router.delete('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], deleteCategory);
+router.post('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ],  createCategory);
+router.get('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getCategories);
+router.get('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getCategory);
+router.patch('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], updateCategory);
+router.delete('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], deleteCategory);
 
 // Exportar las rutas definidas en este archivo
 export default router;
