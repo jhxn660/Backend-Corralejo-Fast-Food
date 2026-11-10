@@ -5,10 +5,10 @@ info:
 
 http:
   method: DELETE
-  url: http://localhost:3000/api/categories/6ae3fc47e3d666aea25d063c
+  url: http://localhost:3000/api/categories/6af3574d7be6b2cbe1371da6
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUyMjEwNzRjOTIyMjA2ODI4ZmE0MzciLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNAZ21haWwuY29tIiwicm9sZSI6IlVzdWFyaW8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzI2MTAwLCJleHAiOjE3OTMzMjk3MDB9.8UzHlhF-BBRRvlIL-L5fV4HI8B-6hZJFoEErm4nO_Eo
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWYyMGM2NzdhMmYyZmQxZGQ3NTAzMDMiLCJuYW1lIjoiSnVhblMiLCJlbWFpbCI6IjQ1NTQ3MzgzM0BnbWFpbC5jb20iLCJyb2xlIjoiQ2xpZW50ZSIsInN0YXRlIjp0cnVlLCJpYXQiOjE3OTQzMzIzMDgsImV4cCI6MTc5NDMzNTkwOH0.DYMOQ8u8BBRhjVa1lB-IySqDioHF0BwgVvqhOa4f6pk
   auth: inherit
 
 settings:

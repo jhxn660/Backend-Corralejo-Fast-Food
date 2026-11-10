@@ -18,6 +18,8 @@ http:
         "codigo": "#C0001",
         "comentario": "Excelente atención y la comida llegó calientita. Definitivamente vuelvo a pedir."
       }
+
+      // Falta vincular el id de la venta con el comentario registrado. Recordar que cliente o usuario pueden realizar comentarios siempre y cuando haya un qr de pormedio
   auth: inherit
 
 settings:
