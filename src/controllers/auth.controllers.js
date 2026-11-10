@@ -1,105 +1,97 @@
 import { verifyPassword } from "../helpers/bcrypt.helpers.js";
 import { generateToken } from "../helpers/jwt.helpers.js";
-import { dbGetUserByEmail } from "../services/users.services.js"
+import { dbGetUserByEmail } from "../services/users.services.js";
+
+// Datos del usuario que viajan dentro del token. Se centraliza para que el login y la
+// renovación emitan exactamente el mismo payload (el middleware de autenticación depende de `email`).
+const buildTokenPayload = (user) => ({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    state: user.state
+});
+
+// Convierte el documento de Mongoose en un objeto plano sin la contraseña,
+// apto para devolverse al cliente.
+const toPublicUser = (user) => {
+    const publicUser = user.toObject();
+
+    delete publicUser.password;
+
+    return publicUser;
+};
 
 const loginUser = async ( req, res ) => {
-    // Paso 1: Obtener las credenciales del usuario { email: '...', password: '...' }
     try {
         const inputData = req.body;
 
-    // Validar si el campo email no viene dentro del inputData
-    if( ! inputData.email ) {
-        // Crea una Exception --- Desarrollador
-        // throw new Error( 'Se olvido pasar el correo en el campo email');
-        res.json({msg: 'se olvido pasar el correo en el campo email'});
-    }
+        // Cada validación corta la ejecución con return: sin él, el flujo seguía
+        // hasta leer userFound.password de un usuario inexistente y respondía dos veces.
+        if( ! inputData?.email ) {
+            return res.status(400).json({msg: 'se olvido pasar el correo en el campo email'});
+        }
 
-    // Valida si el campo password esta dentro del formulario
-    if( ! inputData.password ) {
-        // throw new Error( 'Se le olvido pasar la contraseña en el campo password' );
-        res.json({msg: 'se olvido pasar la contraseña en el campo password'});
-    }
+        if( ! inputData.password ) {
+            return res.status(400).json({msg: 'se olvido pasar la contraseña en el campo password'});
+        }
 
-    // Paso 2: Verificar si el usuario existe (¿el email esta registrado en la BD?)
-    // TODO: Hacer una peticion a nuestra base de datos -- PENDIENTE EJEMPLO
-    const userFound = await dbGetUserByEmail( inputData.email );
+        const userFound = await dbGetUserByEmail( inputData.email );
 
-    if( ! userFound ) {
-        res.json({msg: 'El usuario no existe. Por favor registrese'});
-    }
+        if( ! userFound ) {
+            return res.status(404).json({msg: 'El usuario no existe. Por favor registrese'});
+        }
 
-    // Paso 3: Verificar si la contraseña es valida
-    // Encriptar la contraseña antes de validarla (createUsuario, dbCreateUsuario)
-    const isValid = verifyPassword( inputData.password, userFound.password )
+        const isValid = verifyPassword( inputData.password, userFound.password );
 
-    if( ! isValid ) {
-        res.json({msg: 'El password es invalido'});
-    }
+        if( ! isValid ) {
+            return res.status(401).json({msg: 'Credenciales inválidas'});
+        }
 
-    // Paso 4: Generar el token
-    // "Es como una tarjeta que presento que autentica y autoriza"
-    const payload = {
-        _id: userFound._id,
-        name: userFound.name,
-        email: userFound.email,
-        role: userFound.role,
-        state: userFound.state
-    };
+        const token = generateToken( buildTokenPayload( userFound ) );
 
-    const token = generateToken( payload );
+        // generateToken devuelve null si la firma falla (p. ej. JWT_SECRET sin definir)
+        if( ! token ) {
+            return res.status(500).json({msg: 'No se pudo generar el token de acceso'});
+        }
 
-    // Paso 5: Responder al cliente
-    // Enviar el token. Importante: NO devolver el password
-    const jsonObj = userFound.toObject();  // Convierte el documento (BSON) en un objeto de JavaScript
-
-    delete jsonObj.password;               // Elimina las propiedades no deseadas
-    
-    res.json({
-        msg: 'Login de Usuario',
-        token: token,
-        data: jsonObj
-    });
-
-    } 
-    catch (error) {
+        return res.status(200).json({
+            msg: 'Login de Usuario',
+            token: token,
+            data: toPublicUser( userFound )
+        });
+    } catch (error) {
         console.error( error );
 
-        res.json({msg: 'No se pudo verificar la autenticidad de las credenciales'});
+        return res.status(500).json({msg: 'No se pudo verificar la autenticidad de las credenciales'});
     }
-}
+};
 
-// Verificar autenticacion: recibe el usuario desde el middleware de autenticacion y renueva el token
+// Renovación de token: el middleware de autenticación ya validó el token vigente
+// y dejó el usuario en req.userFound, así que aquí solo se emite uno nuevo.
 const verifyAuthenticate = (req, res) => {
     try {
-        // Paso 1: Obtener los datos del usuario que envia el middleware de autenticacion
         const userFound = req.userFound;
 
-        // Paso 2: Crear el nuevo payload y generar el token
-        const newPayload = {
-            _id: userFound._id,
-            name: userFound.name,
-            email: userFound.email,
-            role: userFound.role,
-            state: userFound.state
-        };
+        if( ! userFound ) {
+            return res.status(401).json({msg: 'No hay un usuario autenticado en la petición'});
+        }
 
-        const newToken = generateToken(newPayload);
+        const newToken = generateToken( buildTokenPayload( userFound ) );
 
-        // Paso 3: Eliminar las propiedades sensibles del objeto que se retorna
-        const jsObj = userFound.toObject();  // Convierte el documento (BSON) en un objeto de JavaScript
+        if( ! newToken ) {
+            return res.status(500).json({msg: 'No se pudo renovar el token de acceso'});
+        }
 
-        delete jsObj.password;               // Elimina el campo password del objeto que retornamos al usuario
-
-        res.json({
+        return res.status(200).json({
             msg: 'Autenticidad del token Verificado con exito',
             token: newToken,
-            data: jsObj
+            data: toPublicUser( userFound )
         });
-
     } catch (error) {
         console.error(error);
 
-        res.json({
+        return res.status(500).json({
             msg: 'No se pudo verificar la autenticidad de las credenciales'
         });
     }

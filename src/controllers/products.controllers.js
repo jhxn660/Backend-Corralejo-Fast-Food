@@ -1,3 +1,4 @@
+import handleMongooseError from "../helpers/handle-mongoose-error.helper.js";
 import { dbCreateProduct, dbDeleteProduct, dbGetProducts, dbUpdateProduct, dbGetProduct } from "../services/products.services.js";
 
 const createProduct = async ( req, res ) => {
@@ -12,38 +13,50 @@ const createProduct = async ( req, res ) => {
         // Usar el servicio para registrar
         const data = await dbCreateProduct(inputData);
 
-        res.json({ msg: 'Registrar producto', data: data});
-    } 
+        res.status(201).json({ msg: 'Registrar producto', data: data});
+    }
     catch (error) {
         console.error(error);
 
-        if( error.name == 'ValidationError') {
-            const errors = {};
-
-            // Iterar los errores
-            for( const field in error.errors){
-                errors[field] = error.errors[field].message;
-            }
-            res.json({ errors });
+        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
+        const validationErrors = handleMongooseError(error);
+        if (validationErrors) {
+            return res.status(400).json(validationErrors);
         }
 
-        // Verificar si el error es por duplicidad 
-        if(error.code == 11000){
-            //console.log('>1>>>', error.keyValue );
-            //console.log('>2>>>', Object.keys(error.keyValue));
-            //console.log('>3>>>', Object.keys(error.keyValue)[0]);
-            const field = Object.keys(error.keyValue)[0];
-
-            // Mensaje de error que se envia al cliente
-            return res.json({
-                msg: `Error por duplicidad en el campo '${field}'`,
-                [field]: `El campo '${ field }' con el valor '${ error.keyValue[ field ]}', ya se encuentra registrado`
-            });
-        }
-
-        res.json({ msg: 'No se pudo registrar el producto' });
+        res.status(500).json({ msg: 'No se pudo registrar el producto' });
     }
 
+}
+
+const getProduct = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        const data = await dbGetProduct( id );
+
+        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
+        if (!data) {
+            return res.status(404).json({ msg: 'Producto no encontrado' });
+        }
+
+        res.json({
+            msg: 'Obtiene un producto',
+            data: data
+        });
+    } catch (error) {
+        console.error( error );
+
+        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
+        const validationErrors = handleMongooseError(error);
+        if (validationErrors) {
+            return res.status(400).json(validationErrors);
+        }
+
+        res.status(500).json({
+            msg: 'No se pudo obtener el producto por ID'
+        });
+    }
 }
 
 const getProducts = async (req, res) => {
@@ -54,27 +67,16 @@ const getProducts = async (req, res) => {
 
         res.json({ msg: 'Listar total o parcialmente los productos', data: data });
     } catch (error) {
-        res.json({
+        console.error(error);
+
+        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
+        const validationErrors = handleMongooseError(error);
+        if (validationErrors) {
+            return res.status(400).json(validationErrors);
+        }
+
+        res.status(500).json({
             msg: 'No se pueden listar el total o parcialmente los productos'
-        })
-    }
-}
-
-const deleteProduct = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        const data = await dbDeleteProduct(id);
-
-        res.json({
-            msg: 'Elimina un producto',
-            data: data
-        });
-    } catch (error) {
-        console.error( error );
-
-        res.json({
-            msg: 'No se ha podido eliminar el producto'
         })
     }
 }
@@ -86,6 +88,11 @@ const updateProduct = async (req, res) => {
 
         const data = await dbUpdateProduct( id, inputData );
 
+        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
+        if (!data) {
+            return res.status(404).json({ msg: 'Producto no encontrado' });
+        }
+
         res.json({
             msg: 'Producto actualizado',
             data: data
@@ -93,41 +100,48 @@ const updateProduct = async (req, res) => {
     } catch (error) {
         console.error( error );
 
-        res.json({
+        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
+        const validationErrors = handleMongooseError(error);
+        if (validationErrors) {
+            return res.status(400).json(validationErrors);
+        }
+
+        res.status(500).json({
             msg: 'No se ha podido actualizar'
         })
     }
 }
 
-const getProduct = async (req, res) => {
+const deleteProduct = async (req, res) => {
     try {
         const id = req.params.id;
 
-        const data = await dbGetProduct( id );
+        const data = await dbDeleteProduct(id);
+
+        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
+        if (!data) {
+            return res.status(404).json({ msg: 'Producto no encontrado' });
+        }
 
         res.json({
-            msg: 'Obtiene un producto',
+            msg: 'Elimina un producto',
             data: data
         });
     } catch (error) {
         console.error( error );
 
-        console.log( 'ID: ', id );
-
-        // Verificar formato del ID
-        if( error.name === 'CastError' ) {
-            return res.json({
-                msg: `El ID debe tener 24 caracteres y el enviad tiene ${id.lenght}`,
-                [error.path]: `El identificador ${ error.value } no tiene el formato valido que requiere MongoDB`
-            });
+        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
+        const validationErrors = handleMongooseError(error);
+        if (validationErrors) {
+            return res.status(400).json(validationErrors);
         }
 
-        res.json({
-            msg: 'No se pudo obtener el producto por ID'
-        });
+        res.status(500).json({
+            msg: 'No se ha podido eliminar el producto'
+        })
     }
 }
 
 export {
-    createProduct, getProducts, deleteProduct, updateProduct, getProduct
+    createProduct, getProduct, getProducts, updateProduct, deleteProduct
 }

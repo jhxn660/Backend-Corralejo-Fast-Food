@@ -1,62 +1,54 @@
-// import express from 'express';          // ESModule
-// const express = require('express');     // CommonJS
+import express from 'express';
 
-import express from 'express'; 
-
-import conexion from './config/mongo.config.js';  // Conexion a la base de datos
-import categoriesRoute from './routes/categories.routes.js';
-import productRoute from './routes/products.routes.js';
-import PedidosRoute from './routes/pedidos.routes.js';
-import ventasRoute from './routes/ventas.routes.js';
-import indicadoresRoute from './routes/indicadores.routes.js';
+import conexion from './config/mongo.config.js';
 import authRoute from './routes/auth.routes.js';
 import usersRoute from './routes/users.routes.js';
-import comentarioRoute from './routes/comentario.routes.js';
+import categoriesRoute from './routes/categories.routes.js';
+import productRoute from './routes/products.routes.js';
+import suppliesRoute from './routes/supplies.routes.js';
+import ordersRoute from './routes/orders.routes.js';
+import salesRoute from './routes/sales.routes.js';
+import indicatorsRoute from './routes/indicators.routes.js';
+import commentsRoute from './routes/comments.routes.js';
 import pqrsRoute from './routes/pqrs.routes.js';
-import informacionRoute from './routes/informacion.routes.js';
-import insumosRoute from './routes/insumos.routes.js';
+import establecimientoRoute from './routes/establecimiento.routes.js';
 
 const port = process.env.PORT || 3001;
 
-const app = express();    // Instancia de express
+const app = express();
 
-conexion();   // Ejecuta la conexion a la base de datos
+// La conexión se lanza sin await: Mongoose encola las consultas hasta que el
+// driver esté listo, así el servidor HTTP no depende del tiempo de arranque de Mongo.
+conexion();
 
-// Middlewares: habilita a la aplicación para interpretar JSON
 app.use(express.json());
 
-// Definiendo 1 endpoint (ruta de entrada)
-app.get('/health', (req, res) => {
-  res.json({msg: 'Corralejo Fast Food!'});
-});
-
-// Enlazar todas las rutas de la app
-app.use( '/api/categories', categoriesRoute );
-app.use( '/api/products', productRoute);
-app.use( '/api/auth', authRoute);
-app.use( '/api/users', usersRoute );
-
-app.use(express.json()); 
-
-// Endpoint de prueba (health check)
 app.get('/health', (req, res) => {
     res.status(200).json({ msg: 'Servidor de Corralejo Fast Food Funcionando!' });
 });
 
+// Acceso y usuarios
+app.use('/api/auth', authRoute);
+app.use('/api/users', usersRoute);
 
-// Enlazar todas las rutas de la aplicación
-app.use('/api/pedidos', PedidosRoute);
-app.use('/api/ventas', ventasRoute);
-app.use('/api/indicadores', indicadoresRoute);
-app.use('/api/auth', authRoute);   // NUEVO
-app.use('/api/users', usersRoute); // NUEVO
-app.use('/api/comentario', comentarioRoute);
-app.use('/api/pqrs', pqrsRoute);
-app.use('/api', informacionRoute);
+// Catálogo e inventario
 app.use('/api/categories', categoriesRoute);
-app.use('/api/insumos', insumosRoute);
+app.use('/api/products', productRoute);
+app.use('/api/supplies', suppliesRoute);
 
-// Iniciar servidor
+// Operación comercial
+app.use('/api/orders', ordersRoute);
+app.use('/api/sales', salesRoute);
+app.use('/api/indicators', indicatorsRoute);
+
+// Atención al cliente
+app.use('/api/comments', commentsRoute);
+app.use('/api/pqrs', pqrsRoute);
+
+// Este router agrupa tres recursos (/establecimiento, /horarios, /ubicaciones),
+// por eso se monta en la raíz de /api y cada ruta declara su propio prefijo.
+app.use('/api', establecimientoRoute);
+
 app.listen(port, () => {
-  console.log(`Servidor está corriendo en http://localhost:${port}`);
+    console.log(`Servidor está corriendo en http://localhost:${port}`);
 });

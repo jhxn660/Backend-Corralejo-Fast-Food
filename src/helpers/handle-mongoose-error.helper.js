@@ -3,9 +3,9 @@
  * Transforma los errores en un objeto plano donde:
  *   - Llave: Nombre de la propiedad que falló la validación
  *   - Valor: Mensaje de error configurado en el Schema de Mongoose
- * 
+ *
  * Es una función genérica y reutilizable para cualquier modelo o entidad de la aplicación.
- * 
+ *
  * @param {Error} error - Objeto de excepción capturado en el bloque catch del controlador
  * @returns {Object|null} Objeto { [propiedad]: mensajeDeError } o null si no es un error reconocido de Mongoose
  */
@@ -44,4 +44,41 @@ const handleMongooseError = ( error ) => {
     return null;
 };
 
+/**
+ * Campos obligatorios por entidad.
+ * Reemplaza a los antiguos comments.helpers, pqrs.helpers y establecimiento.helpers,
+ * que repetían la misma comprobación con un `if` distinto por entidad.
+ */
+const REQUIRED_FIELDS = {
+    comment: [ 'codigo', 'comentario' ],
+    pqrs: [ 'tipo', 'asunto', 'descripcion' ],
+    establecimiento: [ 'titulo', 'contenido' ],
+    horario: [ 'dia', 'apertura', 'cierre' ],
+    ubicacion: [ 'direccion', 'ciudad' ]
+};
+
+/**
+ * Valida la presencia de los campos obligatorios de una entidad antes de llegar a la base de datos.
+ * Lanza un error con la misma forma que el ValidationError de Mongoose, de modo que
+ * handleMongooseError lo formatea igual que cualquier otro error de persistencia.
+ *
+ * @param {keyof REQUIRED_FIELDS} entity - Clave de la entidad en REQUIRED_FIELDS
+ * @param {Object} data - Datos de entrada (normalmente req.body)
+ * @throws {Error} ValidationError con un mensaje por cada campo faltante
+ */
+const validateRequiredFields = ( entity, data = {} ) => {
+    const missing = ( REQUIRED_FIELDS[entity] ?? [] ).filter( ( field ) => !data[field] );
+
+    if ( missing.length === 0 ) return;
+
+    const error = new Error( `Campos obligatorios faltantes: ${missing.join( ', ' )}` );
+    error.name = 'ValidationError';
+    error.errors = Object.fromEntries(
+        missing.map( ( field ) => [ field, { message: `El campo '${field}' es obligatorio` } ] )
+    );
+
+    throw error;
+};
+
+export { REQUIRED_FIELDS, validateRequiredFields };
 export default handleMongooseError;

@@ -1,9 +1,9 @@
 const authorizationMiddleware = ( allowedRoles =[] ) => {
-   
-    return (req, res, next) => {     
+
+    return (req, res, next) => {
         // Paso 1: Extraer el rol del usuario del payload del token que valida el Middleware Autentication
         const role = req.userFound.role;
-    
+
         if ( ! role ) {
             return res.status(403).json({ msg: 'Error: El usuario autenticado no tiene rol definido' });
         }

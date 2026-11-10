@@ -15,7 +15,6 @@ const generateToken = ( payload ) => {
     }
 };
 
-// 2.5:
 const validateToken = (token) => {
     try {
         // Si es valido devuelve el payload, sino devuelve null
@@ -23,8 +22,6 @@ const validateToken = (token) => {
             token,                  // Token valido enviado por el usuario
             process.env.JWT_SECRET  // Cadena Secreta que se mezclo en el payload
         );
-
-        console.log('payload: ', payload);  // Debugging
 
         return payload;
 

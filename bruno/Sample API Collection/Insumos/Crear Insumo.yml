@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:3000/api/insumos
+  url: http://localhost:3000/api/supplies
   headers:
     - name: X-Token
       value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzc2Njk3LCJleHAiOjE3OTMzODAyOTd9.1vHfMDs6EH3DqRMCuN5t9QgkSiEElIUKr98bjrnLq64

@@ -4,12 +4,16 @@ const dbCreateProduct = async( newProduct ) => {
     return await ProductModel.create( newProduct );
 }
 
-const dbGetProducts = async () => {
-    return await ProductModel.find().populate(['createdBy', 'category'])
+const dbGetProduct = async ( id ) => {
+    return await ProductModel.findOne({ _id: id });
 }
 
-const dbDeleteProduct = async ( id ) => {
-    return await ProductModel.findOneAndDelete({ _id: id });
+const dbGetProducts = async () => {
+    // CAMBIO: `createdBy` ya resuelve contra User, así que se limita la proyección;
+    // un populate sin campos devolvería el documento completo, incluido el hash de la contraseña.
+    return await ProductModel.find()
+        .populate('createdBy', 'name email role')
+        .populate('category');
 }
 
 const dbUpdateProduct = async ( id, productUpdate ) => {
@@ -20,10 +24,10 @@ const dbUpdateProduct = async ( id, productUpdate ) => {
     );
 }
 
-const dbGetProduct = async ( id ) => {
-    return await ProductModel.findOne({ _id: id });
+const dbDeleteProduct = async ( id ) => {
+    return await ProductModel.findOneAndDelete({ _id: id });
 }
 
 export {
-    dbCreateProduct, dbGetProducts, dbDeleteProduct, dbUpdateProduct, dbGetProduct
+    dbCreateProduct, dbGetProduct, dbGetProducts, dbUpdateProduct, dbDeleteProduct
 }

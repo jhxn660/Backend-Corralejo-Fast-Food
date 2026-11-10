@@ -1,3 +1,4 @@
+import handleMongooseError from "../helpers/handle-mongoose-error.helper.js";
 import { dbCreateCategory, dbGetCategory, dbGetCategories, dbUpdateCategory, dbDeleteCategory } from '../services/categories.services.js';
 
 const createCategory = async (req, res) => {
@@ -20,25 +21,10 @@ const createCategory = async (req, res) => {
     } catch (error) {
         console.error(error);
 
-        // 1. Personaliza los mensajes de error definidos en el Modelo
-        if (error.name === 'ValidationError') {
-            const errors = {};
-
-            for (const field in error.errors) {
-                errors[field] = error.errors[field].message;
-            }
-
-            return res.status(400).json({ errors });
-        }
-
-        // 2. Verificar si el error es por duplicidad (campo unique)
-        if (error.code === 11000) {
-            const field = Object.keys(error.keyValue)[0];
-
-            return res.status(400).json({
-                msg: `ERROR: por duplicidad en el campo '${field}'`,
-                [field]: `El campo '${field}' con el valor '${error.keyValue[field]}', ya se encuentra registrado.`
-            });
+        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
+        const validationErrors = handleMongooseError(error);
+        if (validationErrors) {
+            return res.status(400).json(validationErrors);
         }
 
         // Error generico del servidor
@@ -52,17 +38,20 @@ const getCategory = async (req, res) => {
 
         const data = await dbGetCategory(id);
 
+        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
+        if (!data) {
+            return res.status(404).json({ msg: 'Categoria no encontrada' });
+        }
+
         res.status(200).json({ msg: 'Obtiene una categoria', data: data });
 
     } catch (error) {
         console.error(error);
 
-        // 3. Verificar formato del ID (ObjectId) enviado por la ruta
-        if (error.name === 'CastError') {
-            return res.status(400).json({
-                msg: `El ID debe tener 24 caracteres y el enviado tiene ${error.value.length}`,
-                [error.path]: `El identificador '${error.value}' no tiene el formato valido que requiere MongoDB`
-            });
+        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
+        const validationErrors = handleMongooseError(error);
+        if (validationErrors) {
+            return res.status(400).json(validationErrors);
         }
 
         // Error generico del servidor
@@ -90,38 +79,20 @@ const updateCategory = async (req, res) => {
 
         const data = await dbUpdateCategory(id, inputData);
 
+        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
+        if (!data) {
+            return res.status(404).json({ msg: 'Categoria no encontrada' });
+        }
+
         res.status(200).json({ msg: 'Categoria Actualizada', data: data });
 
     } catch (error) {
         console.error(error);
 
-        // 1. Personaliza los mensajes de error definidos en el Modelo
-        if (error.name === 'ValidationError') {
-            const errors = {};
-
-            for (const field in error.errors) {
-                errors[field] = error.errors[field].message;
-            }
-
-            return res.status(400).json({ errors });
-        }
-
-        // 2. Verificar si el error es por duplicidad (campo unique)
-        if (error.code === 11000) {
-            const field = Object.keys(error.keyValue)[0];
-
-            return res.status(400).json({
-                msg: `ERROR: por duplicidad en el campo '${field}'`,
-                [field]: `El campo '${field}' con el valor '${error.keyValue[field]}', ya se encuentra registrado.`
-            });
-        }
-
-        // 3. Verificar formato del ID (ObjectId) enviado por la ruta
-        if (error.name === 'CastError') {
-            return res.status(400).json({
-                msg: `El ID debe tener 24 caracteres y el enviado tiene ${error.value.length}`,
-                [error.path]: `El identificador '${error.value}' no tiene el formato valido que requiere MongoDB`
-            });
+        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
+        const validationErrors = handleMongooseError(error);
+        if (validationErrors) {
+            return res.status(400).json(validationErrors);
         }
 
         // Error generico del servidor
@@ -135,17 +106,20 @@ const deleteCategory = async (req, res) => {
 
         const data = await dbDeleteCategory(id);
 
+        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
+        if (!data) {
+            return res.status(404).json({ msg: 'Categoria no encontrada' });
+        }
+
         res.status(200).json({ msg: 'Categoria Eliminada', data: data });
 
     } catch (error) {
         console.error(error);
 
-        // 3. Verificar formato del ID (ObjectId) enviado por la ruta
-        if (error.name === 'CastError') {
-            return res.status(400).json({
-                msg: `El ID debe tener 24 caracteres y el enviado tiene ${error.value.length}`,
-                [error.path]: `El identificador '${error.value}' no tiene el formato valido que requiere MongoDB`
-            });
+        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
+        const validationErrors = handleMongooseError(error);
+        if (validationErrors) {
+            return res.status(400).json(validationErrors);
         }
 
         // Error generico del servidor

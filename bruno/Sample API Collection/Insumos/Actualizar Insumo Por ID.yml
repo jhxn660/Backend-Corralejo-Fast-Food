@@ -5,7 +5,7 @@ info:
 
 http:
   method: PATCH
-  url: http://localhost:3000/api/insumos/6ad79096801be531b1117b32
+  url: http://localhost:3000/api/supplies/6ad79096801be531b1117b32
   headers:
     - name: X-Token
       value: ""

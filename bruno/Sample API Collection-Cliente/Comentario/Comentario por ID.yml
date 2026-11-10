@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/comentario/6ad8ef3d3b3d915a54ebe68
+  url: http://localhost:3000/api/comments/6ad8ef3d3b3d915a54ebe68
   auth: inherit
 
 settings:

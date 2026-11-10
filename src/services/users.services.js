@@ -3,7 +3,7 @@ import userModel from "../models/user.model.js";
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`])[^\s]{7,60}$/;
 
-// Crear un usuario y devolverlo sin la contraseña 
+// Crear un usuario y devolverlo sin la contraseña
 
 // {
 //   "name": "Juan",
@@ -18,7 +18,7 @@ const dbCreateUser = async (newUser) => {
         const error = new Error( 'La contraseña debe tener entre 7 y 50 caracteres, incluir al menos una mayúscula, una minúscula, un número y un símbolo' );
         error.name = 'PasswordValidationError';
         error.statusCode = 400;
-        
+
         throw error;
     }
 
@@ -58,7 +58,9 @@ const dbGetUsers = async ( page = 1, limit = 10, status = 'true', role ) => {
     //   - por defecto        -> solo usuarios activos ({ status: true })
     let filter = {};
 
-    const availableRoles = ['Administrador', 'Empleado', 'Usuario', 'UsuarioT'];
+    // CAMBIO: la lista coincide ahora con el enum de roles del modelo User; antes incluía 'UsuarioT'
+    // (inexistente) y omitía 'Owner' y 'Cliente', de modo que no se podía filtrar por ellos.
+    const availableRoles = ['Owner', 'Administrador', 'Empleado', 'Cliente', 'Usuario'];
 
     if ( status === 'true' || status === true ) {
         filter.status = true;

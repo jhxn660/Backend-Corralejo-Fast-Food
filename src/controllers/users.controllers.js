@@ -45,14 +45,16 @@ const getUser = async (req, res) => {
     const id = req.params.id;
 
     try {
-        
+
         const data = await dbGetUser(id);
 
-        res.status(200).json({ msg: 'Obtiene un Usuario por ID', data: data });
-
+        // El 404 debe evaluarse antes de responder: en el orden anterior ya se había
+        // enviado un 200 con data null y este return intentaba responder por segunda vez.
         if (!data) {
             return res.status(404).json({ msg: 'Usuario no encontrado' });
         }
+
+        res.status(200).json({ msg: 'Obtiene un Usuario por ID', data: data });
 
     } catch (error) {
         console.error(error);
@@ -152,6 +154,3 @@ export {
     updateMPUser,
     deleteUser
 };
-
-
-

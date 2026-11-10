@@ -22,14 +22,16 @@ const ProductSchema = new Schema({
     },
     state: {
         type: String,
-        enum: [ 
-            'disponible', 
-            'en garantia', 
-            'entregado', 
-            'pendiente', 
+        enum: [
+            'disponible',
+            'en garantia',
+            'entregado',
+            'pendiente',
             'en transito'
         ],
-        default: 'dispoible'
+        // CAMBIO: el valor por defecto tenía una errata ('dispoible') que no existe en el enum,
+        // por lo que crear un producto sin `state` fallaba la validación.
+        default: 'disponible'
     },
     category: {
         type: Schema.Types.ObjectId,
@@ -38,7 +40,9 @@ const ProductSchema = new Schema({
     },
     createdBy: {
         type: Schema.Types.ObjectId,
-        ref: 'menu',
+        // CAMBIO: antes apuntaba a 'menu', un modelo inexistente. Quien registra el producto es un
+        // usuario del sistema (rol 'Empleado' o 'Administrador'), así que se referencia a 'User'.
+        ref: 'User',
         required: [true, 'El ID del usuario que registra es obligatorio']
     }
 }, {

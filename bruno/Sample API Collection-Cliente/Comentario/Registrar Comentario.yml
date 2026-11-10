@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:3000/api/comentario
+  url: http://localhost:3000/api/comments
   headers:
     - name: x-token
       value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI2YWU0YmI5MDk0NzBiZDQzZDg4OWU5YTMiLCJub21icmUiOiJUdSBOb21icmUiLCJpYXQiOjE3OTMzNzUxMjAsImV4cCI6MTc5MzM4MjMyMH0.SL25f_vkKV4wjGYcRvs6G1wG4qeetTeJHnKxoti4QQc

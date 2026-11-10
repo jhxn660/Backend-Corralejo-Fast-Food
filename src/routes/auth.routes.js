@@ -9,16 +9,15 @@ const router = Router();
 
 // Define las rutas para la autenticacion
 
-// 1. Registro publico de usuarios. [Usuario]
-// Aplicar withoutRoleMiddleware para que solo se registre el Customer
+// 1. Registro publico: el visitante ('Usuario') pasa a ser 'Cliente', rol que habilita el modulo de PQRS.
+// withoutRoleMiddleware fuerza ese rol e ignora cualquier otro que venga en el body.
 router.post('/register', withoutRoleMiddleware, createUser);
 
 // 2. Login de Usuarios
 router.post('/login', loginUser);
 
 // 3. Renovacion de Credenciales (token)
-router.get('/renew-token', authMiddleware, // authorizationMiddleware, 
-verifyAuthenticate);
+router.get('/renew-token', authMiddleware, verifyAuthenticate);
 
 // 4. Recuperar contraseña
 // 5. Habilitar cuenta registrada publicamente

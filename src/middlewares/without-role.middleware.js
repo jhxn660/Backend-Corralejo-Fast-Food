@@ -1,11 +1,10 @@
+// CAMBIO: el registro público convierte al visitante ('Usuario', sin cuenta) en 'Cliente'.
+// Antes solo se borraba el rol enviado y se dependía del valor por defecto del Schema; ahora
+// se asigna de forma explícita para que la regla de negocio no cambie si cambia ese default,
+// y para que nadie pueda auto-asignarse 'Administrador' o 'Empleado' desde el formulario público.
 const withoutRoleMiddleware = (req, res, next) => {
-    // Paso 1: Obtiene los datos de la peticion
-    const inputData = req.body;
+    req.body = { ...req.body, role: 'Cliente' };
 
-    // Paso 2: Elimina el rol para que se registre el rol por defecto, en este caso = Usuario
-    delete inputData.role;  // Eliminar la propiedad role
-
-    // Paso 3: El Middleware lanza el control de la aplicacion a la siguiente funcion
     next();
 };
 
