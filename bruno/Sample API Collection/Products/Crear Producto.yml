@@ -8,18 +8,18 @@ http:
   url: http://localhost:3000/api/products
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWVjYmZlMjE2OWMzNTY0YmY4YzU4NjgiLCJuYW1lIjoiRGllZ29yLnIiLCJlbWFpbCI6ImRpZWd1aXRvQGdtYWlsLmNvbSIsInJvbGUiOiJBRE1JTiIsInN0YXR1cyI6dHJ1ZSwiaWF0IjoxNzkzOTAwNTMyLCJleHAiOjE3OTM5MDQxMzJ9.A0T7BvUGD_NwQ1LBKNCnQZNQDcZEGek5ju5ZNnKw1vA
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWY0OTQ2NmZmNTAxMjZhNmY5MjQ3NWYiLCJuYW1lIjoiSnVhblMiLCJlbWFpbCI6IjQ1NTQ3MzgzdzNAZ21haWwuY29tIiwicm9sZSI6IkNsaWVudGUiLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzk0NDE0NDQ5LCJleHAiOjE3OTQ0MTgwNDl9.SxHu4MDCGg6s2ywU7ZZ6uvPHzivQWq1UFVJZauiBbKc
   body:
     type: json
     data: |-
       {
-        "nombre": "Carnes",
-        "description": "Carne de res",
+        "nombre": "Hamburguesa de res",
+        "description": "Deliciosa hamburguesa de carne de res para tu paladar",
         "price": 18000,
         "stock": 138,
         "state": "disponible",
-        "category": "6ad64a424b5770d77562b2c0",
-        "createdBy": "6ad65aa5a894a7eac00d79e1"
+        "category": "6af4977de6c20a4a420c3c3e",
+        "createdBy": "6af49466ff50126a6f92475f"
       }
   auth: inherit
 

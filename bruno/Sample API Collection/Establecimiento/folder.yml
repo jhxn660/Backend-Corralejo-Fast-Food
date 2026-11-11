@@ -1,7 +1,7 @@
 info:
   name: Establecimiento
   type: folder
-  seq: 5
+  seq: 10
 
 request:
   auth: inherit

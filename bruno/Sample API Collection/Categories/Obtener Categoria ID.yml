@@ -5,14 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/categories/6af3574d7be6b2cbe1371da6?X-Token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUyMjEwNzRjOTIyMjA2ODI4ZmE0MzciLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNAZ21haWwuY29tIiwicm9sZSI6IlVzdWFyaW8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzI2MDA0LCJleHAiOjE3OTMzMjk2MDR9.SLL05N-jhyGxJFRCY0-1gVvPO-3A9cHf9D2fQEGqr8c
+  url: http://localhost:3000/api/categories/6af4977de6c20a4a420c3c3e
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWYyMGM2NzdhMmYyZmQxZGQ3NTAzMDMiLCJuYW1lIjoiSnVhblMiLCJlbWFpbCI6IjQ1NTQ3MzgzM0BnbWFpbC5jb20iLCJyb2xlIjoiQ2xpZW50ZSIsInN0YXRlIjp0cnVlLCJpYXQiOjE3OTQzMzIzMDgsImV4cCI6MTc5NDMzNTkwOH0.DYMOQ8u8BBRhjVa1lB-IySqDioHF0BwgVvqhOa4f6pk
-  params:
-    - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWUyMjEwNzRjOTIyMjA2ODI4ZmE0MzciLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNAZ21haWwuY29tIiwicm9sZSI6IlVzdWFyaW8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzI2MDA0LCJleHAiOjE3OTMzMjk2MDR9.SLL05N-jhyGxJFRCY0-1gVvPO-3A9cHf9D2fQEGqr8c
-      type: query
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWY0OTQ2NmZmNTAxMjZhNmY5MjQ3NWYiLCJuYW1lIjoiSnVhblMiLCJlbWFpbCI6IjQ1NTQ3MzgzdzNAZ21haWwuY29tIiwicm9sZSI6IkNsaWVudGUiLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzk0NDE0NDQ5LCJleHAiOjE3OTQ0MTgwNDl9.SxHu4MDCGg6s2ywU7ZZ6uvPHzivQWq1UFVJZauiBbKc
   auth: inherit
 
 settings:
