@@ -5,14 +5,14 @@ import { authorizationMiddleware } from '../middlewares/authorization.middleware
 
 const router = Router();
 
-router.post('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], CreateIndicators);
+router.post('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], CreateIndicators);
 
 // Una ruta por widget del dashboard: cada una devuelve solo su sección del reporte vigente
-router.get('/kpis', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], GetKpis);
-router.get('/goal', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], GetGoal);
-router.get('/comparison', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], GetComparison);
-router.get('/productRows', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], GetProductRows);
-router.get('/ranking', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], GetRanking);
-router.get('/reviews', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], GetReviews);
+router.get('/kpis', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], GetKpis);
+router.get('/goal', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], GetGoal);
+router.get('/comparison', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], GetComparison);
+router.get('/productRows', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], GetProductRows);
+router.get('/ranking', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], GetRanking);
+router.get('/reviews', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], GetReviews);
 
 export default router;

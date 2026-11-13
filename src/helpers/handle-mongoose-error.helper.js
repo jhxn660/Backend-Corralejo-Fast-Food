@@ -53,8 +53,9 @@ const REQUIRED_FIELDS = {
     comment: [ 'codigo', 'comentario' ],
     pqrs: [ 'tipo', 'asunto', 'descripcion' ],
     establecimiento: [ 'titulo', 'contenido' ],
-    horario: [ 'dia', 'apertura', 'cierre' ],
-    ubicacion: [ 'direccion', 'ciudad' ]
+    // CAMBIO: claves alineadas con los campos reales de los modelos de horario y ubicación
+    horario: [ 'dia', 'horaApertura', 'horaCierre' ],
+    ubicacion: [ 'titulo', 'descripcion', 'direccion', 'telefono' ]
 };
 
 /**

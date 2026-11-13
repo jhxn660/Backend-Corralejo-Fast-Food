@@ -1,14 +1,14 @@
 info:
   name: Leer Todos Productos
   type: http
-  seq: 3
+  seq: 4
 
 http:
   method: GET
   url: http://localhost:3000/api/products
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWY0OTQ2NmZmNTAxMjZhNmY5MjQ3NWYiLCJuYW1lIjoiSnVhblMiLCJlbWFpbCI6IjQ1NTQ3MzgzdzNAZ21haWwuY29tIiwicm9sZSI6IkNsaWVudGUiLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzk0NDE0NDQ5LCJleHAiOjE3OTQ0MTgwNDl9.SxHu4MDCGg6s2ywU7ZZ6uvPHzivQWq1UFVJZauiBbKc
+      value: "{{token}}"
   auth: inherit
 
 settings:

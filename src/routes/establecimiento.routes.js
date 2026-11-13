@@ -24,24 +24,24 @@ import { authorizationMiddleware } from '../middlewares/authorization.middleware
 const router = Router();
 
 // Establecimiento
-router.post('/establecimiento', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], createEstablecimiento);
-router.get('/establecimiento/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getEstablecimiento);
-router.get('/establecimiento', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getEstablecimientoList);
-router.patch('/establecimiento/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], updateEstablecimiento);
-router.delete('/establecimiento/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], deleteEstablecimiento);
+router.post('/establecimiento', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], createEstablecimiento);
+router.get('/establecimiento/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getEstablecimiento);
+router.get('/establecimiento', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getEstablecimientoList);
+router.patch('/establecimiento/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], updateEstablecimiento);
+router.delete('/establecimiento/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], deleteEstablecimiento);
 
 // Horarios
-router.post('/horarios', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], createHorario);
-router.get('/horarios/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getHorario);
-router.get('/horarios', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getHorarios);
-router.patch('/horarios/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], updateHorario);
-router.delete('/horarios/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], deleteHorario);
+router.post('/horarios', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], createHorario);
+router.get('/horarios/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getHorario);
+router.get('/horarios', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getHorarios);
+router.patch('/horarios/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], updateHorario);
+router.delete('/horarios/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], deleteHorario);
 
 // Ubicaciones
-router.post('/ubicaciones', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], createUbicacion);
-router.get('/ubicaciones/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getUbicacion);
-router.get('/ubicaciones', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], getUbicaciones);
-router.patch('/ubicaciones/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], updateUbicacion);
-router.delete('/ubicaciones/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], deleteUbicacion);
+router.post('/ubicaciones', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], createUbicacion);
+router.get('/ubicaciones/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getUbicacion);
+router.get('/ubicaciones', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getUbicaciones);
+router.patch('/ubicaciones/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], updateUbicacion);
+router.delete('/ubicaciones/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], deleteUbicacion);
 
 export default router;

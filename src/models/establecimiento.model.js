@@ -70,6 +70,16 @@ const UbicacionSchema = new Schema({
         type: String,
         required: [true, 'El teléfono es obligatorio']
     },
+    // CAMBIO: campos opcionales que ya envía el cliente (colección Bruno); antes
+    // Mongoose los descartaba en silencio por no estar definidos en el Schema.
+    ciudad: {
+        type: String,
+        default: ''
+    },
+    referencia: {
+        type: String,
+        default: ''
+    },
     enlaceMapa: {
         type: String,
         default: ''

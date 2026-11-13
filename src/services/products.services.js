@@ -20,7 +20,7 @@ const dbUpdateProduct = async ( id, productUpdate ) => {
     return await ProductModel.findOneAndUpdate(
         { _id: id },
         productUpdate,
-        { new: true }
+        { new: true, runValidators: true }
     );
 }
 

@@ -5,7 +5,10 @@ info:
 
 http:
   method: DELETE
-  url: http://localhost:3000/api/ubicacion/6ad8faad29a03b167e44a747
+  url: "http://localhost:3000/api/ubicaciones/{{ubicacionId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
   auth: inherit
 
 settings:

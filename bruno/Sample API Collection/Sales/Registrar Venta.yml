@@ -1,0 +1,49 @@
+info:
+  name: Registrar Venta
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/sales
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "idVenta": "{{idVenta}}",
+        "fecha": "2026-11-12 13:00",
+        "cliente": "Consumidor Final",
+        "totalPagado": 36000,
+        "idTicketVenta": "{{ticketVenta}}",
+        "empleadoResponsable": "Laura Gomez",
+        "pedidoAsociado": "{{orderId}}",
+        "estadoPedido": "Entregado",
+        "direccionEntrega": "Local",
+        "detalles": [
+          { "producto": "Hamburguesa de res", "cantidad": 2, "precio_unitario": 18000, "subtotal": 36000 }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        // idVenta e idTicketVenta son unicos. idTicketVenta es el contenido del QR impreso
+        // en el ticket: Comments/Registrar Comentario lo envia como "codigo".
+        const sufijo = Date.now();
+        bru.setVar("idVenta", `V-${sufijo}`);
+        bru.setVar("ticketVenta", `TCK-${sufijo}`);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+docs: |-
+  Requiere Orders/Crear Pedido. Genera el ticket (QR) que habilita un comentario.

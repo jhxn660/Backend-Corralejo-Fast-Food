@@ -8,17 +8,26 @@ http:
   url: http://localhost:3000/api/categories
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWY0OTQ2NmZmNTAxMjZhNmY5MjQ3NWYiLCJuYW1lIjoiSnVhblMiLCJlbWFpbCI6IjQ1NTQ3MzgzdzNAZ21haWwuY29tIiwicm9sZSI6IkNsaWVudGUiLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzk0NDE0NDQ5LCJleHAiOjE3OTQ0MTgwNDl9.SxHu4MDCGg6s2ywU7ZZ6uvPHzivQWq1UFVJZauiBbKc
+      value: "{{token}}"
   body:
     type: json
     data: |-
       {
-        "name": "Hamburguesas",
+        "name": "Hamburguesas {{$timestamp}}",
         "type": "Producto",
         "description": "deliciosas hamburguesas para tu paladar"
       }
-      // "createdBy": "6ae40e237c859c142ba70bad" Ya no se usa el id. Se pone de forma automatica.
+      // "createdBy" ya no se envia: se asigna automaticamente con el usuario del token.
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("categoryId", res.body.data._id);
+        }
 
 settings:
   encodeUrl: true

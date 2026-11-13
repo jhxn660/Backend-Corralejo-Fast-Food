@@ -7,8 +7,8 @@ http:
   method: POST
   url: http://localhost:3000/api/pqrs
   headers:
-    - name: x-token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI2YWU0YzI4OTg1YWYzNzJmMDc5MmZmNGUiLCJub21icmUiOiJQcnVlYmEgUFFSUyIsImlhdCI6MTc5MzM3NjkwNSwiZXhwIjoxNzkzMzg0MTA1fQ.SDPhRd-6w_D6u-aAe3frFBOdTChSfEpFOekIHemEyck
+    - name: X-Token
+      value: "{{token}}"
   body:
     type: json
     data: |-
@@ -19,9 +19,21 @@ http:
       }
   auth: inherit
 
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("pqrsId", res.body.data._id);
+        }
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  Solo el rol Cliente puede registrar PQRS.

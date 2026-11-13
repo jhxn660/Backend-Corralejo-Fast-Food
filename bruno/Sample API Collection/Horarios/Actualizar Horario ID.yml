@@ -5,7 +5,10 @@ info:
 
 http:
   method: PATCH
-  url: http://localhost:3000/api/horario/6ad8f8a629a03b167e44a73f
+  url: "http://localhost:3000/api/horarios/{{horarioId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
   body:
     type: json
     data: |-

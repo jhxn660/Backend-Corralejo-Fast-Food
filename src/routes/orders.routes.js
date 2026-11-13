@@ -5,10 +5,10 @@ import { authorizationMiddleware } from '../middlewares/authorization.middleware
 
 const router = Router();
 
-router.post('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], CreateOrders);
-router.get('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], GetOrders);
-router.put('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], UpdateAllOrders);
-router.patch('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' , 'Cliente' ]) ], UpdatePartialOrders);
-router.delete('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' , 'Cliente' ]) ], DeleteOrders);
+router.post('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], CreateOrders);
+router.get('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], GetOrders);
+router.put('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], UpdateAllOrders);
+router.patch('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], UpdatePartialOrders);
+router.delete('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], DeleteOrders);
 
 export default router;

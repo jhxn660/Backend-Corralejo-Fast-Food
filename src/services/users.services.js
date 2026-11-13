@@ -51,11 +51,13 @@ const dbGetUsers = async ( page = 1, limit = 10, status = 'true', role ) => {
     // Fórmula: (página - 1) * límite
     const skip = ( pageNumber - 1 ) * limitNumber;
 
-    // Paso 3: Construir el filtro dinámico según los query params 'status' y 'role'
-    //   - status === 'true'  -> solo usuarios activos ({ status: true })
-    //   - status === 'false' -> solo usuarios inactivos ({ status: false })
-    //   - status === 'all'   -> todos sin distingo de status ({})
-    //   - por defecto        -> solo usuarios activos ({ status: true })
+    // Paso 3: Construir el filtro dinámico según los query params 'state' y 'role'
+    // CAMBIO: se filtra por `state`, el campo real del modelo User; antes se usaba `status`
+    // (inexistente) y ?state=true / ?state=false devolvían siempre una lista vacía.
+    //   - status === 'true'  -> solo usuarios activos ({ state: true })
+    //   - status === 'false' -> solo usuarios inactivos ({ state: false })
+    //   - status === 'all'   -> todos sin distingo de estado ({})
+    //   - por defecto        -> solo usuarios activos ({ state: true })
     let filter = {};
 
     // CAMBIO: la lista coincide ahora con el enum de roles del modelo User; antes incluía 'UsuarioT'
@@ -63,13 +65,13 @@ const dbGetUsers = async ( page = 1, limit = 10, status = 'true', role ) => {
     const availableRoles = ['Owner', 'Administrador', 'Empleado', 'Cliente', 'Usuario'];
 
     if ( status === 'true' || status === true ) {
-        filter.status = true;
+        filter.state = true;
     } else if ( status === 'false' || status === false ) {
-        filter.status = false;
+        filter.state = false;
     } else if ( status === 'all' ) {
         filter = {}; // Objeto vacío: no filtra por status (trae todos)
     } else {
-        filter.status = true; // Valor por defecto
+        filter.state = true; // Valor por defecto
     }
 
     // Filtrar por rol (si se envía y es válido)

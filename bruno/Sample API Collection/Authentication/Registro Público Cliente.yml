@@ -24,3 +24,6 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  Crea el Cliente de pruebas. Si ya existe responde 400 (correo duplicado): en ese caso basta con ejecutar el Login.

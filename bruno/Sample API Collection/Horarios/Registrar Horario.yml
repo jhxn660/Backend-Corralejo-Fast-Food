@@ -5,7 +5,10 @@ info:
 
 http:
   method: POST
-  url: http://localhost:3000/api/horario
+  url: http://localhost:3000/api/horarios
+  headers:
+    - name: X-Token
+      value: "{{token}}"
   body:
     type: json
     data: |-
@@ -15,6 +18,15 @@ http:
           "horaCierre": "10:00 PM"
       }
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("horarioId", res.body.data._id);
+        }
 
 settings:
   encodeUrl: true

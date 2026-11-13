@@ -73,10 +73,10 @@ const getUsers = async (req, res) => {
     try {
         // Paso 1: Extraer los query parameters de la URL
         // Ejemplos:
-        //   - /api/users?status=true   (usuarios activos)
-        //   - /api/users?status=false  (usuarios inactivos)
-        //   - /api/users?status=all    (todos los usuarios)
-        //   - /api/users?page=1&limit=10&status=all
+        //   - /api/users?state=true   (usuarios activos)
+        //   - /api/users?state=false  (usuarios inactivos)
+        //   - /api/users?state=all    (todos los usuarios)
+        //   - /api/users?page=1&limit=10&state=all
         const { page = 1, limit = 15, state = 'all' } = req.query;
 
         // Paso 2: Invocar el servicio de consulta enviando paginación y filtro de estado

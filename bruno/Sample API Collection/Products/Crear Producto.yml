@@ -1,27 +1,36 @@
 info:
   name: Crear Producto
   type: http
-  seq: 1
+  seq: 2
 
 http:
   method: POST
   url: http://localhost:3000/api/products
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWY0OTQ2NmZmNTAxMjZhNmY5MjQ3NWYiLCJuYW1lIjoiSnVhblMiLCJlbWFpbCI6IjQ1NTQ3MzgzdzNAZ21haWwuY29tIiwicm9sZSI6IkNsaWVudGUiLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzk0NDE0NDQ5LCJleHAiOjE3OTQ0MTgwNDl9.SxHu4MDCGg6s2ywU7ZZ6uvPHzivQWq1UFVJZauiBbKc
+      value: "{{token}}"
   body:
     type: json
     data: |-
       {
-        "nombre": "Hamburguesa de res",
+        "nombre": "Hamburguesa de res {{$timestamp}}",
         "description": "Deliciosa hamburguesa de carne de res para tu paladar",
         "price": 18000,
         "stock": 138,
         "state": "disponible",
-        "category": "6af4977de6c20a4a420c3c3e",
-        "createdBy": "6af49466ff50126a6f92475f"
+        "category": "{{categoryId}}"
       }
+      // "createdBy" ya no se envia: se asigna automaticamente con el usuario del token.
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("productId", res.body.data._id);
+        }
 
 settings:
   encodeUrl: true
@@ -29,3 +38,7 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  CAMBIO: las categorias solo se gestionan en la carpeta Categories. Antes de esta peticion ejecuta
+  Categories > Crear Categoria con "type": "Producto"; guarda su _id en {{categoryId}}.

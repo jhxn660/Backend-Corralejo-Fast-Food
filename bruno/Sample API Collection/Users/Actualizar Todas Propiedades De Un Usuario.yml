@@ -1,11 +1,24 @@
 info:
   name: Actualizar Todas Propiedades De Un Usuario
   type: http
-  seq: 6
+  seq: 5
 
 http:
   method: PUT
-  url: http://localhost:3000/api/users
+  url: "http://localhost:3000/api/users/{{userId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "role": "Empleado",
+        "name": "Mateo Chaves",
+        "email": "mateo.chaves{{$timestamp}}@correo.com",
+        "state": true,
+        "empleado_rol": "Cocinero"
+      }
   auth: inherit
 
 settings:

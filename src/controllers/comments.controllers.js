@@ -105,7 +105,11 @@ const getComments = async (req, res) => {
 const updateComment = async (req, res) => {
     try {
         const id = req.params.id;
-        const inputData = req.body;
+
+        // CAMBIO: el ticket (codigo), la venta y el autor se fijan al crear el comentario;
+        // se descartan del body para que un comentario no pueda reasignarse a otra compra.
+        const { codigo, venta, usuario, ...inputData } = req.body ?? {};
+
         const data = await dbUpdateComment(id, inputData);
 
         // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null

@@ -5,22 +5,21 @@ info:
 
 http:
   method: PATCH
-  url: http://localhost:3000/api/users/6adf714670a3c153e6b40af3
+  url: "http://localhost:3000/api/users/{{userId}}"
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MDA1MzhlYjA2N2ZiYzQ1Mjk3ZTYiLCJuYW1lIjoiSG9sbXNzc2RzIiwiZW1haWwiOiI1c2ZzZnNzZmZhZGZzQGdtYWlsLmNvbSIsInJvbGUiOiJVc3VhcmlvIiwic3RhdGUiOnRydWUsImlhdCI6MTc5MzMyNzI1NCwiZXhwIjoxNzkzMzMwODU0fQ.1iJ3alGFCuAZ-E-B_iFGLut8RnNMeB4L_d5cxspuwCQ
+      value: "{{token}}"
   body:
     type: json
     data: |-
       {
         "role": "Empleado",
         "name": "Mateo",
-        "email": "Mateo2@gmail.com",
-        "password": "123456+",
-        "phone": "3246205432",
+        "email": "mateo{{$timestamp}}@correo.com",
         "state": true,
         "empleado_rol": "Mesero"
       }
+      // La contraseña no se actualiza por esta ruta (el controlador la descarta)
   auth: inherit
 
 settings:

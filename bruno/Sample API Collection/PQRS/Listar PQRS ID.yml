@@ -5,7 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/pqrs
+  url: "http://localhost:3000/api/pqrs/{{pqrsId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
   auth: inherit
 
 settings:

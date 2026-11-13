@@ -7,7 +7,7 @@ const createSupply = async (req, res) => {
         const user_id = req.userFound._id;
 
         const inputData = req.body;
-        inputData.createdBy = user_id; // <--- Agrega el ID del usuario que registra la categoria
+        inputData.createdBy = user_id; // <--- Agrega el ID del usuario que registra el insumo (CAMBIO: el comentario decia "categoria" por error)
 
         // El creador es el usuario autenticado, no el que venga en el body
         inputData.createdBy = req.userFound._id;
@@ -77,7 +77,7 @@ const updateSupply = async (req, res) => {
         const id = req.params.id;
 
         const inputData = req.body;
-        inputData.createdBy = user_id; // <--- Agrega el ID del usuario que registra la categoria
+        inputData.createdBy = user_id; // <--- Agrega el ID del usuario que registra el insumo (CAMBIO: el comentario decia "categoria" por error)
 
         // El creador es el usuario autenticado, no el que venga en el body
         inputData.createdBy = req.userFound._id;

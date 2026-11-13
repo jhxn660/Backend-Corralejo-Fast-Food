@@ -17,7 +17,7 @@ const dbUpdateEstablecimiento = async (id, infoUpdate) => {
     return await EstablecimientoModel.findOneAndUpdate(
         { _id: id },
         infoUpdate,
-        { new: true }
+        { new: true, runValidators: true }
     );
 }
 
@@ -42,7 +42,7 @@ const dbUpdateHorario = async (id, horarioUpdate) => {
     return await HorarioModel.findOneAndUpdate(
         { _id: id },
         horarioUpdate,
-        { new: true }
+        { new: true, runValidators: true }
     );
 }
 
@@ -67,7 +67,7 @@ const dbUpdateUbicacion = async (id, ubicacionUpdate) => {
     return await UbicacionModel.findOneAndUpdate(
         { _id: id },
         ubicacionUpdate,
-        { new: true }
+        { new: true, runValidators: true }
     );
 }
 

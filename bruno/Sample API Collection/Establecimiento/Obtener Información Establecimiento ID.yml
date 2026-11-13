@@ -5,7 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/establecimiento
+  url: "http://localhost:3000/api/establecimiento/{{establecimientoId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
   auth: inherit
 
 settings:

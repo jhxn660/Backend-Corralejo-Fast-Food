@@ -5,10 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/supplies/6adeb8642e52fdca14067c7a
+  url: http://localhost:3000/api/supplies/{{supplyId}}
   headers:
     - name: X-Token
-      value: ""
+      value: "{{token}}"
   auth: inherit
 
 settings:

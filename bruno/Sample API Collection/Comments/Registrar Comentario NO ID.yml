@@ -8,19 +8,28 @@ http:
   url: http://localhost:3000/api/comments
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI2YWU0YmI5MDk0NzBiZDQzZDg4OWU5YTMiLCJub21icmUiOiJUdSBOb21icmUiLCJpYXQiOjE3OTMzNzUxMjAsImV4cCI6MTc5MzM4MjMyMH0.SL25f_vkKV4wjGYcRvs6G1wG4qeetTeJHnKxoti4QQc
+      value: "{{token}}"
       disabled: true
   body:
     type: json
     data: |-
       {
-        "nombreCliente": "Andrea Andrade",
-        "codigo": "#C0001",
+        "codigo": "{{ticketVenta}}",
         "comentario": "Excelente atención y la comida llegó calientita. Definitivamente vuelvo a pedir."
       }
 
-      // Falta vincular el id de la venta con el comentario registrado. Recordar que cliente o usuario pueden realizar comentarios siempre y cuando haya un qr de pormedio
+      // "codigo" simula la lectura del QR: es el idTicketVenta creado en Sales/Registrar Venta.
+      // Sin token comenta un visitante ('Usuario'); activa la cabecera X-Token para comentar como 'Cliente'.
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("commentId", res.body.data._id);
+        }
 
 settings:
   encodeUrl: true
@@ -28,3 +37,7 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  Requiere ejecutar antes Orders/Crear Pedido y Sales/Registrar Venta.
+  Cada ticket admite un solo comentario: para repetir la prueba registra una venta nueva.

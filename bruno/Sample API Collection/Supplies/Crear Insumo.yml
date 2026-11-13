@@ -8,20 +8,29 @@ http:
   url: http://localhost:3000/api/supplies
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzc2Njk3LCJleHAiOjE3OTMzODAyOTd9.1vHfMDs6EH3DqRMCuN5t9QgkSiEElIUKr98bjrnLq64
+      value: "{{token}}"
   body:
     type: json
     data: |-
       {
-        "name": "Pan Bsrisfdoche",
+        "name": "Pan brioche {{$timestamp}}",
         "description": "Pan artesanal para hamburguesa",
         "medida": "Unidades",
         "cost": 1200,
         "stock": 300,
-        "category": "6ae40e8a7c859c142ba70bae"
+        "category": "{{categoryId}}"
       }
-      // "createdBy": "6ae40e237c859c142ba70bad" ya no se necesita porque se estrae el id en el middleware
+      // "createdBy" ya no se envia: se extrae el id del usuario en el middleware
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("supplyId", res.body.data._id);
+        }
 
 settings:
   encodeUrl: true
@@ -29,3 +38,7 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  CAMBIO: las categorias solo se gestionan en la carpeta Categories. Antes de esta peticion ejecuta
+  Categories > Crear Categoria con "type": "Insumo" (el modelo valida el tipo); guarda su _id en {{categoryId}}.

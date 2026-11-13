@@ -5,7 +5,10 @@ info:
 
 http:
   method: DELETE
-  url: http://localhost:3000/api/horario/6ad8f92429a03b167e44a742
+  url: "http://localhost:3000/api/horarios/{{horarioId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
   auth: inherit
 
 settings:

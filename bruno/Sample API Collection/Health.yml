@@ -1,17 +1,19 @@
 info:
   name: Health
   type: http
-  seq: 11
+  seq: 1
 
 http:
   method: GET
   url: http://localhost:3000/health
+  auth: inherit
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-  forwardAuthorizationHeader: true
+  forwardAuthorizationHeader: false
 
-docs: This request retrieves a list of users from the JSONPlaceholder API.
+docs: |-
+  Verifica que el servidor esté arriba. No requiere token.

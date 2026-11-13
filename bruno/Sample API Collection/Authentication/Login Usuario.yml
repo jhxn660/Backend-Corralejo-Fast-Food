@@ -15,9 +15,22 @@ http:
       }
   auth: inherit
 
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el token: todas las peticiones lo envían en la cabecera X-Token como {{token}}
+        if (res.status === 200) {
+          bru.setVar("token", res.body.token);
+        }
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  EJECUTAR PRIMERO. Guarda el token en la variable de ejecución `token` (dura 1 hora).
+  Si el token vence, vuelve a ejecutar este Login o "Verificar/Actualizar Authentication".

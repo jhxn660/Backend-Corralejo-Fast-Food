@@ -5,10 +5,10 @@ info:
 
 http:
   method: DELETE
-  url: http://localhost:3000/api/supplies/6ad79096801be531b1117b32
+  url: http://localhost:3000/api/supplies/{{supplyId}}
   headers:
     - name: X-Token
-      value: ""
+      value: "{{token}}"
   auth: inherit
 
 settings:

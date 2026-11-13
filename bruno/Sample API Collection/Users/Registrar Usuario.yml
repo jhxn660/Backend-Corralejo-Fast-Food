@@ -8,20 +8,29 @@ http:
   url: http://localhost:3000/api/users
   headers:
     - name: X-Token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWU0MGUyMzdjODU5YzE0MmJhNzBiYWQiLCJuYW1lIjoiTGF1cmEgR29tZXoiLCJlbWFpbCI6ImxhdXJhQGNvcnJlby5jb20iLCJyb2xlIjoiRW1wbGVhZG8iLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzkzMzgwMjgxLCJleHAiOjE3OTMzODM4ODF9.w1AwqynK9hzvgqn-yASNhbfgw_KBPx5sjN35Ngftuds
+      value: "{{token}}"
   body:
     type: json
     data: |-
       {
         "role": "Administrador",
         "name": "Tom Gomez",
-        "email": "Tom77@correo.com",
-        "password": "123456+",
-        "phone": "3116876543",
+        "email": "tom{{$timestamp}}@correo.com",
+        "password": "Tom@12345",
         "empleado_rol": "Cajero"
       }
-      // createdBy no es necesario ponerlo manualmente 
+      // createdBy no es necesario ponerlo manualmente
+      // El sufijo $timestamp evita correos duplicados al repetir la prueba
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("userId", res.body.user._id);
+        }
 
 settings:
   encodeUrl: true

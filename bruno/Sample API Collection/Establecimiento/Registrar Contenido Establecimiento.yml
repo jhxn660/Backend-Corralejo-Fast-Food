@@ -8,7 +8,7 @@ http:
   url: http://localhost:3000/api/establecimiento
   headers:
     - name: X-Token
-      value: ""
+      value: "{{token}}"
   body:
     type: json
     data: |-
@@ -19,6 +19,15 @@ http:
           "categoria": "El Origen"
       }
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("establecimientoId", res.body.data._id);
+        }
 
 settings:
   encodeUrl: true

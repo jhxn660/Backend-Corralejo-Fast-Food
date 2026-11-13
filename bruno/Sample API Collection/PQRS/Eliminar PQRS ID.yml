@@ -5,7 +5,10 @@ info:
 
 http:
   method: DELETE
-  url: http://localhost:3000/api/pqrs/6ae4c4c2808e67cd201db68a
+  url: "http://localhost:3000/api/pqrs/{{pqrsId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
   auth: inherit
 
 settings:

@@ -1,0 +1,43 @@
+info:
+  name: Crear Pedido
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/orders
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "numeroPedido": "{{numeroPedido}}",
+        "estado": "Entregado",
+        "totalPedido": 36000,
+        "detalles": [
+          { "producto": "Hamburguesa de res", "cantidad": 2, "precio_unitario": 18000, "subtotal": 36000 }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        // numeroPedido es unico: se genera uno nuevo en cada ejecucion
+        bru.setVar("numeroPedido", Date.now());
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("orderId", res.body.order._id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
