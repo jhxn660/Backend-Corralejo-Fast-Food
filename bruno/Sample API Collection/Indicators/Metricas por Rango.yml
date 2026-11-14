@@ -1,0 +1,23 @@
+info:
+  name: Metricas por Rango
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: http://localhost:3000/api/indicators/metrics?from=2026-11-01&to=2026-11-13&compare=previous_year&groupBy=day&top=5
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+docs: |-
+  compare=previous_period|previous_year|custom(+compareFrom,compareTo)|none. groupBy=day|month.
+  PRUEBA: Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta). Esperado 200. Fechas con otro formato (13-11-2026) → 400.

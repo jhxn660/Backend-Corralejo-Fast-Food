@@ -17,3 +17,7 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  PRUEBA: requiere {{categoryId}}. Token: Owner, Administrador o Empleado (ejecuta Authentication/Login Usuario con esa cuenta).
+  Esperado 200. ID inexistente → 404; ID mal formado → 400.

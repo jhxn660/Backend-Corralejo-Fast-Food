@@ -1,0 +1,25 @@
+info:
+  name: Definir Meta Anual
+  type: http
+  seq: 2
+
+http:
+  method: PUT
+  url: http://localhost:3000/api/indicators/goal/2026
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      // PRUEBA: Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta). El año va en la URL. Crea o reemplaza la meta de ese año.
+      // Esperado 200. "target" como texto ("1000") → 400. Con otro rol → 403; sin token o vencido → 401.
+      { "target": 180000000 }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

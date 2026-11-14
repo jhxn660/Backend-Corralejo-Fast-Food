@@ -16,4 +16,4 @@ settings:
   forwardAuthorizationHeader: false
 
 docs: |-
-  Verifica que el servidor esté arriba. No requiere token.
+  PRUEBA: sin token. Esperado 200: el servidor está arriba.

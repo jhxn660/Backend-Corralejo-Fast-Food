@@ -17,3 +17,7 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  PRUEBA: requiere {{pqrsId}}. Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+  Esperado 200; repetir → 404.

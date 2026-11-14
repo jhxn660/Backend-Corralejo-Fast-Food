@@ -7,7 +7,9 @@ const ProductSchema = new Schema({
         required: [true, 'El nombre del producto es obligatorio'],
         trim: true,
         type: String,
-        unique: [true, 'El nombre de este producto ya esta registrado']
+        // unique crea un índice en MongoDB, no es un validador: el duplicado llega como error 11000
+        // (ver handle-mongoose-error) y un mensaje personalizado aquí nunca se mostraría.
+        unique: true
     },
     description: String,
     price: {
@@ -32,6 +34,14 @@ const ProductSchema = new Schema({
         // CAMBIO: el valor por defecto tenía una errata ('dispoible') que no existe en el enum,
         // por lo que crear un producto sin `state` fallaba la validación.
         default: 'disponible'
+    },
+    // Visibilidad en el Frontend: true = se muestra, false = oculto (borrado lógico).
+    // Es independiente de `state`, que describe la situación logística del producto.
+    // Solo se cambia desde PATCH /api/products/:id/status.
+    isActive: {
+        type: Boolean,
+        default: true,
+        index: true
     },
     category: {
         type: Schema.Types.ObjectId,

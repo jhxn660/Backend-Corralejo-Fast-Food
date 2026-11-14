@@ -1,64 +1,103 @@
-import handleMongooseError from "../helpers/handle-mongoose-error.helper.js";
-import { dbCreateSale, dbReadSales } from "../services/sales.services.js";
-import { dbUpdateIndicatorsOnSale } from "../services/indicators.services.js";
+import mongoose from "mongoose";
+import asyncHandler from "../helpers/async-handler.helper.js";
+import { parseItems } from "../helpers/order-items.helper.js";
+import { assertFound, HttpError } from "../helpers/http-error.helper.js";
+import { isValidDayKey } from "../helpers/business-date.helper.js";
+import {
+    dbDeleteSale,
+    dbReadSaleById,
+    dbReadSales,
+    dbRegisterSale,
+    dbUpdateSale
+} from "../services/sales.services.js";
 
-const CreateSales = async (req, res) => {
-    try {
-        const saleData = req.body;
+const NOT_FOUND = 'Venta no encontrada';
 
-        const newSale = await dbCreateSale(saleData);
+// Únicos campos de una venta que el cliente puede definir (al crear) o corregir (al editar).
+// Líneas, total, estado, empleado e identificadores los fija el servidor.
+const EDITABLE_FIELDS = Object.freeze([ 'fecha', 'cliente', 'direccionEntrega' ]);
+const LOCKED_FIELDS = Object.freeze([ 'detalles', 'items', 'totalPagado', 'estadoPedido' ]);
 
-        // Los indicadores se actualizan después de persistir la venta y sin transacción:
-        // si este paso falla, la venta ya quedó guardada y el cliente recibe un 500.
-        await dbUpdateIndicatorsOnSale(newSale);
+const pickEditable = (body) => Object.fromEntries(
+    EDITABLE_FIELDS.filter((field) => body[field] !== undefined).map((field) => [ field, body[field] ])
+);
 
-        res.status(201).json({
-            msg: '¡Venta registrada con éxito y métricas actualizadas!',
-            sale: newSale
-        });
-    } catch (error) {
-        console.error("Error al registrar la venta: ", error);
+// Toda escritura en ventas informa si los indicadores quedaron al día
+const sendSaleResult = (res, status, msg, { sale, indicatorsUpdated }) => {
+    res.status(status).json({
+        msg: indicatorsUpdated
+            ? msg
+            : `${msg} Los indicadores no se pudieron actualizar: ejecuta POST /api/indicators/rebuild.`,
+        data: sale,
+        indicatorsUpdated
+    });
+};
 
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
+/**
+ * Body: { orderId?, items?: [{ productId, quantity }], fecha?, cliente?, direccionEntrega? }
+ *   - Con orderId: registra la venta de ese pedido; items (opcional) se añaden al pedido antes.
+ *   - Sin orderId (o null): venta directa; items es obligatorio.
+ */
+const createSale = asyncHandler(async (req, res) => {
+    const { orderId, items } = req.body;
+    const hasOrder = orderId !== undefined && orderId !== null;
+
+    // Texto de 24 hex: un objeto como { "$ne": null } sería un operador de consulta
+    if (hasOrder && !(typeof orderId === 'string' && mongoose.isObjectIdOrHexString(orderId))) {
+        throw new HttpError(400, 'orderId inválido', { orderId: 'Debe ser el _id de un pedido' });
+    }
+
+    const result = await dbRegisterSale({
+        orderId: hasOrder ? orderId : undefined,
+        items: !hasOrder || items !== undefined ? parseItems(items) : undefined,
+        fields: pickEditable(req.body)
+    }, req.userFound);
+
+    sendSaleResult(res, 201, '¡Venta registrada con éxito y métricas actualizadas!', result);
+}, 'Error al registrar la venta');
+
+// ?from=YYYY-MM-DD&to=YYYY-MM-DD (días de negocio, ambos incluidos)
+const getSales = asyncHandler(async (req, res) => {
+    const { from, to } = req.query;
+
+    for (const [ name, value ] of Object.entries({ from, to })) {
+        if (value !== undefined && !isValidDayKey(value)) {
+            throw new HttpError(400, `El parámetro '${name}' debe tener el formato YYYY-MM-DD`);
         }
-
-        res.status(500).json({
-            msg: 'Error al crear la venta, revisa la consola para más detalles',
-            error: error.message
-        });
     }
-};
 
-const GetSales = async (req, res) => {
-    try {
-        const sales = await dbReadSales();
+    res.json({ msg: 'Ventas obtenidas', data: await dbReadSales({ from, to }) });
+}, 'Error al obtener las ventas');
 
-        res.json({ msg: 'Ventas obtenidas', sales });
-    } catch (error) {
-        res.status(500).json({ msg: 'Error al obtener las ventas' });
+const getSale = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Venta obtenida', data: assertFound(await dbReadSaleById(req.params.id), NOT_FOUND) });
+}, 'Error al obtener la venta');
+
+// PUT y PATCH comparten handler. Solo corrigen datos de registro (EDITABLE_FIELDS).
+// Una venta registrada no cambia sus líneas ni su total: se responde 400 en lugar de ignorarlos para
+// que quien llama sepa cómo corregirla. Los identificadores (saleId, qr…) se ignoran (immutable).
+const updateSale = asyncHandler(async (req, res) => {
+    const locked = LOCKED_FIELDS.filter((field) => field in req.body);
+
+    if (locked.length) {
+        throw new HttpError(400, `No se puede editar ${locked.join(', ')} de una venta registrada. Para corregirla, cancela su pedido (o elimina la venta) y registra una nueva`);
     }
-};
 
-// Marcadores de posición: reservan el contrato de rutas hasta implementar el servicio.
-const UpdateAllSales = (req, res) => {
-    res.send('Actualiza todas las propiedades de una venta!!');
-};
+    const result = assertFound(await dbUpdateSale(req.params.id, pickEditable(req.body)), NOT_FOUND);
 
-const UpdatePartialSales = (req, res) => {
-    res.send('Actualiza una o mas propiedades de una venta!!');
-};
+    sendSaleResult(res, 200, 'Venta actualizada', result);
+}, 'Error al actualizar la venta');
 
-const DeleteSales = (req, res) => {
-    res.send('Elimina una venta!!');
-};
+const deleteSale = asyncHandler(async (req, res) => {
+    const result = assertFound(await dbDeleteSale(req.params.id), NOT_FOUND);
+
+    sendSaleResult(res, 200, 'Venta eliminada', result);
+}, 'Error al eliminar la venta');
 
 export {
-    CreateSales,
-    GetSales,
-    UpdateAllSales,
-    UpdatePartialSales,
-    DeleteSales
+    createSale,
+    getSales,
+    getSale,
+    updateSale,
+    deleteSale
 };

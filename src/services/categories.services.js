@@ -27,7 +27,7 @@ const dbUpdateCategory = async (id, categoryUpdated) => {
         { _id: id },
         categoryUpdated,
         {
-            new: true,           // Devuelve el documento ya actualizado
+            returnDocument: 'after',           // Devuelve el documento ya actualizado
             runValidators: true  // Aplica las reglas del modelo tambien al actualizar
         }
     );

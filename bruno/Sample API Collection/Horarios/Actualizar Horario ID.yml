@@ -12,6 +12,8 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: requiere {{horarioId}}. Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // Envía solo los campos a cambiar. Esperado 200. ID inexistente → 404; ID mal formado → 400.
       {
           "horaCierre": "11:00 PM"
       }

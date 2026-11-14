@@ -12,27 +12,27 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: requiere {{productId}} (Products/Crear Producto). Token: Owner, Administrador o Empleado.
+      // Solo se envía productId y quantity: nombre y precio salen del catálogo y se copian en la línea.
+      // Esperado 201: orderNumber consecutivo (1, 2, 3…), precio_unitario = precio actual del producto,
+      // subtotal = quantity × precio, totalPedido = suma, estado "En preparación". Guarda {{orderId}}.
+      // Si envías precio_unitario, subtotal, totalPedido u orderNumber se ignoran. El mismo productId
+      // repetido se une en una sola línea.
+      // Errores 400: "items": [], quantity 0 o decimal, productId mal formado, producto inexistente u oculto.
       {
-        "numeroPedido": "{{numeroPedido}}",
-        "estado": "Entregado",
-        "totalPedido": 36000,
-        "detalles": [
-          { "producto": "Hamburguesa de res", "cantidad": 2, "precio_unitario": 18000, "subtotal": 36000 }
+        "items": [
+          { "productId": "{{productId}}", "quantity": 2 }
         ]
       }
   auth: inherit
 
 runtime:
   scripts:
-    - type: before-request
-      code: |-
-        // numeroPedido es unico: se genera uno nuevo en cada ejecucion
-        bru.setVar("numeroPedido", Date.now());
     - type: after-response
       code: |-
         // Guarda el _id creado para las peticiones por ID que siguen
         if (res.status === 201) {
-          bru.setVar("orderId", res.body.order._id);
+          bru.setVar("orderId", res.body.data._id);
         }
 
 settings:

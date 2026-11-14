@@ -12,6 +12,8 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // Esperado 201; guarda {{ubicacionId}}. Body vacío {} → 400. Con otro rol → 403; sin token o vencido → 401.
       {
           "titulo": "Sede Norte",
           "descripcion": "Punto de atención y domicilios Corralejo Fast Food",

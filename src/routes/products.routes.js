@@ -1,19 +1,27 @@
-import { Router } from 'express'
-import { createProduct, getProducts, deleteProduct, getProduct, updateProduct } from '../controllers/products.controllers.js';
-import { authMiddleware } from '../middlewares/authenticate.middleware.js';
-import { authorizationMiddleware } from '../middlewares/authorization.middleware.js'
+import { Router } from 'express';
+import {
+    createProduct,
+    getProduct,
+    getProducts,
+    getPublicProducts,
+    updateProduct,
+    setProductStatus,
+    deleteProduct
+} from '../controllers/products.controllers.js';
+import { requireRoles } from '../middlewares/authorization.middleware.js';
+import { ADMIN_ROLES, STAFF_ROLES } from '../config/roles.config.js';
 
-// Crea una instancia de las rutas de Express
 const router = Router();
 
-// CAMBIO: los roles se alinean con el enum del modelo User ('Administrador', 'Empleado').
-// Antes se usaban 'ADMIN' y 'EMPLEADO', que ningún usuario tiene, y todas estas rutas respondían 403.
-// Define las rutas para los productos
-router.post( '/', [ authMiddleware, authorizationMiddleware(['Administrador']) ], createProduct);
-router.get( '/', [ authMiddleware, authorizationMiddleware(['Administrador', 'Empleado']) ], getProducts);
-router.delete( '/:id', [ authMiddleware, authorizationMiddleware(['Administrador']) ], deleteProduct);
-router.patch( '/:id', [ authMiddleware, authorizationMiddleware(['Administrador']) ], updateProduct);
-router.get( '/:id', [ authMiddleware, authorizationMiddleware(['Administrador']) ], getProduct)
+// Pública (sin token): solo productos visibles. Va antes de '/:id' para que 'public' no se lea como ID.
+router.get('/public', getPublicProducts);
 
-// Exportar las rutas definidas en este archivo
+router.post('/', requireRoles(ADMIN_ROLES), createProduct);
+router.get('/', requireRoles(STAFF_ROLES), getProducts);
+router.get('/:id', requireRoles(STAFF_ROLES), getProduct);
+router.patch('/:id', requireRoles(ADMIN_ROLES), updateProduct);
+// Habilitar / deshabilitar (soft-toggle): { "isActive": boolean }
+router.patch('/:id/status', requireRoles(ADMIN_ROLES), setProductStatus);
+router.delete('/:id', requireRoles(ADMIN_ROLES), deleteProduct);
+
 export default router;

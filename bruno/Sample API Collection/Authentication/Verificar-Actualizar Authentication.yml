@@ -26,3 +26,7 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  PRUEBA: requiere {{token}} vigente (Login). Esperado 200 con un token nuevo, que reemplaza a {{token}}.
+  Sin token, alterado o vencido → 401.

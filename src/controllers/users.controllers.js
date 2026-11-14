@@ -1,156 +1,71 @@
-// Controlador define quien hace una accion especifica
-import { generatePassword } from "../helpers/bcrypt.helpers.js";
-import handleMongooseError from "../helpers/handle-mongoose-error.helper.js";
-import { dbCreateUser, dbGetUser, dbGetUsers, dbUpdateUser, dbDeleteUser } from "../services/users.services.js";
+import asyncHandler from "../helpers/async-handler.helper.js";
+import { assertFound, HttpError } from "../helpers/http-error.helper.js";
+import { ADMIN_ROLES, ROLES } from "../config/roles.config.js";
+import { dbCreateUser, dbDeleteUser, dbGetUser, dbGetUsers, dbUpdateUser } from "../services/users.services.js";
 
-const createUser = async (req, res) => {
-    try {
-        // Extrae el _id del userFound usando una desestructuración del payload que envia en la petición (req) el middleware de Autentication
-        const userFound = req.userFound;
+const NOT_FOUND = 'Usuario no encontrado';
 
-        // Usa un operador ternario para asignar el valor de _id a la variable id, o null si no existe
-        const id = userFound?._id ? userFound._id : null;
-
-        // Extrae los datos del cuerpo de la petición
-        const inputData = req.body;
-        inputData.createdBy = id;
-
-        const newUser = await dbCreateUser(inputData);
-
-        // Usar el servicio para registrar (Mongoose valida automáticamente contra UserSchema)
-        res.status(201).json({ msg: 'Registra Usuario', user: newUser });
-
-    } catch (error) {
-        console.error(error);
-
-        // Verifica si la excepción proviene de una validación de Mongoose
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            // Retorna como respuesta el objeto: { [propiedad]: mensajeDeError } con código HTTP 400
-            return res.status(400).json(validationErrors);
-        }
-
-        if(error.name == 'PasswordValidationError' ) {
-            return res.status(400).json({
-                msg: error.message
-            });
-        }
-
-        res.status(500).json({ msg: 'Error al registrar el usuario' });
+// Solo un Owner puede crear, editar o eliminar otro Owner, o ascender a alguien a Owner.
+// Sin esta regla un Administrador podría darse a sí mismo (o a otro) el rol máximo.
+const assertCanManageOwner = (actor, ...roles) => {
+    if (roles.includes(ROLES.OWNER) && actor?.role !== ROLES.OWNER) {
+        throw new HttpError(403, 'Solo un Owner puede gestionar cuentas Owner');
     }
 };
 
-const getUser = async (req, res) => {
-    // El id se deja afuera
-    const id = req.params.id;
+/**
+ * Lo usan dos rutas:
+ *   - POST /api/users (administración): el rol viene en el body.
+ *   - POST /api/auth/register (público): withoutRoleMiddleware ya forzó role='Cliente'.
+ * createdBy es quien está autenticado; en el registro público queda en null.
+ */
+const createUser = asyncHandler(async (req, res) => {
+    assertCanManageOwner(req.userFound, req.body.role);
 
-    try {
+    const data = await dbCreateUser({ ...req.body, createdBy: req.userFound?._id ?? null });
 
-        const data = await dbGetUser(id);
+    res.status(201).json({ msg: 'Registra Usuario', data });
+}, 'Error al registrar el usuario');
 
-        // El 404 debe evaluarse antes de responder: en el orden anterior ya se había
-        // enviado un 200 con data null y este return intentaba responder por segunda vez.
-        if (!data) {
-            return res.status(404).json({ msg: 'Usuario no encontrado' });
-        }
+const getUser = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Obtiene un Usuario por ID', data: assertFound(await dbGetUser(req.params.id), NOT_FOUND) });
+}, 'No se pudo obtener el Usuario por ID');
 
-        res.status(200).json({ msg: 'Obtiene un Usuario por ID', data: data });
+// ?page=1&limit=15&state=true|false|all&role=<rol del modelo User>
+const getUsers = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 15, state = 'all', role } = req.query;
 
-    } catch (error) {
-        console.error(error);
+    res.json({ msg: 'Lista de Usuarios', data: await dbGetUsers(page, limit, state, role) });
+}, 'No ha podido obtener los usuarios');
 
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
+// PATCH y PUT comparten handler. La ruta ya garantizó que es un administrador o el propio usuario.
+const updateUser = asyncHandler(async (req, res) => {
+    // La contraseña no se cambia por aquí (findOneAndUpdate no la hashearía) ni el autor del registro
+    const { password, createdBy, ...changes } = req.body;
 
-        res.status(500).json({msg: 'No se pudo obtener el Usuario por ID'});
+    // Quien edita su propia cuenta sin ser administrador no puede cambiarse el rol ni el estado
+    if (!ADMIN_ROLES.includes(req.userFound.role)) {
+        delete changes.role;
+        delete changes.state;
     }
-};
 
-// Controlador para listar usuarios con paginación y filtro de status
-const getUsers = async (req, res) => {
-    try {
-        // Paso 1: Extraer los query parameters de la URL
-        // Ejemplos:
-        //   - /api/users?state=true   (usuarios activos)
-        //   - /api/users?state=false  (usuarios inactivos)
-        //   - /api/users?state=all    (todos los usuarios)
-        //   - /api/users?page=1&limit=10&state=all
-        const { page = 1, limit = 15, state = 'all' } = req.query;
+    const target = assertFound(await dbGetUser(req.params.id), NOT_FOUND);
+    assertCanManageOwner(req.userFound, target.role, changes.role);
 
-        // Paso 2: Invocar el servicio de consulta enviando paginación y filtro de estado
-        const data = await dbGetUsers(page, limit, state);
+    res.json({ msg: 'Usuario Actualizado', data: await dbUpdateUser(req.params.id, changes) });
+}, 'No se ha podido actualizar el usuario');
 
-        // Paso 3: Retornar la respuesta exitosa en formato JSON con la metadata y la lista
-        res.status(200).json({ msg: 'Lista de Usuarios', data: data });
-    }
-    catch (error) {
-        // En caso de excepción, imprimir el error en consola para depuración en el servidor
-        console.error(error);
+const deleteUser = asyncHandler(async (req, res) => {
+    const target = assertFound(await dbGetUser(req.params.id), NOT_FOUND);
+    assertCanManageOwner(req.userFound, target.role);
 
-        // Responder al cliente con un mensaje de error descriptivo
-        res.status(500).json({ msg: 'No ha podido obtener los usuarios' });
-    }
-};
-
-const updateMPUser = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        // Se descarta el password del body: findOneAndUpdate no ejecuta el hook de encriptacion
-        const { password, ...inputData } = req.body;
-
-        // Usar el servicio para actualizar (con runValidators: true para validar en Mongoose)
-        const data = await dbUpdateUser(id, inputData);
-
-        if (!data) {
-            return res.status(404).json({ msg: 'Usuario no encontrado' });
-        }
-
-        res.status(200).json({ msg: 'Usuario Actualizado', data: data });
-    } catch (error) {
-        console.error(error);
-
-        // Verifica si la excepción proviene de una validación de Mongoose al actualizar
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            // Retorna como respuesta el objeto: { [propiedad]: mensajeDeError } con código HTTP 400
-            return res.status(400).json(validationErrors);
-        }
-
-        // Error generico del servidor
-        res.status(500).json({ msg: 'No se ha podido actualizar el usuario' });
-    }
-};
-
-const deleteUser = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        const data = await dbDeleteUser(id);
-        if (!data) {
-            return res.status(404).json({ msg: 'Usuario no encontrado' });
-        }
-
-        res.status(200).json({ msg: 'Usuario Eliminado', data: data });
-    } catch (error) {
-        console.error(error);
-
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        // Error generico del servidor
-        res.status(500).json({ msg: 'No se ha podido eliminar el usuario' });
-    }
-};
+    res.json({ msg: 'Usuario Eliminado', data: assertFound(await dbDeleteUser(req.params.id), NOT_FOUND) });
+}, 'No se ha podido eliminar el usuario');
 
 export {
     createUser,
     getUser,
     getUsers,
-    updateMPUser,
+    updateUser,
     deleteUser
 };

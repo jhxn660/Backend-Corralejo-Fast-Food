@@ -1,136 +1,35 @@
-import handleMongooseError from "../helpers/handle-mongoose-error.helper.js";
+import asyncHandler from "../helpers/async-handler.helper.js";
+import { assertFound } from "../helpers/http-error.helper.js";
 import { dbCreateSupply, dbGetSupply, dbGetSupplies, dbUpdateSupply, dbDeleteSupply } from '../services/supplies.services.js';
 
-const createSupply = async (req, res) => {
-    try {
-        // Extrae el ID del usuario encontrado por el Middleware de Authentication
-        const user_id = req.userFound._id;
+const NOT_FOUND = 'Insumo no encontrado';
 
-        const inputData = req.body;
-        inputData.createdBy = user_id; // <--- Agrega el ID del usuario que registra el insumo (CAMBIO: el comentario decia "categoria" por error)
+const createSupply = asyncHandler(async (req, res) => {
+    // El creador es el usuario autenticado, nunca el que venga en el body
+    const data = await dbCreateSupply({ ...req.body, createdBy: req.userFound._id });
 
-        // El creador es el usuario autenticado, no el que venga en el body
-        inputData.createdBy = req.userFound._id;
+    res.status(201).json({ msg: 'Registra Insumo', data });
+}, 'No se pudo registrar el insumo');
 
-        const data = await dbCreateSupply(inputData);
+const getSupply = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Obtiene un Insumo', data: assertFound(await dbGetSupply(req.params.id), NOT_FOUND) });
+}, 'No se pudo obtener el insumo por id');
 
-        res.status(201).json({ msg: 'Registra Insumo', data: data });
+// ?state=Con_Stock|Sin_Stock (opcional)
+const getSupplies = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Lista de Insumos', data: await dbGetSupplies(req.query.state) });
+}, 'No se ha podido obtener los insumos');
 
-    } catch (error) {
-        console.error(error);
+const updateSupply = asyncHandler(async (req, res) => {
+    // CAMBIO: antes se sobrescribía createdBy con quien editaba y se perdía el autor original
+    const { createdBy, ...changes } = req.body;
 
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
+    res.json({ msg: 'Insumo Actualizado', data: assertFound(await dbUpdateSupply(req.params.id, changes), NOT_FOUND) });
+}, 'No se ha podido actualizar el insumo');
 
-        // Error generico del servidor
-        res.status(500).json({ msg: 'No se pudo registrar el insumo' });
-    }
-};
-
-const getSupply = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        const data = await dbGetSupply(id);
-
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Insumo no encontrado' });
-        }
-
-        res.status(200).json({ msg: 'Obtiene un Insumo', data: data });
-
-    } catch (error) {
-        console.error(error);
-
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        // Error generico del servidor
-        res.status(500).json({ msg: 'No se pudo obtener el insumo por id' });
-    }
-};
-
-const getSupplies = async (req, res) => {
-    try {
-        const data = await dbGetSupplies();
-
-        res.status(200).json({ msg: 'Lista de Insumos', data: data });
-
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({ msg: 'No se ha podido obtener los insumos' });
-    }
-};
-
-const updateSupply = async (req, res) => {
-    try {
-        const user_id = req.userFound._id;
-        
-        const id = req.params.id;
-
-        const inputData = req.body;
-        inputData.createdBy = user_id; // <--- Agrega el ID del usuario que registra el insumo (CAMBIO: el comentario decia "categoria" por error)
-
-        // El creador es el usuario autenticado, no el que venga en el body
-        inputData.createdBy = req.userFound._id;
-
-        const data = await dbUpdateSupply(id, inputData);
-
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Insumo no encontrado' });
-        }
-
-        res.status(200).json({ msg: 'Insumo Actualizado', data: data });
-
-    } catch (error) {
-        console.error(error);
-
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        // Error generico del servidor
-        res.status(500).json({ msg: 'No se ha podido actualizar el insumo' });
-    }
-};
-
-const deleteSupply = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        const data = await dbDeleteSupply(id);
-
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Insumo no encontrado' });
-        }
-
-        res.status(200).json({ msg: 'Insumo Eliminado', data: data });
-
-    } catch (error) {
-        console.error(error);
-
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        // Error generico del servidor
-        res.status(500).json({ msg: 'No se ha podido eliminar el insumo' });
-    }
-};
+const deleteSupply = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Insumo Eliminado', data: assertFound(await dbDeleteSupply(req.params.id), NOT_FOUND) });
+}, 'No se ha podido eliminar el insumo');
 
 export {
     createSupply,

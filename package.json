@@ -1,7 +1,7 @@
 {
   "name": "backend",
-  "version": "1.0.0",
-  "author": "Diego Rincón Reyes <diegorsgh@gmail.com>",
+  "version": "1.1.0",
+  "author": "Mateo Chaves Mejia <umgd0606@gmail.com>",
   "contributors": [
     "Mateo Chaves <umgd0606@gmail.com>",
     "Julian Delgado Chaves <juliaaancamilo0.0@gmail.com>",
@@ -21,12 +21,20 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "node --env-file .env --watch src/index.js"
+    "dev": "node --env-file .env --watch src/index.js",
+    "start": "node --env-file .env src/index.js",
+    "migrate": "node --env-file .env scripts/migrate.js",
+    "test": "node --test --test-concurrency=1 \"tests/**/*.test.js\"",
+    "test:flow": "node --test tests/flow.test.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.11.1"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^10.4.3"
   }
 }

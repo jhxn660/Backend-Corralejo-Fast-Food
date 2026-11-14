@@ -1,168 +1,101 @@
-import handleMongooseError from "../helpers/handle-mongoose-error.helper.js";
+import asyncHandler from "../helpers/async-handler.helper.js";
+import { assertFound, HttpError } from "../helpers/http-error.helper.js";
+import { buildVisibilityFilter, parseIsActiveBody } from "../helpers/visibility.helper.js";
+import { ROLES } from "../config/roles.config.js";
 import {
     dbCreateComment,
     dbDeleteComment,
-    dbGetComments,
-    dbUpdateComment,
     dbGetComment,
-    dbGetCommentByCodigo
+    dbGetCommentByCodigo,
+    dbGetComments,
+    dbGetPublicComments,
+    dbSetCommentStatus,
+    dbUpdateComment
 } from "../services/comments.services.js";
-import { dbReadSaleByTicket } from "../services/sales.services.js";
+import { dbReadSaleByQr } from "../services/sales.services.js";
 
-// CAMBIO: la creación de comentarios se valida contra el ticket de compra.
+const NOT_FOUND = 'Comentario no encontrado';
+
+// La creación de comentarios se valida contra el ticket de compra.
 // El Frontend solo lee el QR y envía su contenido en `codigo`; toda la verificación ocurre aquí:
 //   1. Quién comenta: visitante sin cuenta ('Usuario', sin token) o 'Cliente' autenticado.
-//   2. El código debe corresponder al idTicketVenta de una venta registrada.
+//   2. El código debe corresponder al `qr` de una venta registrada.
 //   3. Cada ticket admite un único comentario.
-const createComment = async (req, res) => {
-    try {
-        const { codigo, comentario } = req.body ?? {};
+const createComment = asyncHandler(async (req, res) => {
+    const { codigo, comentario, calificacion } = req.body;
 
-        // optionalAuthMiddleware deja req.userFound solo si la petición trae un token válido
-        const user = req.userFound ?? null;
+    // optionalAuthMiddleware deja req.userFound solo si la petición trae un token válido
+    const user = req.userFound ?? null;
 
-        if (user && user.role !== 'Cliente') {
-            return res.status(403).json({ msg: `Error: El Rol ${user.role} no esta autorizado para publicar comentarios` });
-        }
-
-        // Se exige string: un objeto como { "$ne": null } en el body se convertiría en un
-        // operador de consulta de Mongo y haría coincidir cualquier venta.
-        if (typeof codigo !== 'string' || !codigo.trim()) {
-            return res.status(400).json({ codigo: 'Debe enviar el código leído del QR del ticket de compra' });
-        }
-
-        const ticket = codigo.trim();
-
-        const sale = await dbReadSaleByTicket(ticket);
-
-        if (!sale) {
-            return res.status(404).json({ msg: 'El código QR no corresponde a ninguna venta registrada' });
-        }
-
-        const existingComment = await dbGetCommentByCodigo(ticket);
-
-        if (existingComment) {
-            return res.status(400).json({ msg: 'Este ticket de compra ya fue utilizado para publicar un comentario' });
-        }
-
-        // Solo se pasan los campos que el cliente puede definir; usuario, venta y likes
-        // los fija el Backend para que no puedan falsificarse desde el body.
-        const data = await dbCreateComment({ codigo: ticket, comentario }, user ? user._id : null, sale._id);
-
-        res.status(201).json({ msg: 'Registrar comentario', data: data });
-    } catch (error) {
-        console.error(error);
-
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        res.status(500).json({ msg: 'No se pudo registrar el comentario' });
+    if (user && user.role !== ROLES.CLIENT) {
+        throw new HttpError(403, `Error: El Rol ${user.role} no esta autorizado para publicar comentarios`);
     }
-}
 
-const getComment = async (req, res) => {
-    try {
-        const query = req.params.id;
-        const data = await dbGetComment(query);
-
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Comentario no encontrado' });
-        }
-
-        res.json({ msg: 'Obtener comentario por ID', data: data });
-    } catch (error) {
-        console.error(error);
-
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        res.status(500).json({
-            msg: 'No se pudo obtener el comentario'
+    // Se exige string: un objeto como { "$ne": null } en el body se convertiría en un
+    // operador de consulta de Mongo y haría coincidir cualquier venta.
+    if (typeof codigo !== 'string' || !codigo.trim()) {
+        throw new HttpError(400, 'Debe enviar el código leído del QR del ticket de compra', {
+            codigo: 'Debe enviar el código leído del QR del ticket de compra'
         });
     }
-}
 
-const getComments = async (req, res) => {
-    try {
-        const data = await dbGetComments();
+    const ticket = codigo.trim();
+    const sale = assertFound(await dbReadSaleByQr(ticket), 'El código QR no corresponde a ninguna venta registrada');
 
-        res.json({ msg: 'Listar total de comentarios', data: data });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            msg: 'No se pueden listar los comentarios'
-        });
+    if (await dbGetCommentByCodigo(ticket)) {
+        throw new HttpError(400, 'Este ticket de compra ya fue utilizado para publicar un comentario');
     }
-}
 
-const updateComment = async (req, res) => {
-    try {
-        const id = req.params.id;
+    // Solo se pasan los campos que el cliente puede definir; usuario, venta, likes e
+    // isActive los fija el Backend para que no puedan falsificarse desde el body.
+    const data = await dbCreateComment({ codigo: ticket, comentario, calificacion }, user?._id ?? null, sale._id);
 
-        // CAMBIO: el ticket (codigo), la venta y el autor se fijan al crear el comentario;
-        // se descartan del body para que un comentario no pueda reasignarse a otra compra.
-        const { codigo, venta, usuario, ...inputData } = req.body ?? {};
+    res.status(201).json({ msg: 'Registrar comentario', data });
+}, 'No se pudo registrar el comentario');
 
-        const data = await dbUpdateComment(id, inputData);
+const getComment = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Obtener comentario por ID', data: assertFound(await dbGetComment(req.params.id), NOT_FOUND) });
+}, 'No se pudo obtener el comentario');
 
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Comentario no encontrado' });
-        }
+// Moderación: ?isActive=true|false|all (por defecto all)
+const getComments = asyncHandler(async (req, res) => {
+    const data = await dbGetComments(buildVisibilityFilter(req.query.isActive));
 
-        res.json({ msg: 'Actualizar comentario', data: data });
-    } catch (error) {
-        console.error(error);
+    res.json({ msg: 'Listar total de comentarios', data });
+}, 'No se pueden listar los comentarios');
 
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
+// Para la vista pública: el Backend ya excluye los ocultos
+const getPublicComments = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Comentarios visibles', data: await dbGetPublicComments() });
+}, 'No se pueden listar los comentarios visibles');
 
-        res.status(500).json({
-            msg: 'No se pudo actualizar el comentario'
-        });
-    }
-}
+const updateComment = asyncHandler(async (req, res) => {
+    // El ticket, la venta y el autor se fijan al crear el comentario; la visibilidad tiene
+    // su propio endpoint. Se descartan del body para que no puedan alterarse por aquí.
+    const { codigo, venta, usuario, isActive, ...changes } = req.body;
+    const data = assertFound(await dbUpdateComment(req.params.id, changes), NOT_FOUND);
 
-const deleteComment = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const data = await dbDeleteComment(id);
+    res.json({ msg: 'Actualizar comentario', data });
+}, 'No se pudo actualizar el comentario');
 
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Comentario no encontrado' });
-        }
+// PATCH /:id/status  { "isActive": true | false }
+const setCommentStatus = asyncHandler(async (req, res) => {
+    const isActive = parseIsActiveBody(req.body);
+    const data = assertFound(await dbSetCommentStatus(req.params.id, isActive), NOT_FOUND);
 
-        res.json({ msg: 'Eliminar comentario', data: data });
-    } catch (error) {
-        console.error(error);
+    res.json({ msg: isActive ? 'Comentario visible' : 'Comentario oculto', data });
+}, 'No se pudo cambiar el estado del comentario');
 
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        res.status(500).json({
-            msg: 'No se pudo eliminar el comentario'
-        });
-    }
-}
+const deleteComment = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Eliminar comentario', data: assertFound(await dbDeleteComment(req.params.id), NOT_FOUND) });
+}, 'No se pudo eliminar el comentario');
 
 export {
     createComment,
     getComment,
     getComments,
+    getPublicComments,
     updateComment,
+    setCommentStatus,
     deleteComment
-}
+};

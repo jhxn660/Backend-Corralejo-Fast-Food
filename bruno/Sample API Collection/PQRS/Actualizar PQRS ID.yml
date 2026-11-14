@@ -12,6 +12,9 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: requiere {{pqrsId}} (Registrar PQRS). Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // "estado": Pendiente | En proceso | Resuelto | Cerrado (otro → 400).
+      // Esperado 200. ID inexistente → 404; ID mal formado → 400.
       {
         "estado": "En proceso",
         "asunto": "Consulta de horarios actualizada"

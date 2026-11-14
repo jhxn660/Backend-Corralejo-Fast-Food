@@ -12,6 +12,8 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: igual que Actualizar Usuario ID (PUT y PATCH hacen lo mismo).
+      // Token: Owner o Administrador, o el propio usuario. Esperado 200.
       {
         "role": "Empleado",
         "name": "Mateo Chaves",

@@ -9,6 +9,10 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: sin token. Crea una cuenta con rol Cliente aunque envíes otro "role".
+      // Esperado 201 { msg, data } sin password.
+      // Mismo correo otra vez → 400 (duplicado): en ese caso solo ejecuta Login.
+      // Variante: una password sin mayúscula, número o símbolo → 400.
       {
         "name": "JuanS",
         "email": "45547383w3@gmail.com",
@@ -24,6 +28,3 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
-
-docs: |-
-  Crea el Cliente de pruebas. Si ya existe responde 400 (correo duplicado): en ese caso basta con ejecutar el Login.

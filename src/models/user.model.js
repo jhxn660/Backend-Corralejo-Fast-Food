@@ -8,16 +8,11 @@ import { Schema, model } from 'mongoose';
 // - [a-zA-Z]{2,}      : Dominio de nivel superior / TLD (solo letras, mínimo 2 caracteres: com, co, edu, org, etc.)
 // - $                 : Fin de la cadena
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-// Expresión regular para validar contraseña segura:
-// - (?=.*[a-z])                                  : Al menos una letra minúscula
-// - (?=.*[A-Z])                                  : Al menos una letra mayúscula
-// - (?=.*\d)                                     : Al menos un dígito numérico (alfanumérico)
-// - (?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]): Al menos un símbolo o carácter especial
-// - [^\s]{7,24}                                  : Más de 6 caracteres (mínimo 7) y máximo 24 caracteres, sin espacios
+// La política de contraseña NO vive aquí: el Schema solo recibe el hash de bcrypt. Ver passwordRegex en users.services.js.
 
 const phoneRegex = /^(?:\+57)?3[0-9]{9}$/;
 
-// Parte 1: Definir la estructura de datos de mi Documento con validaciones y mensajes personalizados
+// Los roles de este enum son la fuente de verdad de todo el sistema (ver config/roles.config.js).
 const UserSchema = new Schema(
     // Definición de los campos del documento
     {

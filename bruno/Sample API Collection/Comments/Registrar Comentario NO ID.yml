@@ -13,13 +13,17 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: antes ejecuta Orders/Crear Pedido y Sales/Registrar Venta (guarda el QR en {{saleQr}}).
+      // "codigo" es lo que contiene el QR del ticket (campo "qr" de la venta).
+      // Sin token comenta un visitante; activa la cabecera X-Token con un Cliente para quedar como autor
+      // (Owner, Administrador o Empleado → 403). "calificacion" es opcional: entero de 1 a 5.
+      // Esperado 201; guarda {{commentId}}.
+      // Mismo QR otra vez → 400 (un comentario por ticket). Código inventado → 404. Sin "codigo" → 400.
       {
-        "codigo": "{{ticketVenta}}",
-        "comentario": "Excelente atención y la comida llegó calientita. Definitivamente vuelvo a pedir."
+        "codigo": "{{saleQr}}",
+        "comentario": "Excelente atención y la comida llegó calientita. Definitivamente vuelvo a pedir.",
+        "calificacion": 5
       }
-
-      // "codigo" simula la lectura del QR: es el idTicketVenta creado en Sales/Registrar Venta.
-      // Sin token comenta un visitante ('Usuario'); activa la cabecera X-Token para comentar como 'Cliente'.
   auth: inherit
 
 runtime:
@@ -37,7 +41,3 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
-
-docs: |-
-  Requiere ejecutar antes Orders/Crear Pedido y Sales/Registrar Venta.
-  Cada ticket admite un solo comentario: para repetir la prueba registra una venta nueva.

@@ -17,3 +17,7 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  PRUEBA: Token: Owner, Administrador o Empleado (ejecuta Authentication/Login Usuario con esa cuenta).
+  Esperado 200 { data: [...] }. Con otro rol → 403; sin token o vencido → 401.

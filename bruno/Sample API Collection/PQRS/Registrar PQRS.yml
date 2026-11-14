@@ -12,6 +12,9 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: solo el rol Cliente (Login con la cuenta de Registro Público Cliente). Otro rol → 403.
+      // "tipo": Petición | Queja | Reclamo | Sugerencia (otro → 400). Nace en estado "Pendiente".
+      // Esperado 201 con el autor; guarda {{pqrsId}}.
       {
         "tipo": "Petición",
         "asunto": "Solicitud de información",
@@ -34,6 +37,3 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
-
-docs: |-
-  Solo el rol Cliente puede registrar PQRS.

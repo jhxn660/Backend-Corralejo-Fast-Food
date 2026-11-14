@@ -17,3 +17,7 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  PRUEBA: Token: Owner, Administrador o Empleado (ejecuta Authentication/Login Usuario con esa cuenta).
+  Filtro opcional ?isActive=true|false|all (por defecto all). Esperado 200.

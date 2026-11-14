@@ -12,6 +12,8 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: requiere {{ubicacionId}}. Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // Envía solo los campos a cambiar. Esperado 200. ID inexistente → 404; ID mal formado → 400.
       {
           "titulo": "Sede Principal Corralejo",
           "telefono": "3158889999",

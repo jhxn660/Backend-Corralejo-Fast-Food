@@ -1,0 +1,56 @@
+import express from 'express';
+import cors from 'cors';
+
+import authRoute from './routes/auth.routes.js';
+import usersRoute from './routes/users.routes.js';
+import categoriesRoute from './routes/categories.routes.js';
+import productRoute from './routes/products.routes.js';
+import suppliesRoute from './routes/supplies.routes.js';
+import ordersRoute from './routes/orders.routes.js';
+import salesRoute from './routes/sales.routes.js';
+import indicatorsRoute from './routes/indicators.routes.js';
+import commentsRoute from './routes/comments.routes.js';
+import pqrsRoute from './routes/pqrs.routes.js';
+import establecimientoRoute from './routes/establecimiento.routes.js';
+import { ensureBody, errorHandler, notFoundHandler } from './middlewares/error.middleware.js';
+
+// La aplicación se arma aquí y se arranca en index.js: así las pruebas la levantan sin conectar a Atlas.
+const app = express();
+
+// CORS_ORIGIN = lista separada por comas (p. ej. http://localhost:5173). Sin definir, admite cualquier origen.
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map((origin) => origin.trim()).filter(Boolean);
+
+app.use(cors({ origin: allowedOrigins?.length ? allowedOrigins : true }));
+app.use(express.json());
+app.use(ensureBody);
+
+app.get('/health', (req, res) => {
+    res.status(200).json({ msg: 'Servidor de Corralejo Fast Food Funcionando!' });
+});
+
+// Acceso y usuarios
+app.use('/api/auth', authRoute);
+app.use('/api/users', usersRoute);
+
+// Catálogo e inventario
+app.use('/api/categories', categoriesRoute);
+app.use('/api/products', productRoute);
+app.use('/api/supplies', suppliesRoute);
+
+// Operación comercial: Pedido ──▶ Venta ──▶ Indicadores
+app.use('/api/orders', ordersRoute);
+app.use('/api/sales', salesRoute);
+app.use('/api/indicators', indicatorsRoute);
+
+// Atención al cliente
+app.use('/api/comments', commentsRoute);
+app.use('/api/pqrs', pqrsRoute);
+
+// Este router agrupa tres recursos (/establecimiento, /horarios, /ubicaciones),
+// por eso se monta en la raíz de /api y cada ruta declara su propio prefijo.
+app.use('/api', establecimientoRoute);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+export default app;

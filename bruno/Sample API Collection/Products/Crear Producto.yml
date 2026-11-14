@@ -12,6 +12,9 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: requiere {{categoryId}} de una categoría "type": "Producto" (Categories/Crear Categoria). Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // "nombre" es único y de al menos 5 caracteres. createdBy lo asigna el servidor. Nace visible (isActive: true).
+      // Esperado 201; guarda {{productId}}. Nombre repetido → 400. Con otro rol → 403; sin token o vencido → 401.
       {
         "nombre": "Hamburguesa de res {{$timestamp}}",
         "description": "Deliciosa hamburguesa de carne de res para tu paladar",
@@ -20,7 +23,6 @@ http:
         "state": "disponible",
         "category": "{{categoryId}}"
       }
-      // "createdBy" ya no se envia: se asigna automaticamente con el usuario del token.
   auth: inherit
 
 runtime:
@@ -38,7 +40,3 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
-
-docs: |-
-  CAMBIO: las categorias solo se gestionan en la carpeta Categories. Antes de esta peticion ejecuta
-  Categories > Crear Categoria con "type": "Producto"; guarda su _id en {{categoryId}}.

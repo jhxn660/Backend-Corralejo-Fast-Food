@@ -1,48 +1,52 @@
 import CommentModel from "../models/comment.model.js";
+import { ONLY_ACTIVE } from "../helpers/visibility.helper.js";
 
-// CAMBIO: los populate de `usuario` proyectan `name email` (campos reales del modelo User);
-// antes pedían `nombre correo`, que no existen, y solo llegaba el _id.
-// CAMBIO: recibe además la venta ya validada por el controlador. `usuarioId` puede ser null
-// cuando comenta un visitante sin cuenta.
+// `usuarioId` puede ser null cuando comenta un visitante sin cuenta.
 const dbCreateComment = async (bodyData, usuarioId, ventaId) => {
-    const newComment = {
-        ...bodyData,
-        usuario: usuarioId,
-        venta: ventaId
-    };
-    return await CommentModel.create(newComment);
-}
+    return await CommentModel.create({ ...bodyData, usuario: usuarioId, venta: ventaId });
+};
 
 const dbGetComment = async (id) => {
     return await CommentModel.findOne({ _id: id }).populate('usuario', 'name email');
-}
+};
 
-const dbGetComments = async () => {
-    return await CommentModel.find().populate('usuario', 'name email');
-}
+// Moderación: todos los comentarios o filtrados por visibilidad (ver buildVisibilityFilter)
+const dbGetComments = async (filter = {}) => {
+    return await CommentModel.find(filter).sort({ createdAt: -1 }).populate('usuario', 'name email');
+};
+
+// Vista pública: solo comentarios visibles, sin el código del ticket ni la venta
+const dbGetPublicComments = async () => {
+    return await CommentModel.find(ONLY_ACTIVE)
+        .select('comentario calificacion likes usuario isActive createdAt')
+        .sort({ createdAt: -1 })
+        .populate('usuario', 'name');
+};
 
 const dbUpdateComment = async (id, commentUpdate) => {
-    return await CommentModel.findByIdAndUpdate(
-        id,
-        commentUpdate,
-        { new: true, runValidators: true }
-    );
-}
+    return await CommentModel.findByIdAndUpdate(id, commentUpdate, { returnDocument: 'after', runValidators: true });
+};
+
+const dbSetCommentStatus = async (id, isActive) => {
+    return await CommentModel.findByIdAndUpdate(id, { $set: { isActive } }, { returnDocument: 'after' });
+};
 
 const dbDeleteComment = async (id) => {
     return await CommentModel.findOneAndDelete({ _id: id });
-}
+};
 
-// CAMBIO: permite detectar si un ticket ya se usó para comentar (un comentario por compra).
+// Permite detectar si un ticket ya se usó para comentar (un comentario por compra).
 const dbGetCommentByCodigo = async (codigo) => {
     return await CommentModel.findOne({ codigo });
-}
+};
 
 export {
     dbCreateComment,
     dbGetComment,
     dbGetComments,
+    dbGetPublicComments,
     dbUpdateComment,
+    dbSetCommentStatus,
     dbDeleteComment,
     dbGetCommentByCodigo
-}
+};

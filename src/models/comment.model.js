@@ -19,7 +19,7 @@ const CommentSchema = new Schema({
     },
     codigo: {
         type: String,
-        // Contenido leído del QR del ticket de compra (idTicketVenta de la venta)
+        // Contenido leído del QR del ticket de compra (`qr` de la venta)
         required: [true, 'El código del comentario es obligatorio']
     },
     comentario: {
@@ -29,6 +29,23 @@ const CommentSchema = new Schema({
     likes: {
         type: Number,
         default: 0
+    },
+    // Valoración opcional de la compra (1 a 5). Alimenta "Productos Mejor Valorados" en Indicadores.
+    calificacion: {
+        type: Number,
+        min: [1, 'La calificación mínima es 1'],
+        max: [5, 'La calificación máxima es 5'],
+        validate: {
+            validator: Number.isInteger,
+            message: 'La calificación debe ser un número entero entre 1 y 5'
+        }
+    },
+    // Visibilidad en el Frontend (moderación): true = se muestra, false = oculto.
+    // Solo se cambia desde PATCH /api/comments/:id/status.
+    isActive: {
+        type: Boolean,
+        default: true,
+        index: true
     }
 }, {
     timestamps: true,

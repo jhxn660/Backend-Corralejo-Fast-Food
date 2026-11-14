@@ -1,7 +1,7 @@
 info:
   name: UsuariosCFF
   type: http
-  seq: 14
+  seq: 15
 
 http:
   method: GET
@@ -14,3 +14,5 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: "PRUEBA: igual que Health (GET /health), sin token. Esperado 200."

@@ -41,7 +41,7 @@ const dbUpdateSupply = async (id, supplyUpdated) => {
         { _id: id },
         supplyUpdated,
         {
-            new: true,           // Devuelve el documento ya actualizado
+            returnDocument: 'after',           // Devuelve el documento ya actualizado
             runValidators: true  // Aplica las reglas del modelo tambien al actualizar
         }
     );
