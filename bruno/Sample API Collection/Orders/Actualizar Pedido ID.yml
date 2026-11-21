@@ -1,0 +1,29 @@
+info:
+  name: Actualizar Pedido ID
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "http://localhost:3000/api/orders/{{orderId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      // PRUEBA: requiere {{orderId}} (Crear Pedido). Token: Owner, Administrador o Empleado (ejecuta Authentication/Login Usuario con esa cuenta).
+      // Solo cambia "estado": En preparación | Listo | Entregado | Cancelado. orderNumber y totales se ignoran.
+      // "Finalizado" → 400 (lo asigna Sales/Registrar Venta). Un pedido vendido solo puede pasar a "Cancelado" (otro → 409).
+      // "items" o "detalles" → 400: los productos se añaden con Añadir Productos Pedido ID.
+      // Si el pedido ya tiene venta, la venta copia el estado ("Cancelado" la saca de los indicadores).
+      // Esperado 200. Estado inventado → 400.
+      { "estado": "Entregado" }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,24 @@
+info:
+  name: Eliminar Pedido ID
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "http://localhost:3000/api/orders/{{orderId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+docs: |-
+  PRUEBA: requiere {{orderId}}. Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+  Esperado 200; si el pedido ya tiene venta → 409; repetir → 404.

@@ -1,18 +1,26 @@
 import { Router } from 'express';
 import { createCategory, getCategory, getCategories, updateCategory, deleteCategory } from '../controllers/categories.controllers.js';
-import { authMiddleware } from '../middlewares/authenticate.middleware.js';
-import { authorizationMiddleware } from '../middlewares/authorization.middleware.js';
+import { requireRoles } from '../middlewares/authorization.middleware.js';
+import { ADMIN_ROLES } from '../config/roles.config.js';
 
-// Crea una instancia de las rutas de Express
+/**
+ * CAPA DE RUTAS. Un archivo de rutas solo responde "¿quién atiende esta URL?"; no tiene lógica.
+ * Cada línea se lee de izquierda a derecha y Express ejecuta las piezas en ese orden:
+ *
+ *   router.MÉTODO( ruta, [middlewares de acceso], controlador )
+ *
+ * requireRoles(ROLES) devuelve [autenticar, autorizar]: si alguno responde 401/403, la petición
+ * se corta ahí y el controlador nunca se ejecuta. El prefijo '/api/categories' lo pone app.js,
+ * por eso aquí las rutas empiezan en '/'.
+ */
 const router = Router();
 
-// '/', Ruta. []. Lista de Controla
-// Define las rutas para las categorias
-router.post('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ],  createCategory);
-router.get('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getCategories);
-router.get('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getCategory);
-router.patch('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], updateCategory);
-router.delete('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], deleteCategory);
+router.post('/', requireRoles(ADMIN_ROLES),  createCategory);
+// LECTURA PÚBLICA: la carta de clientes y visitantes agrupa los productos por categoría,
+// así que cualquiera puede leerlas. Crear, editar y borrar sigue siendo de administración.
+router.get('/', getCategories);
+router.get('/:id', getCategory);
+router.patch('/:id', requireRoles(ADMIN_ROLES), updateCategory);
+router.delete('/:id', requireRoles(ADMIN_ROLES), deleteCategory);
 
-// Exportar las rutas definidas en este archivo
 export default router;

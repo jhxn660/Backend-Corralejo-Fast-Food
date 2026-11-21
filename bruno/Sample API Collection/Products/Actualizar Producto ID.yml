@@ -12,6 +12,9 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: requiere {{productId}} (Crear Producto). Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // Envía solo los campos a cambiar. isActive se ignora aquí (usa Cambiar Estado Producto ID).
+      // Esperado 200. "price": -1 → 400. ID inexistente → 404; ID mal formado → 400.
       {
         "nombre": "Hamburguesa CFF {{$timestamp}}"
       }

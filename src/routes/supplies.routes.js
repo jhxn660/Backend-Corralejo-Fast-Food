@@ -1,17 +1,19 @@
 import { Router } from 'express';
-import { createSupply, getSupply, getSupplies, updateSupply, deleteSupply } from '../controllers/supplies.controllers.js';
-import { authMiddleware } from '../middlewares/authenticate.middleware.js';
-import { authorizationMiddleware } from '../middlewares/authorization.middleware.js';
+import { createSupply, getSupply, getSupplies, updateSupply, deleteSupply, getAvailability } from '../controllers/supplies.controllers.js';
+import { requireRoles } from '../middlewares/authorization.middleware.js';
+import { ADMIN_ROLES, STAFF_ROLES } from '../config/roles.config.js';
 
 // Crea una instancia de las rutas de Express
 const router = Router();
 
 // Define las rutas para los insumos
-router.post('/', [ authMiddleware,  authorizationMiddleware([ 'Administrador' ]) ], createSupply);
-router.get('/', [ authMiddleware,  authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getSupplies);
-router.get('/:id', [ authMiddleware,  authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getSupply);
-router.patch('/:id', [ authMiddleware,  authorizationMiddleware([ 'Administrador' ]) ], updateSupply);
-router.delete('/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], deleteSupply);
+router.post('/', requireRoles(ADMIN_ROLES), createSupply);
+router.get('/', requireRoles(STAFF_ROLES), getSupplies);
+// Inventario: unidades que se pueden preparar de cada producto según su receta y el stock
+router.get('/availability', requireRoles(STAFF_ROLES), getAvailability);
+router.get('/:id', requireRoles(STAFF_ROLES), getSupply);
+router.patch('/:id', requireRoles(ADMIN_ROLES), updateSupply);
+router.delete('/:id', requireRoles(ADMIN_ROLES), deleteSupply);
 
 // Exportar las rutas definidas en este archivo
 export default router;

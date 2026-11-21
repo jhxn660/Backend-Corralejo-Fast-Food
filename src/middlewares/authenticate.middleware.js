@@ -1,73 +1,61 @@
-import { validateToken } from '../helpers/jwt.helpers.js';
-import { dbGetUserByEmail } from '../services/users.services.js';
+import { validateToken } from '../helpers/jwt.helper.js';
+import { dbGetActiveUserById } from '../services/users.services.js';
 
-// CAMBIO: todo rechazo de este middleware responde 401; antes el token mal formado, el token
-// inválido y el usuario deshabilitado salían con 200 y el cliente no podía distinguirlos de un éxito.
+// El token viaja en X-Token; también se acepta el estándar `Authorization: Bearer <token>`.
+const extractToken = (req) => {
+    const bearer = /^Bearer\s+(.+)$/i.exec(req.header('Authorization') ?? '');
+
+    return req.header('X-Token') || bearer?.[1] || null;
+};
+
+const reject = (res, msg) => res.status(401).json({ msg });
+
+/**
+ * Autenticación: ¿quién hace la petición?
+ * 1. Lee el token de la cabecera.
+ * 2. Comprueba firma y expiración (sin tocar la BD).
+ * 3. Busca al usuario en la BD. Por esto un usuario eliminado o con state=false queda fuera
+ *    al instante, aunque su token siga sin vencer: el JWT solo dice quién era al firmarse.
+ * 4. Deja el usuario (sin contraseña) en req.userFound para autorización y controladores.
+ * Todo rechazo es 401; "no tienes permiso" (403) es asunto de authorizationMiddleware.
+ */
 const authMiddleware = async (req, res, next) => {
     try {
-        // Paso 1: Obtener el token de la cabecera
-        const token = req.header('X-Token');
+        const token = extractToken(req);
 
-        // 2.1: Verifica que haya recibido una cadena (Token)
-        if (!token) {
-            return res.status(401).json({
-                msg: 'Cadena de token vacia'
-            });
-        }
+        if (!token) return reject(res, 'Cadena de token vacia');
 
-        // 2.2: Divide la cadena en partes usando el (.) como referencia
-        const tokenParts = token.split('.');
+        // header.payload.firma: descarta basura sin gastar una verificación criptográfica
+        if (token.split('.').length !== 3) return reject(res, 'Formato del token no es valido');
 
-        // 2.3: Verificar que la cadena tenga 3 partes separadas por puntos
-        // (forma base de un token) 1parte.2segunda.3tercera
-        if (tokenParts.length !== 3) {
-            return res.status(401).json({
-                msg: 'Formato del token no es valido'
-            });
-        }
-
-        // 2.4: Verificar la autenticidad del token
-        // (si fue generado por el jwt de esta aplicacion)
         const payload = validateToken(token);
 
-        if (!payload) {
-            return res.status(401).json({
-                msg: 'Token invalido o inactivo'
-            });
-        }
+        if (!payload) return reject(res, 'Token invalido o inactivo');
 
-        // Paso 3: Verificar si el usuario existe en la base de datos
-        // (si el usuario fue eliminado o cambio su estado)
-        const userFound = await dbGetUserByEmail(payload.email);
+        const userFound = await dbGetActiveUserById(payload._id);
 
         if (!userFound) {
-            return res.status(401).json({
-                msg: 'El usuario esta deshabilitado o ya no se encuentra registrado en el sistema'
-            });
+            return reject(res, 'El usuario esta deshabilitado o ya no se encuentra registrado en el sistema');
         }
 
-        // Deja el usuario en la request para que el controlador lo lea con req.userFound
         req.userFound = userFound;
 
         next();
-
     } catch (error) {
-        // Se responde con un JSON en lugar de terminar en el error generico de Express
+        // Un _id de payload corrupto o la BD caída: se rechaza en vez de dejar pasar
         console.error(error);
 
-        return res.status(401).json({
-            msg: 'No se pudo verificar la autenticacion del token'
-        });
+        return reject(res, 'No se pudo verificar la autenticacion del token');
     }
 };
 
-// CAMBIO: variante para rutas que admiten visitantes sin cuenta (rol 'Usuario').
-// Sin token la petición continúa como anónima (req.userFound queda undefined); si el token
-// viene, se valida con las mismas reglas que authMiddleware y un token inválido sí responde 401.
+/**
+ * Variante para rutas que admiten visitantes sin cuenta (rol 'Usuario').
+ * Sin token la petición sigue como anónima (req.userFound queda undefined); si el token viene,
+ * se valida igual que en authMiddleware y uno inválido SÍ responde 401 (no se degrada a anónimo).
+ */
 const optionalAuthMiddleware = (req, res, next) => {
-    if (!req.header('X-Token')) {
-        return next();
-    }
+    if (!extractToken(req)) return next();
 
     return authMiddleware(req, res, next);
 };

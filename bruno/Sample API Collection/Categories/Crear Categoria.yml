@@ -12,12 +12,16 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // "type": "Producto" o "Insumo" (Productos e Insumos exigen el tipo que les corresponde).
+      // createdBy lo asigna el servidor con el usuario del token.
+      // Esperado 201; guarda {{categoryId}}. Con otro rol → 403; sin token o vencido → 401.
+      // Variante: "type": "Otro" → 400.
       {
         "name": "Hamburguesas {{$timestamp}}",
         "type": "Producto",
         "description": "deliciosas hamburguesas para tu paladar"
       }
-      // "createdBy" ya no se envia: se asigna automaticamente con el usuario del token.
   auth: inherit
 
 runtime:

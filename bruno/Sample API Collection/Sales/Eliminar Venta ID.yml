@@ -1,0 +1,25 @@
+info:
+  name: Eliminar Venta ID
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "http://localhost:3000/api/sales/{{saleDocId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+docs: |-
+  PRUEBA: requiere {{saleDocId}}. Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+  Esperado 200; la venta deja de contar en los indicadores. Su saleId no se reutiliza. Repetir → 404.
+  Si venía de un pedido "Finalizado", el pedido vuelve a "Listo" (se puede corregir y vender de nuevo).

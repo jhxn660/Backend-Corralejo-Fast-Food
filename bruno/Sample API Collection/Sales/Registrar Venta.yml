@@ -12,31 +12,37 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA (venta de un pedido): requiere {{orderId}} (Orders/Crear Pedido) y {{productId}}.
+      // Token: Owner, Administrador o Empleado.
+      // "items" es OPCIONAL aquí: son productos de último momento que primero se añaden al pedido
+      // (solo si está En preparación o Listo). Bórralo para vender el pedido tal como está.
+      // La venta copia las líneas del pedido, totalPagado = suma (lo calcula el servidor) y el pedido
+      // pasa a "Finalizado". saleId, ticketId y qr los genera el servidor.
+      // Esperado 201 con indicatorsUpdated: true y el pedido en data.orderId (estado "Finalizado").
+      // Guarda {{saleDocId}} (_id) y {{saleQr}} (para Comments/Registrar Comentario).
+      // Mismo pedido otra vez → 409 (con la venta existente en data). Pedido inexistente → 404.
+      // Pedido Cancelado → 409. Pedido Entregado con "items" → 409 (sin "items" sí se vende).
+      // Solo se aceptan además: fecha, cliente, direccionEntrega. Precios o totales enviados se ignoran.
       {
-        "idVenta": "{{idVenta}}",
+        "orderId": "{{orderId}}",
+        "items": [
+          { "productId": "{{productId}}", "quantity": 1 }
+        ],
         "fecha": "2026-11-12 13:00",
         "cliente": "Consumidor Final",
-        "totalPagado": 36000,
-        "idTicketVenta": "{{ticketVenta}}",
-        "empleadoResponsable": "Laura Gomez",
-        "pedidoAsociado": "{{orderId}}",
-        "estadoPedido": "Entregado",
-        "direccionEntrega": "Local",
-        "detalles": [
-          { "producto": "Hamburguesa de res", "cantidad": 2, "precio_unitario": 18000, "subtotal": 36000 }
-        ]
+        "direccionEntrega": "Local"
       }
   auth: inherit
 
 runtime:
   scripts:
-    - type: before-request
+    - type: after-response
       code: |-
-        // idVenta e idTicketVenta son unicos. idTicketVenta es el contenido del QR impreso
-        // en el ticket: Comments/Registrar Comentario lo envia como "codigo".
-        const sufijo = Date.now();
-        bru.setVar("idVenta", `V-${sufijo}`);
-        bru.setVar("ticketVenta", `TCK-${sufijo}`);
+        if (res.status === 201) {
+          // _id para las rutas /api/sales/:id; qr es lo que lee Comments/Registrar Comentario
+          bru.setVar("saleDocId", res.body.data._id);
+          bru.setVar("saleQr", res.body.data.qr);
+        }
 
 settings:
   encodeUrl: true
@@ -44,6 +50,3 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
-
-docs: |-
-  Requiere Orders/Crear Pedido. Genera el ticket (QR) que habilita un comentario.

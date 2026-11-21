@@ -1,0 +1,44 @@
+info:
+  name: Registrar Venta Directa
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: http://localhost:3000/api/sales
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      // PRUEBA (venta en caja, sin pedido): requiere {{productId}} (Products/Crear Producto).
+      // Token: Owner, Administrador o Empleado.
+      // Sin "orderId", "items" es obligatorio. Nombre y precio salen del catálogo; subtotal y
+      // totalPagado los calcula el servidor (si envías precio_unitario, subtotal o totalPagado se ignoran).
+      // Esperado 201: saleId y ticketId consecutivos, qr nuevo, estadoPedido "Finalizado", sin orderId.
+      // Guarda {{saleDocId}} y {{saleQr}}.
+      // Errores 400: sin "items", "items": [], quantity 0, producto inexistente u oculto.
+      {
+        "items": [
+          { "productId": "{{productId}}", "quantity": 2 }
+        ],
+        "cliente": "Consumidor Final"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201) {
+          bru.setVar("saleDocId", res.body.data._id);
+          bru.setVar("saleQr", res.body.data.qr);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

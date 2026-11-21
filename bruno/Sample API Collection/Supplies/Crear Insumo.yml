@@ -12,6 +12,9 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: requiere {{categoryId}} de una categoría "type": "Insumo" (Categories/Crear Categoria). Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // createdBy lo asigna el servidor. "state" por defecto "Con_Stock".
+      // Esperado 201; guarda {{supplyId}}. Categoría de tipo Producto → 400. Con otro rol → 403; sin token o vencido → 401.
       {
         "name": "Pan brioche {{$timestamp}}",
         "description": "Pan artesanal para hamburguesa",
@@ -20,7 +23,6 @@ http:
         "stock": 300,
         "category": "{{categoryId}}"
       }
-      // "createdBy" ya no se envia: se extrae el id del usuario en el middleware
   auth: inherit
 
 runtime:
@@ -38,7 +40,3 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
-
-docs: |-
-  CAMBIO: las categorias solo se gestionan en la carpeta Categories. Antes de esta peticion ejecuta
-  Categories > Crear Categoria con "type": "Insumo" (el modelo valida el tipo); guarda su _id en {{categoryId}}.

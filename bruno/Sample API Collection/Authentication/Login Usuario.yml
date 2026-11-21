@@ -9,6 +9,11 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: ejecútalo PRIMERO. Guarda el token en {{token}} (dura 1 hora).
+      // Usa la cuenta del rol que vas a probar: Owner, Administrador, Empleado o Cliente.
+      // Esperado 200 { msg, token, data }.
+      // Correo inexistente o clave incorrecta → 401 "Credenciales inválidas" (mismo mensaje a propósito).
+      // Variante: "email": { "$ne": null } → 401 (se rechaza todo lo que no sea texto).
       {
         "email": "45547383w3@gmail.com",
         "password": "Hol@hoal12"
@@ -30,7 +35,3 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
-
-docs: |-
-  EJECUTAR PRIMERO. Guarda el token en la variable de ejecución `token` (dura 1 hora).
-  Si el token vence, vuelve a ejecutar este Login o "Verificar/Actualizar Authentication".

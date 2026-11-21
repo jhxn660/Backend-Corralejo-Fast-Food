@@ -1,0 +1,32 @@
+info:
+  name: Actualizar Venta ID
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "http://localhost:3000/api/sales/{{saleDocId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      // PRUEBA: requiere {{saleDocId}} (Registrar Venta). Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // Solo se corrigen fecha, cliente y direccionEntrega. Cambiar "fecha" reconsolida los indicadores
+      // del día anterior y del nuevo. Esperado 200 con indicatorsUpdated.
+      // "detalles", "items", "totalPagado" o "estadoPedido" → 400: una venta registrada no cambia sus líneas.
+      // Para anularla, cancela su pedido (Orders/Actualizar Pedido ID con "Cancelado") o elimínala.
+      // saleId, ticketId, qr y orderId se ignoran aunque los envíes.
+      {
+        "cliente": "Laura Gómez",
+        "direccionEntrega": "Calle 32 Sur # 10-20"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

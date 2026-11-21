@@ -8,10 +8,14 @@ http:
   url: http://localhost:3000/api/users
   headers:
     - name: X-Token
-      value: "{{token}}"
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWYzNTFjOGRkNDg2YWQ5ZTI1OWJjMGEiLCJuYW1lIjoiSnVhblMiLCJlbWFpbCI6IjQ1NTQ3MzgzdzNAZ21haWwuY29tIiwicm9sZSI6IkNsaWVudGUiLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzk1MTk3NjY5LCJleHAiOjE3OTUyMDEyNjl9.RJ0ZlXnVSmPc6n1rgTYM2iblNy3db7WXarCCI_LWyOQ
   body:
     type: json
     data: |-
+      // PRUEBA: Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // "role" del modelo User. Solo un Owner puede crear otro Owner (Administrador → 403).
+      // createdBy lo asigna el servidor. $timestamp evita correos duplicados al repetir.
+      // Esperado 201 sin password; guarda {{userId}}. Con otro rol → 403; sin token o vencido → 401.
       {
         "role": "Administrador",
         "name": "Tom Gomez",
@@ -19,8 +23,6 @@ http:
         "password": "Tom@12345",
         "empleado_rol": "Cajero"
       }
-      // createdBy no es necesario ponerlo manualmente
-      // El sufijo $timestamp evita correos duplicados al repetir la prueba
   auth: inherit
 
 runtime:
@@ -29,7 +31,7 @@ runtime:
       code: |-
         // Guarda el _id creado para las peticiones por ID que siguen
         if (res.status === 201) {
-          bru.setVar("userId", res.body.user._id);
+          bru.setVar("userId", res.body.data._id);
         }
 
 settings:

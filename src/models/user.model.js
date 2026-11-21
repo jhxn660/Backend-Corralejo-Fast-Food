@@ -8,16 +8,16 @@ import { Schema, model } from 'mongoose';
 // - [a-zA-Z]{2,}      : Dominio de nivel superior / TLD (solo letras, mínimo 2 caracteres: com, co, edu, org, etc.)
 // - $                 : Fin de la cadena
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-// Expresión regular para validar contraseña segura:
-// - (?=.*[a-z])                                  : Al menos una letra minúscula
-// - (?=.*[A-Z])                                  : Al menos una letra mayúscula
-// - (?=.*\d)                                     : Al menos un dígito numérico (alfanumérico)
-// - (?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]): Al menos un símbolo o carácter especial
-// - [^\s]{7,24}                                  : Más de 6 caracteres (mínimo 7) y máximo 24 caracteres, sin espacios
+// La política de contraseña NO vive aquí: el Schema solo recibe el hash de bcrypt. Ver passwordRegex en users.services.js.
 
 const phoneRegex = /^(?:\+57)?3[0-9]{9}$/;
 
-// Parte 1: Definir la estructura de datos de mi Documento con validaciones y mensajes personalizados
+// Los roles de este enum son la fuente de verdad de todo el sistema (ver config/roles.config.js).
+// Jerarquía (de mayor a menor): Owner > Administrador > Empleado > Cliente.
+// 'Usuario' (visitante sin cuenta) NO es un rol persistido: quien no tiene documento en
+// esta colección no puede tener rol. Vive solo como constante en roles.config.js.
+const USER_ROLE_VALUES = Object.freeze(['Owner', 'Administrador', 'Empleado', 'Cliente']);
+
 const UserSchema = new Schema(
     // Definición de los campos del documento
     {
@@ -25,10 +25,11 @@ const UserSchema = new Schema(
         role: {
             type: String,
             enum: {
-                values: ['Administrador', 'Empleado', 'Cliente', 'Usuario', 'Owner'],
+                values: USER_ROLE_VALUES,
                 message: 'El rol {VALUE} no es válido'  // {VALUE} muestra el valor que se envio
             },
-            default: 'Cliente'
+            default: 'Cliente',
+            index: true  // El panel del Owner lista por rol (Administrador / Empleado)
         },
         name: {
             type: String,
@@ -78,6 +79,22 @@ const UserSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'User',  // Permite traer los datos de ese usuario con populate
             default: null
+        },
+        // BAJA LÓGICA (eliminación de Administrador / Empleado por el Owner).
+        // Users es referenciado por createdBy en categories, products, supplies, users,
+        // y por pqrs y comments: un findOneAndDelete dejaría esas referencias colgando y
+        // el populate devolvería null. La baja se marca aquí (state=false + deletedAt) y
+        // el documento se conserva; dbGetUserByEmail y dbGetActiveUserById ya filtran
+        // state:true, así que una cuenta dada de baja no puede iniciar sesión.
+        deletedAt: {
+            type: Date,
+            default: null
+        },
+        // Quién dio de baja la cuenta (auditoría: debe ser un Owner)
+        deletedBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            default: null
         }
     },
     {
@@ -89,4 +106,5 @@ const UserSchema = new Schema(
 // Mongoose crea la coleccion en plural: users
 const userModel = model('User', UserSchema);
 
+export { USER_ROLE_VALUES };
 export default userModel;

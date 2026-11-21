@@ -1,147 +1,67 @@
-import handleMongooseError from "../helpers/handle-mongoose-error.helper.js";
-import { dbCreateProduct, dbDeleteProduct, dbGetProducts, dbUpdateProduct, dbGetProduct } from "../services/products.services.js";
+import asyncHandler from "../helpers/async-handler.helper.js";
+import { assertFound } from "../helpers/http-error.helper.js";
+import { buildVisibilityFilter, parseIsActiveBody } from "../helpers/visibility.helper.js";
+import {
+    dbCreateProduct,
+    dbDeleteProduct,
+    dbGetProduct,
+    dbGetProducts,
+    dbGetPublicProducts,
+    dbSetProductStatus,
+    dbUpdateProduct
+} from "../services/products.services.js";
 
-const createProduct = async ( req, res ) => {
-    try {
-        // Extrae el ID del usuario
-        const { _id } = req.userFound;
+const NOT_FOUND = 'Producto no encontrado';
 
-        // Extraer los datos del cuerpo de la peticion
-        const inputData = req.body;
-        inputData.createdBy = _id;
+const createProduct = asyncHandler(async (req, res) => {
+    // El creador es el usuario autenticado, no el que venga en el body
+    const data = await dbCreateProduct({ ...req.body, createdBy: req.userFound._id });
 
-        // Usar el servicio para registrar
-        const data = await dbCreateProduct(inputData);
+    res.status(201).json({ msg: 'Registrar producto', data });
+}, 'No se pudo registrar el producto');
 
-        res.status(201).json({ msg: 'Registrar producto', data: data});
-    }
-    catch (error) {
-        console.error(error);
+const getProduct = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Obtiene un producto', data: assertFound(await dbGetProduct(req.params.id), NOT_FOUND) });
+}, 'No se pudo obtener el producto por ID');
 
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
+// Gestión: ?isActive=true|false|all (por defecto all)
+const getProducts = asyncHandler(async (req, res) => {
+    const data = await dbGetProducts(buildVisibilityFilter(req.query.isActive));
 
-        res.status(500).json({ msg: 'No se pudo registrar el producto' });
-    }
+    res.json({ msg: 'Listar total o parcialmente los productos', data });
+}, 'No se pueden listar el total o parcialmente los productos');
 
-}
+// Carta para clientes y visitantes: el Backend ya excluye los ocultos
+const getPublicProducts = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Productos visibles', data: await dbGetPublicProducts() });
+}, 'No se pudieron listar los productos visibles');
 
-const getProduct = async (req, res) => {
-    try {
-        const id = req.params.id;
+const updateProduct = asyncHandler(async (req, res) => {
+    // La visibilidad y el autor no se cambian por aquí: hay un endpoint dedicado para el estado
+    const { isActive, createdBy, ...changes } = req.body;
+    const data = assertFound(await dbUpdateProduct(req.params.id, changes), NOT_FOUND);
 
-        const data = await dbGetProduct( id );
+    res.json({ msg: 'Producto actualizado', data });
+}, 'No se ha podido actualizar');
 
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Producto no encontrado' });
-        }
+// PATCH /:id/status  { "isActive": true | false }
+const setProductStatus = asyncHandler(async (req, res) => {
+    const isActive = parseIsActiveBody(req.body);
+    const data = assertFound(await dbSetProductStatus(req.params.id, isActive), NOT_FOUND);
 
-        res.json({
-            msg: 'Obtiene un producto',
-            data: data
-        });
-    } catch (error) {
-        console.error( error );
+    res.json({ msg: isActive ? 'Producto habilitado' : 'Producto deshabilitado', data });
+}, 'No se pudo cambiar el estado del producto');
 
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        res.status(500).json({
-            msg: 'No se pudo obtener el producto por ID'
-        });
-    }
-}
-
-const getProducts = async (req, res) => {
-    try {
-        const query = req.params.id;
-
-        const data = await dbGetProducts( query );
-
-        res.json({ msg: 'Listar total o parcialmente los productos', data: data });
-    } catch (error) {
-        console.error(error);
-
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        res.status(500).json({
-            msg: 'No se pueden listar el total o parcialmente los productos'
-        })
-    }
-}
-
-const updateProduct = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const inputData = req.body;
-
-        const data = await dbUpdateProduct( id, inputData );
-
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Producto no encontrado' });
-        }
-
-        res.json({
-            msg: 'Producto actualizado',
-            data: data
-        });
-    } catch (error) {
-        console.error( error );
-
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        res.status(500).json({
-            msg: 'No se ha podido actualizar'
-        })
-    }
-}
-
-const deleteProduct = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        const data = await dbDeleteProduct(id);
-
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Producto no encontrado' });
-        }
-
-        res.json({
-            msg: 'Elimina un producto',
-            data: data
-        });
-    } catch (error) {
-        console.error( error );
-
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        res.status(500).json({
-            msg: 'No se ha podido eliminar el producto'
-        })
-    }
-}
+const deleteProduct = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Elimina un producto', data: assertFound(await dbDeleteProduct(req.params.id), NOT_FOUND) });
+}, 'No se ha podido eliminar el producto');
 
 export {
-    createProduct, getProduct, getProducts, updateProduct, deleteProduct
-}
+    createProduct,
+    getProduct,
+    getProducts,
+    getPublicProducts,
+    updateProduct,
+    setProductStatus,
+    deleteProduct
+};

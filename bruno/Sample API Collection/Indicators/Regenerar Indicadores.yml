@@ -1,0 +1,23 @@
+info:
+  name: Regenerar Indicadores
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/indicators/rebuild
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+docs: |-
+  Recalcula el consolidado desde las ventas. Ejecutar una vez tras desplegar para incluir el histórico.
+  PRUEBA: Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta). Esperado 200 con normalizedSales y consolidatedDays. Repetirlo no cambia los números.

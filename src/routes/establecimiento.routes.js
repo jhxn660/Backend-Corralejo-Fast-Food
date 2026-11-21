@@ -16,32 +16,35 @@ import {
     updateUbicacion,
     deleteUbicacion
 } from '../controllers/establecimiento.controllers.js';
-import { authMiddleware } from '../middlewares/authenticate.middleware.js';
-import { authorizationMiddleware } from '../middlewares/authorization.middleware.js';
+import { requireRoles } from '../middlewares/authorization.middleware.js';
+import { ADMIN_ROLES } from '../config/roles.config.js';
 
 // Este router se monta en /api (no en un prefijo propio) porque expone tres
 // recursos hermanos del mismo dominio; cada ruta declara su prefijo completo.
 const router = Router();
 
 // Establecimiento
-router.post('/establecimiento', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], createEstablecimiento);
-router.get('/establecimiento/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getEstablecimiento);
-router.get('/establecimiento', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getEstablecimientoList);
-router.patch('/establecimiento/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], updateEstablecimiento);
-router.delete('/establecimiento/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], deleteEstablecimiento);
+router.post('/establecimiento', requireRoles(ADMIN_ROLES), createEstablecimiento);
+// LECTURA PÚBLICA: misión, visión y narrativa se muestran a clientes y visitantes.
+router.get('/establecimiento/:id', getEstablecimiento);
+router.get('/establecimiento', getEstablecimientoList);
+router.patch('/establecimiento/:id', requireRoles(ADMIN_ROLES), updateEstablecimiento);
+router.delete('/establecimiento/:id', requireRoles(ADMIN_ROLES), deleteEstablecimiento);
 
 // Horarios
-router.post('/horarios', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], createHorario);
-router.get('/horarios/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getHorario);
-router.get('/horarios', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getHorarios);
-router.patch('/horarios/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], updateHorario);
-router.delete('/horarios/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], deleteHorario);
+router.post('/horarios', requireRoles(ADMIN_ROLES), createHorario);
+// LECTURA PÚBLICA: el calendario de atención de la portada.
+router.get('/horarios/:id', getHorario);
+router.get('/horarios', getHorarios);
+router.patch('/horarios/:id', requireRoles(ADMIN_ROLES), updateHorario);
+router.delete('/horarios/:id', requireRoles(ADMIN_ROLES), deleteHorario);
 
 // Ubicaciones
-router.post('/ubicaciones', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], createUbicacion);
-router.get('/ubicaciones/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getUbicacion);
-router.get('/ubicaciones', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], getUbicaciones);
-router.patch('/ubicaciones/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], updateUbicacion);
-router.delete('/ubicaciones/:id', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], deleteUbicacion);
+router.post('/ubicaciones', requireRoles(ADMIN_ROLES), createUbicacion);
+// LECTURA PÚBLICA: dirección, teléfono y mapa del local.
+router.get('/ubicaciones/:id', getUbicacion);
+router.get('/ubicaciones', getUbicaciones);
+router.patch('/ubicaciones/:id', requireRoles(ADMIN_ROLES), updateUbicacion);
+router.delete('/ubicaciones/:id', requireRoles(ADMIN_ROLES), deleteUbicacion);
 
 export default router;

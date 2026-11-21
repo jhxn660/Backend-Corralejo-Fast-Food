@@ -12,6 +12,9 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: requiere {{userId}} (Registrar Usuario). Token: Owner o Administrador, o el propio usuario.
+      // La password no se cambia por aquí. Si no eres Owner/Administrador, "role" se ignora.
+      // Solo un Owner edita o asciende a un Owner. Esperado 200. Otro usuario sin rol de administración → 403. ID inexistente → 404; ID mal formado → 400.
       {
         "role": "Empleado",
         "name": "Mateo",
@@ -19,7 +22,6 @@ http:
         "state": true,
         "empleado_rol": "Mesero"
       }
-      // La contraseña no se actualiza por esta ruta (el controlador la descarta)
   auth: inherit
 
 settings:

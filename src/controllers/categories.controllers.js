@@ -1,131 +1,45 @@
-import handleMongooseError from "../helpers/handle-mongoose-error.helper.js";
+import asyncHandler from "../helpers/async-handler.helper.js";
+import { assertFound } from "../helpers/http-error.helper.js";
 import { dbCreateCategory, dbGetCategory, dbGetCategories, dbUpdateCategory, dbDeleteCategory } from '../services/categories.services.js';
 
-const createCategory = async (req, res) => {
-    try {
-        // Extrae el _id del userFound usando una desestructuración del payload que envia en la petición (req) el middleware de Autentication
-        const { _id } = req.userFound;
+/**
+ * CAPA DE CONTROLADORES. Un controlador traduce entre HTTP y el negocio, y nada más:
+ *   1. Lee la petición (req.params, req.query, req.body, req.userFound).
+ *   2. Decide qué datos del body se aceptan (aquí: nunca `createdBy`, lo pone el servidor).
+ *   3. Llama al servicio, que es quien habla con la base de datos.
+ *   4. Arma la respuesta con el contrato único de la API: { msg, data }.
+ * No tiene try/catch: asyncHandler envía cualquier error al errorHandler central, y el segundo
+ * argumento es el mensaje del 500 si el error no se reconoce. assertFound convierte el `null`
+ * de "ese id no existe" en un 404.
+ */
+const NOT_FOUND = 'Categoria no encontrada';
 
-        // Extrae los datos del cuerpo de la peticion
-        const inputData = req.body;
-        inputData.createdBy = _id; // <--- Agrega el ID del usuario que registra la categoria
+const createCategory = asyncHandler(async (req, res) => {
+    // El creador es el usuario autenticado, nunca el que venga en el body
+    const data = await dbCreateCategory({ ...req.body, createdBy: req.userFound._id });
 
-        // El creador es el usuario autenticado, no el que venga en el body
-        inputData.createdBy = req.userFound._id;
+    res.status(201).json({ msg: 'Registra Categoria', data });
+}, 'No se pudo registrar la categoria');
 
-        // Usar el servicio para registrar
-        const data = await dbCreateCategory(inputData);
+const getCategory = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Obtiene una categoria', data: assertFound(await dbGetCategory(req.params.id), NOT_FOUND) });
+}, 'No se pudo obtener la categoria por id');
 
-        res.status(201).json({ msg: 'Registra Categoria', data: data });
+const getCategories = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Lista de Categorias', data: await dbGetCategories() });
+}, 'No ha podido obtener las categorias');
 
-    } catch (error) {
-        console.error(error);
+const updateCategory = asyncHandler(async (req, res) => {
+    const { createdBy, ...changes } = req.body;
 
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
+    res.json({ msg: 'Categoria Actualizada', data: assertFound(await dbUpdateCategory(req.params.id, changes), NOT_FOUND) });
+}, 'No se actualizo la categoria');
 
-        // Error generico del servidor
-        res.status(500).json({ msg: 'No se pudo registrar la categoria' });
-    }
-};
-
-const getCategory = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        const data = await dbGetCategory(id);
-
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Categoria no encontrada' });
-        }
-
-        res.status(200).json({ msg: 'Obtiene una categoria', data: data });
-
-    } catch (error) {
-        console.error(error);
-
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        // Error generico del servidor
-        res.status(500).json({ msg: 'No se pudo obtener la categoria por id' });
-    }
-};
-
-const getCategories = async (req, res) => {
-    try {
-        const data = await dbGetCategories();
-
-        res.status(200).json({ msg: 'Lista de Categorias', data: data });
-
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({ msg: 'No ha podido obtener las categorias' });
-    }
-};
-
-const updateCategory = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const inputData = req.body;
-
-        const data = await dbUpdateCategory(id, inputData);
-
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Categoria no encontrada' });
-        }
-
-        res.status(200).json({ msg: 'Categoria Actualizada', data: data });
-
-    } catch (error) {
-        console.error(error);
-
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        // Error generico del servidor
-        res.status(500).json({ msg: 'No se actualizo la categoria' });
-    }
-};
-
-const deleteCategory = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        const data = await dbDeleteCategory(id);
-
-        // CAMBIO: Mongoose devuelve null (no lanza error) si el ID no existe; se responde 404 en vez de 200 con data null
-        if (!data) {
-            return res.status(404).json({ msg: 'Categoria no encontrada' });
-        }
-
-        res.status(200).json({ msg: 'Categoria Eliminada', data: data });
-
-    } catch (error) {
-        console.error(error);
-
-        // Errores de persistencia (validación de Schema, duplicidad, ObjectId inválido) → 400
-        const validationErrors = handleMongooseError(error);
-        if (validationErrors) {
-            return res.status(400).json(validationErrors);
-        }
-
-        // Error generico del servidor
-        res.status(500).json({ msg: 'No se ha podido eliminar la categoria' });
-    }
-};
+// Borrado físico. Productos e insumos que la referencian quedan con un `category` huérfano
+// (populate devuelve null): para retirarla de la vista conviene usar `status: false`.
+const deleteCategory = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Categoria Eliminada', data: assertFound(await dbDeleteCategory(req.params.id), NOT_FOUND) });
+}, 'No se ha podido eliminar la categoria');
 
 export {
     createCategory,

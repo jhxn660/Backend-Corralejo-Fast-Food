@@ -1,14 +1,20 @@
 import { Router } from 'express';
-import { CreateOrders, GetOrders, UpdateAllOrders, UpdatePartialOrders, DeleteOrders } from '../controllers/orders.controllers.js';
-import { authMiddleware } from '../middlewares/authenticate.middleware.js';
-import { authorizationMiddleware } from '../middlewares/authorization.middleware.js';
+import { createOrder, getOrders, getOrder, addOrderItems, replaceOrderItems, updateOrder, deleteOrder } from '../controllers/orders.controllers.js';
+import { requireRoles } from '../middlewares/authorization.middleware.js';
+import { ADMIN_ROLES, STAFF_ROLES } from '../config/roles.config.js';
 
 const router = Router();
 
-router.post('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], CreateOrders);
-router.get('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], GetOrders);
-router.put('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], UpdateAllOrders);
-router.patch('/', [ authMiddleware, authorizationMiddleware([ 'Administrador', 'Empleado' ]) ], UpdatePartialOrders);
-router.delete('/', [ authMiddleware, authorizationMiddleware([ 'Administrador' ]) ], DeleteOrders);
+router.post('/', requireRoles(STAFF_ROLES), createOrder);
+router.get('/', requireRoles(STAFF_ROLES), getOrders);
+router.get('/:id', requireRoles(STAFF_ROLES), getOrder);
+// Añadir productos a un pedido abierto (recalcula subtotales y total)
+router.post('/:id/items', requireRoles(STAFF_ROLES), addOrderItems);
+// Reemplazar los productos (quitar uno, cambiar cantidades) de un pedido abierto
+router.put('/:id/items', requireRoles(STAFF_ROLES), replaceOrderItems);
+// Solo cambian el estado del pedido
+router.put('/:id', requireRoles(STAFF_ROLES), updateOrder);
+router.patch('/:id', requireRoles(STAFF_ROLES), updateOrder);
+router.delete('/:id', requireRoles(ADMIN_ROLES), deleteOrder);
 
 export default router;

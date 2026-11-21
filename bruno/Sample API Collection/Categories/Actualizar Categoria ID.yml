@@ -12,6 +12,9 @@ http:
   body:
     type: json
     data: |-
+      // PRUEBA: requiere {{categoryId}} (Crear Categoria). Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // Envía solo los campos a cambiar. createdBy no cambia aunque lo envíes.
+      // Esperado 200 con la categoría actualizada. ID inexistente → 404; ID mal formado → 400.
       {
         "name": "Hamburguesas Gourmet {{$timestamp}}",
         "description": "Hamburguesas artesanales de la casa",

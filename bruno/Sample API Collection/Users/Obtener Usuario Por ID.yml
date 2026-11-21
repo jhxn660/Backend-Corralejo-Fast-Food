@@ -17,3 +17,7 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: false
+
+docs: |-
+  PRUEBA: requiere {{userId}}. Token: Owner o Administrador, o el propio usuario.
+  Esperado 200 sin password. ID inexistente → 404; ID mal formado → 400.

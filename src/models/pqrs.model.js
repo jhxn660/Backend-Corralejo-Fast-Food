@@ -25,6 +25,12 @@ const PQRSSchema = new Schema({
         type: String,
         enum: ['Pendiente', 'En proceso', 'Resuelto', 'Cerrado'],
         default: 'Pendiente'
+    },
+    // Respuesta del administrador. El cliente la lee en "Mis PQRS".
+    respuesta: {
+        type: String,
+        trim: true,
+        default: ''
     }
 }, {
     timestamps: true,
