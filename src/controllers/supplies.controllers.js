@@ -1,6 +1,6 @@
 import asyncHandler from "../helpers/async-handler.helper.js";
 import { assertFound } from "../helpers/http-error.helper.js";
-import { dbCreateSupply, dbGetSupply, dbGetSupplies, dbUpdateSupply, dbDeleteSupply } from '../services/supplies.services.js';
+import { dbCreateSupply, dbGetSupply, dbGetSupplies, dbUpdateSupply, dbDeleteSupply, dbGetAvailability } from '../services/supplies.services.js';
 
 const NOT_FOUND = 'Insumo no encontrado';
 
@@ -31,7 +31,13 @@ const deleteSupply = asyncHandler(async (req, res) => {
     res.json({ msg: 'Insumo Eliminado', data: assertFound(await dbDeleteSupply(req.params.id), NOT_FOUND) });
 }, 'No se ha podido eliminar el insumo');
 
+// GET /api/supplies/availability
+const getAvailability = asyncHandler(async (req, res) => {
+    res.json({ msg: 'Disponibilidad según inventario', data: await dbGetAvailability() });
+}, 'No se pudo calcular la disponibilidad del inventario');
+
 export {
+    getAvailability,
     createSupply,
     getSupply,
     getSupplies,

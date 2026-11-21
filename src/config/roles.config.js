@@ -20,11 +20,18 @@ const ROLES = Object.freeze({
     ADMIN: roleFromModel('Administrador'),
     EMPLOYEE: roleFromModel('Empleado'),
     CLIENT: roleFromModel('Cliente'),
-    VISITOR: roleFromModel('Usuario')
+    // Visitante sin cuenta: no está en el enum porque nunca se guarda en BD.
+    // Es la ausencia de token (ver optionalAuthMiddleware en authenticate.middleware.js).
+    VISITOR: 'Usuario'
 });
 
-// 'Owner' incluye todo lo que puede hacer un 'Administrador'.
+// Jerarquía: cada rol hereda lo del siguiente. 'Owner' incluye todo lo de 'Administrador'
+// y 'Administrador' todo lo de 'Empleado'.
 const ADMIN_ROLES = Object.freeze([ ROLES.OWNER, ROLES.ADMIN ]);
 const STAFF_ROLES = Object.freeze([ ...ADMIN_ROLES, ROLES.EMPLOYEE ]);
 
-export { USER_ROLES, ROLES, ADMIN_ROLES, STAFF_ROLES };
+// Permiso exclusivo del Owner: gestionar y dar de baja estas cuentas.
+// PENDIENTE (integración): aplicarlo en DELETE /api/users/:id con requireRoles([ROLES.OWNER]).
+const OWNER_MANAGEABLE_ROLES = Object.freeze([ ROLES.ADMIN, ROLES.EMPLOYEE ]);
+
+export { USER_ROLES, ROLES, ADMIN_ROLES, STAFF_ROLES, OWNER_MANAGEABLE_ROLES };

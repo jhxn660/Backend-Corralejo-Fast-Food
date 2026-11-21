@@ -1,5 +1,14 @@
 import CategoryModel from '../models/category.model.js';
 
+/**
+ * CAPA DE SERVICIOS. Aquí viven las consultas y las reglas de negocio. Un servicio no conoce
+ * `req` ni `res`: recibe datos simples y devuelve documentos (o null si no existe). Gracias a eso
+ * la misma función sirve para una ruta, para otro servicio o para una prueba.
+ * Convención del proyecto: las funciones que tocan la base de datos empiezan por `db`.
+ * No capturan errores: si Mongoose rechaza (validación, duplicado), el error sube solo hasta
+ * el errorHandler, que lo traduce a 400.
+ */
+
 // Registrar la categoria y devolver quien la creo
 const dbCreateCategory = async (newCategory) => {
     const category = await CategoryModel.create(newCategory);

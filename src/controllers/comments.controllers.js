@@ -10,6 +10,7 @@ import {
     dbGetComments,
     dbGetPublicComments,
     dbSetCommentStatus,
+    dbToggleCommentLike,
     dbUpdateComment
 } from "../services/comments.services.js";
 import { dbReadSaleByQr } from "../services/sales.services.js";
@@ -22,7 +23,9 @@ const NOT_FOUND = 'Comentario no encontrado';
 //   2. El código debe corresponder al `qr` de una venta registrada.
 //   3. Cada ticket admite un único comentario.
 const createComment = asyncHandler(async (req, res) => {
-    const { codigo, comentario, calificacion } = req.body;
+    // `valoracion` (1-10) es la escala del Frontend; `calificacion` (1-5) se
+    // sigue aceptando por compatibilidad y, si falta, la deriva el modelo.
+    const { codigo, comentario, calificacion, valoracion } = req.body;
 
     // optionalAuthMiddleware deja req.userFound solo si la petición trae un token válido
     const user = req.userFound ?? null;
@@ -48,7 +51,11 @@ const createComment = asyncHandler(async (req, res) => {
 
     // Solo se pasan los campos que el cliente puede definir; usuario, venta, likes e
     // isActive los fija el Backend para que no puedan falsificarse desde el body.
-    const data = await dbCreateComment({ codigo: ticket, comentario, calificacion }, user?._id ?? null, sale._id);
+    const data = await dbCreateComment(
+        { codigo: ticket, comentario, calificacion, valoracion },
+        user?._id ?? null,
+        sale._id
+    );
 
     res.status(201).json({ msg: 'Registrar comentario', data });
 }, 'No se pudo registrar el comentario');
@@ -66,13 +73,15 @@ const getComments = asyncHandler(async (req, res) => {
 
 // Para la vista pública: el Backend ya excluye los ocultos
 const getPublicComments = asyncHandler(async (req, res) => {
-    res.json({ msg: 'Comentarios visibles', data: await dbGetPublicComments() });
+    // req.userFound existe solo si la petición trae un token válido (optionalAuthMiddleware)
+    res.json({ msg: 'Comentarios visibles', data: await dbGetPublicComments(req.userFound?._id) });
 }, 'No se pueden listar los comentarios visibles');
 
 const updateComment = asyncHandler(async (req, res) => {
     // El ticket, la venta y el autor se fijan al crear el comentario; la visibilidad tiene
     // su propio endpoint. Se descartan del body para que no puedan alterarse por aquí.
-    const { codigo, venta, usuario, isActive, ...changes } = req.body;
+    // Los "me gusta" tampoco: son de quien los da (PENDIENTE: rutas /:id/like).
+    const { codigo, venta, usuario, isActive, likes, likedBy, ...changes } = req.body;
     const data = assertFound(await dbUpdateComment(req.params.id, changes), NOT_FOUND);
 
     res.json({ msg: 'Actualizar comentario', data });
@@ -90,7 +99,15 @@ const deleteComment = asyncHandler(async (req, res) => {
     res.json({ msg: 'Eliminar comentario', data: assertFound(await dbDeleteComment(req.params.id), NOT_FOUND) });
 }, 'No se pudo eliminar el comentario');
 
+// PATCH /api/comments/:id/like  (sin body) → { likes, meGusta }
+const toggleCommentLike = asyncHandler(async (req, res) => {
+    const data = assertFound(await dbToggleCommentLike(req.params.id, req.userFound._id), NOT_FOUND);
+
+    res.json({ msg: data.meGusta ? 'Me gusta' : 'Ya no me gusta', data });
+}, 'No se pudo actualizar el me gusta');
+
 export {
+    toggleCommentLike,
     createComment,
     getComment,
     getComments,

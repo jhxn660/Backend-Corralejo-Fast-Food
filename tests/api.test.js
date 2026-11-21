@@ -189,6 +189,18 @@ describe('Auth y Usuarios', () => {
         assert.equal(self.name, 'Empleado Editado');
         expectStatus(await request('PATCH', `/api/users/${ids.admin}`, { token: tokens.employee, body: { name: 'x' } }), 403);
     });
+
+    test('operadores de Mongo en el body ($set, $unset…) → 400: nadie salta los campos protegidos', async () => {
+        const self = `/api/users/${ids.client}`;
+
+        expectStatus(await request('PATCH', self, { token: tokens.client, body: { $set: { role: ROLES.OWNER } } }), 400);
+        expectStatus(await request('PUT', self, { token: tokens.client, body: { name: 'x', $set: { password: 'en-claro' } } }), 400);
+        expectStatus(await request('PATCH', self, { token: tokens.client, body: { $unset: { password: '' } } }), 400);
+
+        assert.equal(expectStatus(await request('GET', self, { token: tokens.client }), 200).data.role, ROLES.CLIENT);
+        // La contraseña sigue siendo la original (no se guardó una en claro)
+        await login('cliente@cff.test');
+    });
 });
 
 describe('Categorías e Insumos', () => {
@@ -337,10 +349,12 @@ describe('Pedidos', () => {
     test('items inválidos se rechazan con el detalle de cada error', async () => {
         const create = (items) => request('POST', '/api/orders', { token: tokens.employee, body: { items } });
 
-        expectStatus(await create([]), 400);
-        expectStatus(await create(undefined), 400);
-        // detalles con precios del cliente ya no crean pedidos
-        expectStatus(await request('POST', '/api/orders', { token: tokens.employee, body: { detalles: [ { ...HAMBURGUESA, cantidad: 1 } ] } }), 400);
+        // Un pedido abierto puede nacer vacío: en caja se crea y luego se le suman productos
+        assert.deepEqual(expectStatus(await create([]), 201).data.detalles, []);
+        assert.deepEqual(expectStatus(await create(undefined), 201).data.detalles, []);
+        // `detalles` con precios del cliente se ignora: el pedido queda vacío, sin esos precios
+        const ignorado = expectStatus(await request('POST', '/api/orders', { token: tokens.employee, body: { detalles: [ { ...HAMBURGUESA, cantidad: 1 } ] } }), 201).data;
+        assert.equal(ignorado.totalPedido, 0);
 
         const invalid = expectStatus(await create([
             { productId: 'abc', quantity: 1 },

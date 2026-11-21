@@ -6,11 +6,12 @@ import {
     getPublicComments,
     updateComment,
     setCommentStatus,
+    toggleCommentLike,
     deleteComment
 } from '../controllers/comments.controllers.js';
 import { optionalAuthMiddleware } from '../middlewares/authenticate.middleware.js';
 import { requireRoles } from '../middlewares/authorization.middleware.js';
-import { ADMIN_ROLES, STAFF_ROLES } from '../config/roles.config.js';
+import { ROLES, ADMIN_ROLES, STAFF_ROLES } from '../config/roles.config.js';
 
 const router = Router();
 
@@ -20,7 +21,11 @@ const router = Router();
 router.post('/', optionalAuthMiddleware, createComment);
 
 // Pública (sin token): solo comentarios visibles. Va antes de '/:id'.
-router.get('/public', getPublicComments);
+// Con sesión opcional: si viene el token, cada comentario dice si ESE usuario ya le dio me gusta.
+router.get('/public', optionalAuthMiddleware, getPublicComments);
+
+// "Me gusta": suma o resta 1 al contador del comentario. Lo pueden dar Cliente, Administrador y Owner.
+router.patch('/:id/like', requireRoles([ ROLES.CLIENT, ...ADMIN_ROLES ]), toggleCommentLike);
 
 // El resto son operaciones de gestión/moderación: requieren sesión y rol autorizado.
 router.get('/', requireRoles(STAFF_ROLES), getComments);

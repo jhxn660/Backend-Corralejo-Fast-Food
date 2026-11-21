@@ -1,6 +1,7 @@
 import saleModel from "../models/sale.model.js";
 import orderModel from "../models/order.model.js";
 import { dbConsolidateDays } from "./indicators.services.js";
+import { dbDiscountStock, dbRestoreStock } from "./supplies.services.js";
 import { HttpError } from "../helpers/http-error.helper.js";
 import { addDays, parseBusinessDate, toDayKey } from "../helpers/business-date.helper.js";
 import { assertOrderOpen, dbBuildDetails, mergeDetails, ORDER_STATES, SELLABLE_STATES } from "./order-details.services.js";
@@ -52,6 +53,11 @@ const sellOrder = async (orderId, items, saleFields) => {
         throw new HttpError(409, `No se puede registrar la venta de un pedido "${order.estado}"`);
     }
 
+    // Los pedidos abiertos pueden estar vacíos; venderlos no.
+    if (!items && order.detalles.length === 0) {
+        throw new HttpError(400, 'El pedido está vacío: agrega productos antes de registrar la venta');
+    }
+
     // 2. Productos de último momento: entran al pedido con las mismas reglas que /orders/:id/items
     if (items) {
         await assertOrderOpen(order);
@@ -69,19 +75,43 @@ const sellOrder = async (orderId, items, saleFields) => {
 
     if (!finished) throw new HttpError(409, 'El pedido cambió mientras se registraba la venta. Vuelve a cargarlo e inténtalo de nuevo');
 
-    // 4. La venta copia las líneas del pedido ya reclamado (incluye cualquier cambio previo al reclamo)
+    // 4. Inventario: se descuenta lo que gastan las líneas. Si no alcanza, lanza 400 y el
+    //    catch de abajo devuelve el pedido a su estado anterior.
+    // 5. La venta copia las líneas del pedido ya reclamado (incluye cualquier cambio previo al reclamo)
+    let consumoInsumos = [];
     try {
+        consumoInsumos = await dbDiscountStock(finished.detalles);
+
         return await saleModel.create({
             ...saleFields,
             orderId: finished._id,
             estadoPedido: ORDER_STATES.FINISHED,
-            detalles: finished.detalles.map((detalle) => detalle.toObject())
+            detalles: finished.detalles.map((detalle) => detalle.toObject()),
+            consumoInsumos
         });
     } catch (error) {
+        // Si la venta no se pudo crear, el stock descontado vuelve al inventario
+        await dbRestoreStock(consumoInsumos);
         await orderModel.updateOne(
             { _id: finished._id, estado: ORDER_STATES.FINISHED },
             { $set: { estado: previousState }, $inc: { __v: 1 } }
         );
+        throw error;
+    }
+};
+
+/**
+ * Venta directa (sin pedido): arma las líneas desde el catálogo, descuenta el inventario y crea
+ * la venta. Si la venta falla, el stock descontado se devuelve.
+ */
+const sellDirect = async (items, saleFields) => {
+    const detalles = await dbBuildDetails(items);
+    const consumoInsumos = await dbDiscountStock(detalles);
+
+    try {
+        return await saleModel.create({ ...saleFields, detalles, consumoInsumos });
+    } catch (error) {
+        await dbRestoreStock(consumoInsumos);
         throw error;
     }
 };
@@ -101,7 +131,7 @@ const dbRegisterSale = async ({ orderId, items, fields }, employee) => {
 
     const created = orderId
         ? await sellOrder(orderId, items, saleFields)
-        : await saleModel.create({ ...saleFields, detalles: await dbBuildDetails(items) });
+        : await sellDirect(items, saleFields);
 
     // Se devuelve con el pedido resuelto, igual que GET /api/sales/:id
     const sale = await created.populate('orderId');
@@ -176,6 +206,9 @@ const dbDeleteSale = async (id) => {
     const sale = await saleModel.findOneAndDelete({ _id: id });
 
     if (!sale) return null;
+
+    // Lo que esta venta gastó del inventario vuelve al stock
+    await dbRestoreStock(sale.consumoInsumos);
 
     if (sale.orderId) {
         await orderModel.updateOne(

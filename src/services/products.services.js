@@ -1,4 +1,5 @@
 import ProductModel from "../models/product.model.js";
+import { dbAssertRecipeSupplies } from "./supplies.services.js";
 import { ONLY_ACTIVE } from "../helpers/visibility.helper.js";
 
 // `createdBy` resuelve contra User: se limita la proyección para no exponer el hash de la contraseña.
@@ -7,6 +8,8 @@ const withRelations = (query) => query
     .populate('createdBy', 'name email role');
 
 const dbCreateProduct = async (newProduct) => {
+    if (newProduct.receta) await dbAssertRecipeSupplies(newProduct.receta);
+
     return await ProductModel.create(newProduct);
 };
 
@@ -22,12 +25,15 @@ const dbGetProducts = async (filter = {}) => {
 // Carta pública: solo productos visibles y sin datos internos
 const dbGetPublicProducts = async () => {
     return await ProductModel.find(ONLY_ACTIVE)
-        .select('nombre description price state category isActive')
+        .select('nombre description price precioCombo calificacion imagen state category isActive')
         .populate('category', 'name')
         .sort({ nombre: 1 });
 };
 
 const dbUpdateProduct = async (id, productUpdate) => {
+    // La receta se edita como cualquier otro campo (PATCH /api/products/:id { receta: [...] })
+    if (productUpdate.receta) await dbAssertRecipeSupplies(productUpdate.receta);
+
     return await ProductModel.findOneAndUpdate(
         { _id: id },
         productUpdate,

@@ -1,17 +1,21 @@
 import handleMongooseError from '../helpers/handle-mongoose-error.helper.js';
 import { HttpError } from '../helpers/http-error.helper.js';
 
-// Express 5 deja req.body en undefined cuando la petición no trae cuerpo JSON.
-const ensureBody = (req, res, next) => {
-    req.body ??= {};
-    next();
-};
-
+// Va después de todas las rutas: si la petición llegó hasta aquí, ninguna ruta coincidió.
 const notFoundHandler = (req, res) => {
     res.status(404).json({ msg: `Ruta no encontrada: ${req.method} ${req.originalUrl}` });
 };
 
-// Único punto donde un error se convierte en respuesta HTTP.
+/**
+ * Manejo centralizado de errores: el ÚNICO punto donde un error se convierte en respuesta HTTP.
+ * Express lo reconoce como manejador de errores porque recibe cuatro parámetros (error, req, res, next).
+ *
+ * Cómo llega un error hasta aquí: un servicio o controlador lanza (throw) → asyncHandler lo
+ * atrapa y llama a next(error) → Express se salta el resto de middlewares y ejecuta este.
+ * Por eso ningún controlador tiene try/catch propio ni decide códigos de error por su cuenta.
+ *
+ * El orden de las comprobaciones va del error más específico al más general.
+ */
 const errorHandler = (error, req, res, next) => {
     if (res.headersSent) return next(error);
 
@@ -39,4 +43,4 @@ const errorHandler = (error, req, res, next) => {
     res.status(500).json({ msg: error.fallbackMessage ?? 'Error interno del servidor' });
 };
 
-export { ensureBody, notFoundHandler, errorHandler };
+export { notFoundHandler, errorHandler };

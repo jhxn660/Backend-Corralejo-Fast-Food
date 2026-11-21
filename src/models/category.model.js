@@ -23,6 +23,11 @@ const CategorySchema = new Schema(
             type: String,
             required: false
         },
+        // Clase de Font Awesome que se pinta junto al nombre en la carta (p. ej. 'fa-solid fa-burger')
+        icono: {
+            type: String,
+            default: 'fa-solid fa-utensils'
+        },
         // true = activa, false = inactiva
         status: {
             type: Boolean,

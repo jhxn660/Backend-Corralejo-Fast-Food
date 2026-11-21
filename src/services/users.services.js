@@ -1,4 +1,4 @@
-import { generatePassword } from "../helpers/bcrypt.helpers.js";
+import { generatePassword } from "../helpers/bcrypt.helper.js";
 import { HttpError } from "../helpers/http-error.helper.js";
 import userModel from "../models/user.model.js";
 import { USER_ROLES } from "../config/roles.config.js";

@@ -1,7 +1,7 @@
 import asyncHandler from "../helpers/async-handler.helper.js";
 import { HttpError } from "../helpers/http-error.helper.js";
-import { verifyPassword } from "../helpers/bcrypt.helpers.js";
-import { generateToken } from "../helpers/jwt.helpers.js";
+import { verifyPassword } from "../helpers/bcrypt.helper.js";
+import { generateToken } from "../helpers/jwt.helper.js";
 import { dbGetUserByEmail } from "../services/users.services.js";
 
 // Login y renovación emiten exactamente el mismo payload; el middleware lo resuelve por `_id`.

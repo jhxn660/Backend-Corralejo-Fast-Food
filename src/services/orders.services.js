@@ -50,6 +50,21 @@ const dbAddOrderItems = async (id, items) => {
 // Solo cambia el estado; los productos se añaden con dbAddOrderItems.
 // Se usa save() y no findOneAndUpdate: así corren los hooks y el control de concurrencia.
 // Un pedido ya vendido solo puede pasar a 'Cancelado' (anula su venta en los indicadores).
+/**
+ * Reemplaza las líneas del pedido por las de `items` (precios del catálogo, nunca del body).
+ * Igual que añadir: solo si el pedido sigue abierto y no tiene venta.
+ */
+const dbReplaceOrderItems = async (id, items) => {
+    const order = await orderModel.findById(id);
+    if (!order) return null;
+
+    await assertOrderOpen(order);
+    order.detalles = await dbBuildDetails(items);
+    await order.save();
+
+    return order;
+};
+
 const dbUpdateOrder = async (id, { estado }) => {
     assertNotManualFinish(estado);
 
@@ -91,6 +106,7 @@ export {
     dbReadOrders,
     dbReadOrderById,
     dbAddOrderItems,
+    dbReplaceOrderItems,
     dbUpdateOrder,
     dbDeleteOrder
 };

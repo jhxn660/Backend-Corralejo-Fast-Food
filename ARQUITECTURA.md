@@ -1,32 +1,68 @@
 # Arquitectura interna — Backend Corralejo Fast Food
 
-Guía de funcionamiento interno. Para *qué* hace cada endpoint, ver la colección de Bruno;
-aquí está el *cómo* y el *por qué*.
+Guía de funcionamiento interno. Para *qué* hace cada endpoint, ver el [README](README.md) y la
+colección de Bruno; aquí está el *cómo* y el *por qué*.
+
+Este proyecto es **independiente del Frontend**: no lo importa, no lo sirve y no depende de él.
+Se prueba completo con `npm test` o con la colección de Bruno.
 
 ---
 
-## 0. Mapa del código
+## 0. Patrón arquitectónico y mapa del código
+
+### 0.1 Patrón: arquitectura en capas
+
+Es una **API REST con arquitectura en capas** (una variante de MVC sin "V": la vista es el JSON).
+Cada capa tiene **una sola responsabilidad** (*Separación de Responsabilidades*, SoC) y solo conoce
+a la capa que tiene debajo:
 
 ```
-src/
-  index.js        Arranque: conecta Mongo y abre el puerto. Nada más.
-  app.js          Arma Express: CORS → JSON → rutas → 404 → errorHandler. Las pruebas lo importan sin abrir puerto.
-  config/         mongo.config (conexión) · roles.config (roles leídos del enum de User)
-  routes/         URL + método → [middlewares] → controlador. Sin lógica.
-  middlewares/    authenticate (¿quién eres?) · authorization (¿puedes?) · error (respuesta de errores) · without-role
-  controllers/    Lee req, valida la forma de la entrada, llama al servicio, arma { msg, data }.
-  services/       Reglas de negocio y consultas. No conocen req/res.
-  dtos/           Funciones puras: números de la BD → forma que pinta el Frontend (solo indicadores).
-  models/         Schemas de Mongoose: validación, valores por defecto, hooks, índices.
-  helpers/        Utilidades sin estado: JWT, bcrypt, fechas de negocio, errores HTTP, fábricas CRUD.
-  migrations/     Cambios de forma de los datos ya guardados (idempotentes). Se ejecutan con npm run migrate.
-scripts/migrate.js  Conecta a URI_MONGO y ejecuta las migraciones.
-tests/            api.test.js (toda la API) · flow.test.js (ciclo pedido → venta, npm run test:flow)
-                  · migration.test.js (migración sobre datos antiguos). Cada archivo, su MongoDB en memoria.
+        Petición HTTP
+              │
+   ┌──────────▼──────────┐
+   │ routes              │  ¿Qué URL y método?  ¿Quién puede entrar?
+   ├─────────────────────┤
+   │ middlewares         │  Autenticar (401) · Autorizar (403) · preparar el body
+   ├─────────────────────┤
+   │ controllers         │  Leer req, validar la FORMA de la entrada, armar { msg, data }
+   ├─────────────────────┤
+   │ services            │  Reglas de negocio y consultas. No conocen req/res
+   ├─────────────────────┤
+   │ models              │  Schemas de Mongoose: tipos, validación, hooks, índices
+   └──────────┬──────────┘
+              ▼
+           MongoDB
 ```
 
-Regla de dependencias: `routes → controllers → services → models`. Nunca al revés. Un servicio
+**Regla de dependencias:** `routes → controllers → services → models`. Nunca al revés. Un servicio
 puede usar otro servicio (ventas → indicadores) y un controlador nunca toca un modelo directamente.
+
+Por qué sirve: si cambia una regla de negocio se toca **un** servicio; si cambia una URL, **una**
+ruta; si cambia la forma de un dato, **un** modelo. Y cada capa se puede probar sin las demás.
+
+### 0.2 Responsabilidad de cada carpeta
+
+| Carpeta / archivo | Responsabilidad exacta | Qué NO hace |
+|---|---|---|
+| `src/index.js` | Arranque: conecta Mongo y abre el puerto. | No arma la aplicación. |
+| `src/app.js` | Arma Express: CORS → JSON → body → rutas → 404 → errorHandler. Las pruebas lo importan sin abrir puerto. | No arranca el servidor. |
+| `src/config/` | `mongo.config` (conexión) · `roles.config` (roles leídos del enum de `User` y sus grupos). | No tiene lógica de peticiones. |
+| `src/routes/` | URL + método → `[middlewares]` → controlador. | No tiene lógica ni consultas. |
+| `src/middlewares/` | `authenticate` (¿quién eres?) · `authorization` (¿puedes?) · `body` (prepara y sanea `req.body`) · `without-role` (registro público) · `error` (404 y respuesta de errores). | No aplica reglas de negocio. |
+| `src/controllers/` | Lee `req`, valida la **forma** de la entrada, llama al servicio y arma `{ msg, data }`. | No consulta la BD ni usa `try/catch`. |
+| `src/services/` | Reglas de negocio y consultas a la BD (funciones `db...`). | No conoce `req` ni `res`. |
+| `src/models/` | Schemas de Mongoose: validación de datos, valores por defecto, hooks (totales, consecutivos) e índices. | No sabe de HTTP ni de roles. |
+| `src/dtos/` | Funciones puras: números de la BD → forma que pinta la vista (solo Indicadores). | No consulta ni decide accesos. |
+| `src/helpers/` | Utilidades sin estado (la capa `utils`): JWT, bcrypt, fechas de negocio, `HttpError`, `asyncHandler`, fábricas CRUD. | No guarda estado ni conoce rutas. |
+| `src/migrations/` | Cambios de forma de datos ya guardados (idempotentes). Se ejecutan con `npm run migrate`. | No corre al arrancar. |
+| `scripts/migrate.js` | Conecta a `URI_MONGO` y ejecuta las migraciones. | |
+| `tests/` | `api.test.js` (toda la API) · `flow.test.js` (pedido → venta) · `migration.test.js`. Cada archivo usa su MongoDB en memoria. | Nunca toca Atlas. |
+| `bruno/` | Colección de peticiones para probar la API a mano. | |
+
+**Convención de nombres:** `recurso.capa.js` — `orders.routes.js`, `orders.controllers.js`,
+`orders.services.js`, `order.model.js`, `jwt.helper.js`, `error.middleware.js`. El sufijo dice la
+capa sin abrir el archivo. Archivos de referencia para aprender el patrón (el CRUD más simple):
+`categories.routes.js` → `categories.controllers.js` → `categories.services.js` → `category.model.js`.
 
 ---
 
@@ -94,6 +130,20 @@ sería un operador de Mongo) → busca usuario activo por correo normalizado (`t
 `bcrypt.compareSync` → firma token. Correo inexistente y contraseña mala devuelven el **mismo 401**
 para no revelar qué correos existen.
 
+### 1.5 Operadores de MongoDB en el body (inyección NoSQL)
+
+Dos ataques distintos, dos defensas:
+
+| Ataque | Ejemplo | Dónde se corta |
+|---|---|---|
+| Operador de **consulta** anidado en un campo | `{ "email": { "$ne": null } }` | En cada controlador: exige `typeof valor === 'string'` → 400. |
+| Operador de **actualización** en el primer nivel | `{ "$set": { "role": "Owner" } }` | `rejectMongoOperators` (`middlewares/body.middleware.js`), global en `app.js` → 400. |
+
+El segundo existe porque los servicios actualizan con `findOneAndUpdate(filtro, body)` y Mongoose
+ejecuta toda clave que empieza por `$` como una orden. El controlador quita `role` o `password`
+**por nombre**, pero `$set` no se llama `role`: pasaba el filtro. Como ningún campo legítimo de la
+API empieza por `$`, se rechaza en un único punto para toda la API.
+
 ---
 
 ## 2. Ciclo de vida de una petición
@@ -102,6 +152,7 @@ Ejemplo real: `POST /api/sales` con `{ "orderId": "<id>" }`.
 
 ```
 1. app.js        cors() → express.json() parsea el cuerpo → ensureBody (body vacío ⇒ {})
+                 → rejectMongoOperators (clave que empieza por "$" ⇒ 400)
 2. app.js        app.use('/api/sales', salesRoute)
 3. routes        router.post('/', requireRoles(STAFF_ROLES), createSale)
 4. middlewares   authMiddleware → authorizationMiddleware            (sección 1)
@@ -332,3 +383,33 @@ Las bases anteriores guardaban `numeroPedido`, `idVenta` e `idTicketVenta` (text
 
 Es idempotente. **Correrla una vez sobre Atlas antes de usar esta versión**: mientras existan los índices
 `idVenta_1` / `idTicketVenta_1`, la segunda venta nueva falla con 11000 (ambas valen `null` ahí).
+
+---
+
+## 6. Decisiones técnicas clave
+
+Decisiones que explican por qué el código tiene esta forma. Las cuatro últimas son de la última
+refactorización.
+
+| Decisión | Por qué |
+|---|---|
+| `app.js` (armar) separado de `index.js` (arrancar) | Las pruebas levantan la API completa sin abrir el puerto real ni conectar a Atlas. |
+| Errores centralizados: `HttpError` + `asyncHandler` + `errorHandler` | Ningún controlador repite `try/catch` ni decide códigos de error: lanza y sigue. Un solo lugar define cómo se ve un error. |
+| El servidor calcula precios, subtotales, totales y consecutivos | Lo que envía el cliente no es de fiar; un total mal calculado en el navegador acabaría en los indicadores. |
+| Indicadores consolidados por día (`indicadores_diarios`) | El dashboard lee como mucho un documento por día en vez de recorrer todas las ventas. Se **recalcula**, no se incrementa: es idempotente. |
+| Roles leídos del enum del modelo `User` | Una sola fuente de verdad; si falta un rol, el servidor no arranca. |
+| Fábricas `createCrudService` / `createCrudController` | Establecimiento, horarios y ubicaciones son CRUD puros: comparten una implementación en vez de tres copias. |
+| **`rejectMongoOperators` global** (`middlewares/body.middleware.js`) | Un Cliente podía volverse Owner con `PATCH /api/users/:id { "$set": { "role": "Owner" } }`, o guardar una contraseña sin hash. Se corta en un punto para toda la API (sección 1.5). |
+| **`ensureBody` salió de `error.middleware.js`** a `body.middleware.js` | Preparar el body no es manejar errores: cada archivo de middleware queda con una sola responsabilidad. |
+| **Sufijo de helpers unificado** (`bcrypt.helper.js`, `jwt.helper.js`) | Convivían `.helper.js` y `.helpers.js`; ahora el nombre del archivo predice la capa sin excepciones. |
+| **`handleMongooseError` exige `keyValue`** en el error 11000 | Un duplicado dentro de un `bulkWrite` no lo trae, y leerlo lanzaba un `TypeError` dentro del propio manejador de errores. |
+| **`ARQUITECTURA.md` visible y `README.md` nuevo** | La guía estaba oculta como `.ARQUITECTURA.md` y no había instrucciones de instalación. |
+
+### Pendientes conocidos (anotados, no implementados)
+
+- **"Me gusta" de comentarios:** el modelo ya tiene `likes` y `likedBy`, pero faltan las rutas
+  `POST/DELETE /api/comments/:id/like`.
+- **Baja lógica de usuarios:** el modelo ya tiene `deletedAt` y `deletedBy` y existe
+  `OWNER_MANAGEABLE_ROLES`, pero `DELETE /api/users/:id` todavía borra el documento.
+- **`calificacion` (1–5)** convive con `valoracion` (1–10): Indicadores aún promedia la primera.
+- **Puerto por defecto:** sin `PORT`, `index.js` usa 3001, mientras `.env.example` y Bruno usan 3000.

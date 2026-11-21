@@ -1,6 +1,8 @@
 import app from './app.js';
 import conexion from './config/mongo.config.js';
 
+// Punto de entrada (npm run dev / npm start). Solo arranca: la aplicación se arma en app.js.
+// Las variables de entorno ya están cargadas: los scripts ejecutan node con --env-file .env.
 const port = process.env.PORT || 3001;
 
 // La conexión se lanza sin await: Mongoose encola las consultas hasta que el

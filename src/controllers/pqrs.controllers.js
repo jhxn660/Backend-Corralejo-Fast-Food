@@ -1,5 +1,6 @@
 import asyncHandler from "../helpers/async-handler.helper.js";
-import { assertFound } from "../helpers/http-error.helper.js";
+import { assertFound, HttpError } from "../helpers/http-error.helper.js";
+import { ROLES } from "../config/roles.config.js";
 import { dbCreatePQRS, dbDeletePQRS, dbGetPQRS, dbGetPQRSList, dbUpdatePQRS } from "../services/pqrs.services.js";
 
 const NOT_FOUND = 'PQRS no encontrada';
@@ -12,12 +13,25 @@ const createPQRS = asyncHandler(async (req, res) => {
     res.status(201).json({ msg: 'Registrar PQRS', data });
 }, 'No se pudo registrar la PQRS');
 
+// ¿Quien pregunta es un Cliente? Entonces solo puede ver lo suyo.
+const isClient = (user) => user?.role === ROLES.CLIENT;
+
 const getPQRS = asyncHandler(async (req, res) => {
-    res.json({ msg: 'Obtener PQRS por ID', data: assertFound(await dbGetPQRS(req.params.id), NOT_FOUND) });
+    const pqrs = assertFound(await dbGetPQRS(req.params.id), NOT_FOUND);
+
+    // `usuario` llega poblado ({ _id, name, email }); se compara su _id con el del cliente
+    if (isClient(req.userFound) && String(pqrs.usuario?._id) !== String(req.userFound._id)) {
+        throw new HttpError(403, 'Solo puedes consultar tus propias PQRS');
+    }
+
+    res.json({ msg: 'Obtener PQRS por ID', data: pqrs });
 }, 'No se pudo obtener la PQRS');
 
 const getPQRSList = asyncHandler(async (req, res) => {
-    res.json({ msg: 'Listar total de PQRS', data: await dbGetPQRSList() });
+    // Cliente → filtro por su _id. Personal → sin filtro (todas).
+    const filter = isClient(req.userFound) ? { usuario: req.userFound._id } : {};
+
+    res.json({ msg: 'Listar PQRS', data: await dbGetPQRSList(filter) });
 }, 'No se pueden listar las PQRS');
 
 // Gestión: normalmente cambia `estado`. El autor no se reasigna.

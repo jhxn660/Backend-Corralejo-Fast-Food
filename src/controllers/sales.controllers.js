@@ -3,6 +3,7 @@ import asyncHandler from "../helpers/async-handler.helper.js";
 import { parseItems } from "../helpers/order-items.helper.js";
 import { assertFound, HttpError } from "../helpers/http-error.helper.js";
 import { isValidDayKey } from "../helpers/business-date.helper.js";
+import { STAFF_ROLES } from "../config/roles.config.js";
 import {
     dbDeleteSale,
     dbReadSaleById,
@@ -66,7 +67,20 @@ const getSales = asyncHandler(async (req, res) => {
         }
     }
 
-    res.json({ msg: 'Ventas obtenidas', data: await dbReadSales({ from, to }) });
+    const sales = await dbReadSales({ from, to });
+
+    // El personal ve todo. Para los demás se arma una versión reducida: solo lo necesario
+    // para contar qué producto se vendió más, sin datos de personas.
+    const isStaff = STAFF_ROLES.includes(req.userFound?.role);
+    const data = isStaff
+        ? sales
+        : sales.map((sale) => ({
+            fecha: sale.fecha,
+            estadoPedido: sale.estadoPedido,
+            detalles: sale.detalles.map(({ producto, cantidad }) => ({ producto, cantidad }))
+        }));
+
+    res.json({ msg: 'Ventas obtenidas', data });
 }, 'Error al obtener las ventas');
 
 const getSale = asyncHandler(async (req, res) => {

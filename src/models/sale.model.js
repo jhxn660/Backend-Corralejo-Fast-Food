@@ -35,6 +35,11 @@ const saleDetailSchema = new Schema({
     subtotal: {
         type: Number,
         required: [true, 'El subtotal del producto es requerido en la venta.']
+    },
+    // true = la línea se vendió como combo (precio_unitario es el precio del combo)
+    combo: {
+        type: Boolean,
+        default: false
     }
 }, { _id: false });
 
@@ -55,7 +60,7 @@ const saleSchema = new Schema({
         immutable: true
     },
     // Contenido del QR del ticket. Es secreto: quien lo tiene puede publicar UN comentario.
-    // Ver ".ARQUITECTURA.md > Ticket y QR".
+    // Ver "ARQUITECTURA.md > Ticket y QR".
     qr: {
         type: String,
         unique: true,
@@ -104,6 +109,16 @@ const saleSchema = new Schema({
         type: String,
         trim: true,
         default: 'Local'
+    },
+    // Insumos que esta venta descontó del inventario. Se guardan para devolver EXACTAMENTE
+    // eso si la venta se elimina, aunque la receta haya cambiado después.
+    consumoInsumos: {
+        type: [{
+            supply: { type: Schema.Types.ObjectId, ref: 'Supply' },
+            cantidad: Number
+        }],
+        _id: false,
+        default: []
     },
     detalles: {
         type: [saleDetailSchema],

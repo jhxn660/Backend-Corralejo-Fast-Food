@@ -13,8 +13,9 @@ const dbGetPQRS = async (id) => {
     return await PQRSModel.findOne({ _id: id }).populate(...AUTHOR);
 };
 
-const dbGetPQRSList = async () => {
-    return await PQRSModel.find().sort({ createdAt: -1 }).populate(...AUTHOR);
+// `filter` vacío = todas; { usuario: id } = solo las de ese cliente
+const dbGetPQRSList = async (filter = {}) => {
+    return await PQRSModel.find(filter).sort({ createdAt: -1 }).populate(...AUTHOR);
 };
 
 const dbUpdatePQRS = async (id, pqrsUpdate) => {

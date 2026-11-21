@@ -8,7 +8,7 @@ http:
   url: http://localhost:3000/api/auth/renew-token
   headers:
     - name: X-Token
-      value: "{{token}}"
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWYzNTFjOGRkNDg2YWQ5ZTI1OWJjMGEiLCJuYW1lIjoiSnVhblMiLCJlbWFpbCI6IjQ1NTQ3MzgzdzNAZ21haWwuY29tIiwicm9sZSI6IkNsaWVudGUiLCJzdGF0ZSI6dHJ1ZSwiaWF0IjoxNzk1MTk3NjU3LCJleHAiOjE3OTUyMDEyNTd9.dE_ocfzcAbS2fg20KZy8DPUCygyaiLU3dIIqvqZGDyk
   auth: inherit
 
 runtime:

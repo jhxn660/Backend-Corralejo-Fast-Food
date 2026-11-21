@@ -30,7 +30,7 @@ const SELLABLE_STATES = Object.freeze([ ...OPEN_STATES, 'Entregado' ]);
 const dbBuildDetails = async (items) => {
     const products = await ProductModel
         .find({ _id: { $in: items.map((item) => item.productId) }, ...ONLY_ACTIVE })
-        .select('nombre price')
+        .select('nombre price precioCombo')
         .lean();
     const byId = new Map(products.map((product) => [ String(product._id), product ]));
 
@@ -40,10 +40,15 @@ const dbBuildDetails = async (items) => {
             Object.fromEntries(missing.map(({ productId }) => [ `items.${productId}`, 'Producto inexistente u oculto' ])));
     }
 
-    return items.map(({ productId, quantity }) => {
-        const { nombre, price } = byId.get(productId);
+    return items.map(({ productId, quantity, combo = false }) => {
+        const { nombre, price, precioCombo } = byId.get(productId);
 
-        return { productId, producto: nombre, cantidad: quantity, precio_unitario: price };
+        if (!combo) return { productId, producto: nombre, cantidad: quantity, precio_unitario: price, combo };
+
+        // Un combo solo existe si el plato tiene precio de combo
+        if (!(precioCombo > 0)) throw new HttpError(400, `${nombre} no se vende en combo`);
+
+        return { productId, producto: `${nombre} (combo)`, cantidad: quantity, precio_unitario: precioCombo, combo };
     });
 };
 
@@ -65,7 +70,8 @@ const assertOrderOpen = async (order) => {
  */
 const mergeDetails = (order, lines) => {
     for (const line of lines) {
-        const existing = order.detalles.find((detalle) => detalle.productId && String(detalle.productId) === line.productId);
+        const existing = order.detalles.find((detalle) =>
+            detalle.productId && String(detalle.productId) === line.productId && Boolean(detalle.combo) === line.combo);
 
         if (existing) existing.cantidad += line.cantidad;
         else order.detalles.push(line);
