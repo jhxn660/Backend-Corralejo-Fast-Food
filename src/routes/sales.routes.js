@@ -10,7 +10,6 @@ const router = Router();
 router.post('/', requireRoles(STAFF_ROLES), createSale);
 router.get('/', requireRoles(STAFF_ROLES), getSales);
 router.get('/:id', requireRoles(STAFF_ROLES), getSale);
-router.put('/:id', requireRoles(ADMIN_ROLES), updateSale);
 router.patch('/:id', requireRoles(ADMIN_ROLES), updateSale);
 router.delete('/:id', requireRoles(ADMIN_ROLES), deleteSale);
 

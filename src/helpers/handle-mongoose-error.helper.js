@@ -15,7 +15,9 @@ const handleMongooseError = ( error ) => {
     // 2. Índice único violado (código 11000 del driver). OJO: `unique` en el Schema NO es un
     //    validador de Mongoose; quien rechaza el duplicado es el índice en MongoDB, por eso
     //    llega aquí y no como ValidationError, y sin el mensaje personalizado del Schema.
-    if ( error.code === 11000 ) {
+    //    Se exige keyValue: un duplicado dentro de una escritura masiva (bulkWrite) no lo trae,
+    //    y leerlo sin comprobar lanzaba un TypeError dentro del propio manejador de errores.
+    if ( error.code === 11000 && error.keyValue ) {
         const field = Object.keys( error.keyValue )[0];
 
         return {

@@ -1,4 +1,4 @@
-import { validateToken } from '../helpers/jwt.helpers.js';
+import { validateToken } from '../helpers/jwt.helper.js';
 import { dbGetActiveUserById } from '../services/users.services.js';
 
 // El token viaja en X-Token; también se acepta el estándar `Authorization: Bearer <token>`.

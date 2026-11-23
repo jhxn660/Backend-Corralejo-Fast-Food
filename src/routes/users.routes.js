@@ -23,7 +23,6 @@ router.get('/', requireRoles(ADMIN_ROLES), getUsers);
 router.get('/:id', requireSelfOrRoles(ADMIN_ROLES), getUser);
 router.patch('/:id', requireSelfOrRoles(ADMIN_ROLES), updateUser);
 // PUT reutiliza el mismo controlador: Mongoose valida cada campo enviado
-router.put('/:id', requireSelfOrRoles(ADMIN_ROLES), updateUser);
 
 // Eliminar un Usuario
 router.delete('/:id', requireRoles(ADMIN_ROLES), deleteUser);

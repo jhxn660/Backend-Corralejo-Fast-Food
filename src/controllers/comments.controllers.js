@@ -22,7 +22,9 @@ const NOT_FOUND = 'Comentario no encontrado';
 //   2. El código debe corresponder al `qr` de una venta registrada.
 //   3. Cada ticket admite un único comentario.
 const createComment = asyncHandler(async (req, res) => {
-    const { codigo, comentario, calificacion } = req.body;
+    // `valoracion` (1-10) es la escala del Frontend; `calificacion` (1-5) se
+    // sigue aceptando por compatibilidad y, si falta, la deriva el modelo.
+    const { codigo, comentario, calificacion, valoracion } = req.body;
 
     // optionalAuthMiddleware deja req.userFound solo si la petición trae un token válido
     const user = req.userFound ?? null;
@@ -48,7 +50,11 @@ const createComment = asyncHandler(async (req, res) => {
 
     // Solo se pasan los campos que el cliente puede definir; usuario, venta, likes e
     // isActive los fija el Backend para que no puedan falsificarse desde el body.
-    const data = await dbCreateComment({ codigo: ticket, comentario, calificacion }, user?._id ?? null, sale._id);
+    const data = await dbCreateComment(
+        { codigo: ticket, comentario, calificacion, valoracion },
+        user?._id ?? null,
+        sale._id
+    );
 
     res.status(201).json({ msg: 'Registrar comentario', data });
 }, 'No se pudo registrar el comentario');
@@ -72,7 +78,8 @@ const getPublicComments = asyncHandler(async (req, res) => {
 const updateComment = asyncHandler(async (req, res) => {
     // El ticket, la venta y el autor se fijan al crear el comentario; la visibilidad tiene
     // su propio endpoint. Se descartan del body para que no puedan alterarse por aquí.
-    const { codigo, venta, usuario, isActive, ...changes } = req.body;
+    // Los "me gusta" tampoco: son de quien los da (PENDIENTE: rutas /:id/like).
+    const { codigo, venta, usuario, isActive, likes, likedBy, ...changes } = req.body;
     const data = assertFound(await dbUpdateComment(req.params.id, changes), NOT_FOUND);
 
     res.json({ msg: 'Actualizar comentario', data });

@@ -8,7 +8,7 @@ http:
   url: http://localhost:3000/api/auth/renew-token
   headers:
     - name: X-Token
-      value: "{{token}}"
+      value: Hol@hoal12
   auth: inherit
 
 runtime:

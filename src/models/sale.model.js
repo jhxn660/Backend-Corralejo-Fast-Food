@@ -55,7 +55,7 @@ const saleSchema = new Schema({
         immutable: true
     },
     // Contenido del QR del ticket. Es secreto: quien lo tiene puede publicar UN comentario.
-    // Ver ".ARQUITECTURA.md > Ticket y QR".
+    // Ver "ARQUITECTURA.md > Ticket y QR".
     qr: {
         type: String,
         unique: true,

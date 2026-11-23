@@ -11,7 +11,6 @@ router.get('/:id', requireRoles(STAFF_ROLES), getOrder);
 // Añadir productos a un pedido abierto (recalcula subtotales y total)
 router.post('/:id/items', requireRoles(STAFF_ROLES), addOrderItems);
 // Solo cambian el estado del pedido
-router.put('/:id', requireRoles(STAFF_ROLES), updateOrder);
 router.patch('/:id', requireRoles(STAFF_ROLES), updateOrder);
 router.delete('/:id', requireRoles(ADMIN_ROLES), deleteOrder);
 

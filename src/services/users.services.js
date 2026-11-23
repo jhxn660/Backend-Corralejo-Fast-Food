@@ -1,4 +1,4 @@
-import { generatePassword } from "../helpers/bcrypt.helpers.js";
+import { generatePassword } from "../helpers/bcrypt.helper.js";
 import { HttpError } from "../helpers/http-error.helper.js";
 import userModel from "../models/user.model.js";
 import { USER_ROLES } from "../config/roles.config.js";
@@ -15,7 +15,7 @@ const dbCreateUser = async (newUser) => {
         throw new HttpError(400, 'La contraseña debe tener entre 7 y 60 caracteres, incluir al menos una mayúscula, una minúscula, un número y un símbolo');
     }
 
-    const user = await userModel.create({ ...newUser, password: generatePassword(newUser.password) });
+    const user = await userModel.create({ ...newUser, password: await generatePassword(newUser.password) });
 
     const { password, ...userWithoutPassword } = user.toObject();
 

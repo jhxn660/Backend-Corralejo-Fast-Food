@@ -2,6 +2,16 @@ import asyncHandler from "../helpers/async-handler.helper.js";
 import { assertFound } from "../helpers/http-error.helper.js";
 import { dbCreateCategory, dbGetCategory, dbGetCategories, dbUpdateCategory, dbDeleteCategory } from '../services/categories.services.js';
 
+/**
+ * CAPA DE CONTROLADORES. Un controlador traduce entre HTTP y el negocio, y nada más:
+ *   1. Lee la petición (req.params, req.query, req.body, req.userFound).
+ *   2. Decide qué datos del body se aceptan (aquí: nunca `createdBy`, lo pone el servidor).
+ *   3. Llama al servicio, que es quien habla con la base de datos.
+ *   4. Arma la respuesta con el contrato único de la API: { msg, data }.
+ * No tiene try/catch: asyncHandler envía cualquier error al errorHandler central, y el segundo
+ * argumento es el mensaje del 500 si el error no se reconoce. assertFound convierte el `null`
+ * de "ese id no existe" en un 404.
+ */
 const NOT_FOUND = 'Categoria no encontrada';
 
 const createCategory = asyncHandler(async (req, res) => {

@@ -1,7 +1,7 @@
 import asyncHandler from "../helpers/async-handler.helper.js";
 import { HttpError } from "../helpers/http-error.helper.js";
-import { verifyPassword } from "../helpers/bcrypt.helpers.js";
-import { generateToken } from "../helpers/jwt.helpers.js";
+import { verifyPassword } from "../helpers/bcrypt.helper.js";
+import { generateToken } from "../helpers/jwt.helper.js";
 import { dbGetUserByEmail } from "../services/users.services.js";
 
 // Login y renovación emiten exactamente el mismo payload; el middleware lo resuelve por `_id`.
@@ -44,7 +44,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const userFound = await dbGetUserByEmail(email);
 
     // Mismo 401 si el correo no existe o la contraseña falla: distinguirlos revela qué correos están registrados
-    if (!userFound || !verifyPassword(password, userFound.password)) {
+    if (!userFound || !(await verifyPassword(password, userFound.password))) {
         throw new HttpError(401, 'Credenciales inválidas');
     }
 

@@ -10,15 +10,20 @@ const dbGetComment = async (id) => {
     return await CommentModel.findOne({ _id: id }).populate('usuario', 'name email');
 };
 
-// Moderación: todos los comentarios o filtrados por visibilidad (ver buildVisibilityFilter)
+// Moderación (personal): todos o filtrados por visibilidad (ver buildVisibilityFilter).
+// Trae el ticket y los productos de la venta: solo Administrador y Owner ven qué
+// productos se calificaron (la vista pública no los incluye).
 const dbGetComments = async (filter = {}) => {
-    return await CommentModel.find(filter).sort({ createdAt: -1 }).populate('usuario', 'name email');
+    return await CommentModel.find(filter)
+        .sort({ createdAt: -1 })
+        .populate('usuario', 'name email')
+        .populate('venta', 'ticketId detalles.producto detalles.cantidad');
 };
 
 // Vista pública: solo comentarios visibles, sin el código del ticket ni la venta
 const dbGetPublicComments = async () => {
     return await CommentModel.find(ONLY_ACTIVE)
-        .select('comentario calificacion likes usuario isActive createdAt')
+        .select('comentario valoracion calificacion likes usuario isActive createdAt')
         .sort({ createdAt: -1 })
         .populate('usuario', 'name');
 };

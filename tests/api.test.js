@@ -169,7 +169,7 @@ describe('Auth y Usuarios', () => {
         assert.ok(expectStatus(await request('GET', '/api/users?state=all', { token: tokens.owner }), 200).data.total >= 5);
         expectStatus(await request('GET', `/api/users/${created._id}`, { token: tokens.admin }), 200);
         assert.equal(expectStatus(await request('PATCH', `/api/users/${created._id}`, { token: tokens.admin, body: { name: 'Editado' } }), 200).data.name, 'Editado');
-        expectStatus(await request('PUT', `/api/users/${created._id}`, { token: tokens.admin, body: { name: 'Editado PUT' } }), 200);
+        expectStatus(await request('PATCH', `/api/users/${created._id}`, { token: tokens.admin, body: { name: 'Editado PUT' } }), 200);
         expectStatus(await request('DELETE', `/api/users/${created._id}`, { token: tokens.admin }), 200);
         expectStatus(await request('GET', `/api/users/${created._id}`, { token: tokens.admin }), 404);
     });
@@ -188,6 +188,18 @@ describe('Auth y Usuarios', () => {
         assert.equal(self.role, ROLES.EMPLOYEE);
         assert.equal(self.name, 'Empleado Editado');
         expectStatus(await request('PATCH', `/api/users/${ids.admin}`, { token: tokens.employee, body: { name: 'x' } }), 403);
+    });
+
+    test('operadores de Mongo en el body ($set, $unset…) → 400: nadie salta los campos protegidos', async () => {
+        const self = `/api/users/${ids.client}`;
+
+        expectStatus(await request('PATCH', self, { token: tokens.client, body: { $set: { role: ROLES.OWNER } } }), 400);
+        expectStatus(await request('PATCH', self, { token: tokens.client, body: { name: 'x', $set: { password: 'en-claro' } } }), 400);
+        expectStatus(await request('PATCH', self, { token: tokens.client, body: { $unset: { password: '' } } }), 400);
+
+        assert.equal(expectStatus(await request('GET', self, { token: tokens.client }), 200).data.role, ROLES.CLIENT);
+        // La contraseña sigue siendo la original (no se guardó una en claro)
+        await login('cliente@cff.test');
     });
 });
 
@@ -328,7 +340,7 @@ describe('Pedidos', () => {
         expectStatus(await request('PATCH', `/api/orders/${temporal._id}`, { token: tokens.employee, body: { detalles: [] } }), 400);
         expectStatus(await request('PATCH', `/api/orders/${temporal._id}`, { token: tokens.employee, body: { items: [] } }), 400);
 
-        expectStatus(await request('PUT', `/api/orders/${temporal._id}`, { token: tokens.employee, body: { estado: 'Inventado' } }), 400);
+        expectStatus(await request('PATCH', `/api/orders/${temporal._id}`, { token: tokens.employee, body: { estado: 'Inventado' } }), 400);
         expectStatus(await request('DELETE', `/api/orders/${temporal._id}`, { token: tokens.employee }), 403);
         expectStatus(await request('DELETE', `/api/orders/${temporal._id}`, { token: tokens.admin }), 200);
         expectStatus(await request('GET', `/api/orders/${temporal._id}`, { token: tokens.employee }), 404);
@@ -701,7 +713,7 @@ describe('Indicadores: editar y eliminar ventas', () => {
 
     test('las líneas, el total y el estado de una venta registrada no se editan', async () => {
         for (const body of [ { detalles: [] }, { items: [] }, { totalPagado: 1 }, { estadoPedido: 'Entregado' } ]) {
-            expectStatus(await request('PUT', `/api/sales/${ids.saleLateOctober._id}`, { token: tokens.admin, body }), 400);
+            expectStatus(await request('PATCH', `/api/sales/${ids.saleLateOctober._id}`, { token: tokens.admin, body }), 400);
         }
 
         assert.equal(kpi(await dashboard(), 'k1').value, '$74.000');
