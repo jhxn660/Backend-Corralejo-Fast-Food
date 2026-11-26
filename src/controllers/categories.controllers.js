@@ -1,5 +1,5 @@
-import asyncHandler from "../helpers/async-handler.helper.js";
-import { assertFound } from "../helpers/http-error.helper.js";
+import asyncHandler from '../helpers/async-handler.helper.js';
+import { assertFound } from '../helpers/http-error.helper.js';
 import { dbCreateCategory, dbGetCategory, dbGetCategories, dbUpdateCategory, dbDeleteCategory } from '../services/categories.services.js';
 
 /**

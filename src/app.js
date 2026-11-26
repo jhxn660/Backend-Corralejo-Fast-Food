@@ -1,19 +1,20 @@
-import express from 'express';
 import cors from 'cors';
+import express from 'express';
 
-import authRoute from './routes/auth.routes.js';
-import usersRoute from './routes/users.routes.js';
-import categoriesRoute from './routes/categories.routes.js';
-import productRoute from './routes/products.routes.js';
-import suppliesRoute from './routes/supplies.routes.js';
-import ordersRoute from './routes/orders.routes.js';
-import salesRoute from './routes/sales.routes.js';
-import indicatorsRoute from './routes/indicators.routes.js';
-import commentsRoute from './routes/comments.routes.js';
-import pqrsRoute from './routes/pqrs.routes.js';
-import establecimientoRoute from './routes/establecimiento.routes.js';
 import { ensureBody, rejectMongoOperators } from './middlewares/body.middleware.js';
 import { errorHandler, notFoundHandler } from './middlewares/error.middleware.js';
+import authRoute from './routes/auth.routes.js';
+import categoriesRoute from './routes/categories.routes.js';
+import commentsRoute from './routes/comments.routes.js';
+import establecimientoRoute from './routes/establecimiento.routes.js';
+import indicatorsRoute from './routes/indicators.routes.js';
+import ordersRoute from './routes/orders.routes.js';
+import pqrsRoute from './routes/pqrs.routes.js';
+import productRoute from './routes/products.routes.js';
+import recipesRoute from './routes/recipes.routes.js';
+import salesRoute from './routes/sales.routes.js';
+import suppliesRoute from './routes/supplies.routes.js';
+import usersRoute from './routes/users.routes.js';
 
 /**
  * Composición de la aplicación Express. Aquí solo se ARMA (qué middlewares y qué rutas, y en qué
@@ -54,6 +55,7 @@ app.use('/api/users', usersRoute);
 app.use('/api/categories', categoriesRoute);
 app.use('/api/products', productRoute);
 app.use('/api/supplies', suppliesRoute);
+app.use('/api/recipes', recipesRoute);
 
 // Operación comercial: Pedido ──▶ Venta ──▶ Indicadores
 app.use('/api/orders', ordersRoute);

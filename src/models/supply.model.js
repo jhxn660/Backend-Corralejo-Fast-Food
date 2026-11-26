@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+
 import CategoryModel from './category.model.js';
 
 const SupplySchema = new Schema(
@@ -27,8 +28,15 @@ const SupplySchema = new Schema(
             min: [0, 'El stock no puede ser negativo'],
             default: 1
         },
+        // Stock mínimo de reposición. Cuando el stock llega a este valor (o baja de él), Inventario
+        // avisa que hay que reponer. 0 = sin mínimo definido.
+        minStock: {
+            type: Number,
+            min: [0, 'El stock mínimo no puede ser negativo'],
+            default: 0
+        },
         // Ojo: puede contradecir al stock (stock en 0 y estado 'Con_Stock')
-        state: {
+        status: {
             type: String,
             enum: {
                 values: ['Con_Stock', 'Sin_Stock'],

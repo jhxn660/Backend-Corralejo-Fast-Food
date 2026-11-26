@@ -13,9 +13,9 @@ http:
     type: json
     data: |-
       // PRUEBA: requiere {{productId}}. Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
-      // false lo oculta de Listar Productos Publicos; true lo vuelve a mostrar. Es la única vía para cambiar isActive.
-      // Esperado 200. "isActive" que no sea booleano → 400.
-      { "isActive": false }
+      // false lo oculta de Listar Productos Publicos; true lo vuelve a mostrar. Es la única vía para cambiar status.
+      // Esperado 200. "status" que no sea booleano → 400.
+      { "status": false }
   auth: inherit
 
 settings:

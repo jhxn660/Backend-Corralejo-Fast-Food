@@ -1,5 +1,6 @@
-import app from './app.js';
 import conexion from './config/mongo.config.js';
+
+import app from './app.js';
 
 // Punto de entrada (npm run dev / npm start). Solo arranca: la aplicación se arma en app.js.
 // Las variables de entorno ya están cargadas: los scripts ejecutan node con --env-file .env.

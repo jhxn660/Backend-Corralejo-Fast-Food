@@ -1,0 +1,47 @@
+info:
+  name: Crear Combo
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "http://localhost:3000/api/products"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      // PRUEBA: un COMBO es un producto que agrupa productos ya hechos. Requiere {{categoryId}} y
+      // {{productId}} (Crear Producto). Token: Owner o Administrador.
+      // "comboPriceMode": "sum" → "Sumar Precio Productos" (el precio lo calcula el servidor y se
+      //   recalcula si cambia el precio de un producto); "custom" → "Determinar Precio" (usa "price").
+      // No admite combos dentro de combos, productos inexistentes ni cantidades < 1 (400).
+      // Un producto que está en un combo no se puede eliminar (409). Al venderse, el combo gasta
+      // las recetas de sus productos.
+      {
+        "name": "Combo Corralejo {{$timestamp}}",
+        "description": "Ideal para compartir",
+        "category": "{{categoryId}}",
+        "comboPriceMode": "sum",
+        "comboItems": [
+          { "product": "{{productId}}", "quantity": 2 }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("comboId", res.body.data._id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

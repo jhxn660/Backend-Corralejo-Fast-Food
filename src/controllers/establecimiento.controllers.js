@@ -1,5 +1,5 @@
-import { createCrudController } from "../helpers/crud.helper.js";
-import { establecimientoService, horarioService, ubicacionService } from "../services/establecimiento.services.js";
+import { createCrudController } from '../helpers/crud.helper.js';
+import { establecimientoService, horarioService, ubicacionService } from '../services/establecimiento.services.js';
 
 const establecimiento = createCrudController(establecimientoService, {
     create: 'Registrar información',

@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model } from 'mongoose';
 
 // Meta anual de ventas. El avance no se guarda: se calcula contra las ventas del año.
 const salesGoalSchema = new Schema({

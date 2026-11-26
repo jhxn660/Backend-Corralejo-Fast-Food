@@ -30,8 +30,8 @@ const ROLES = Object.freeze({
 const ADMIN_ROLES = Object.freeze([ ROLES.OWNER, ROLES.ADMIN ]);
 const STAFF_ROLES = Object.freeze([ ...ADMIN_ROLES, ROLES.EMPLOYEE ]);
 
-// Permiso exclusivo del Owner: gestionar y dar de baja estas cuentas.
-// PENDIENTE (integración): aplicarlo en DELETE /api/users/:id con requireRoles([ROLES.OWNER]).
+// Cuentas que se gestionan en Gestión de Usuarios. Dar de baja a un Administrador es exclusivo
+// del Owner (ver deleteUser en users.controllers.js).
 const OWNER_MANAGEABLE_ROLES = Object.freeze([ ROLES.ADMIN, ROLES.EMPLOYEE ]);
 
 export { USER_ROLES, ROLES, ADMIN_ROLES, STAFF_ROLES, OWNER_MANAGEABLE_ROLES };

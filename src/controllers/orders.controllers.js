@@ -1,14 +1,15 @@
-import asyncHandler from "../helpers/async-handler.helper.js";
-import { assertFound, HttpError } from "../helpers/http-error.helper.js";
-import { parseItems } from "../helpers/order-items.helper.js";
+import asyncHandler from '../helpers/async-handler.helper.js';
+import { assertFound, HttpError } from '../helpers/http-error.helper.js';
+import { parseItems } from '../helpers/order-items.helper.js';
 import {
     dbAddOrderItems,
     dbCreateOrder,
     dbDeleteOrder,
     dbReadOrderById,
     dbReadOrders,
+    dbReplaceOrderItems,
     dbUpdateOrder
-} from "../services/orders.services.js";
+} from '../services/orders.services.js';
 
 const NOT_FOUND = 'Pedido no encontrado';
 
@@ -38,6 +39,14 @@ const addOrderItems = asyncHandler(async (req, res) => {
     res.json({ msg: 'Productos añadidos al pedido', data });
 }, 'Error al añadir productos al pedido');
 
+// PUT /api/orders/:id/items  { items: [{ productId, quantity }] } → la lista COMPLETA de productos.
+// Lo que no venga en la lista se quita del pedido (solo mientras esté abierto).
+const replaceOrderItems = asyncHandler(async (req, res) => {
+    const data = assertFound(await dbReplaceOrderItems(req.params.id, parseItems(req.body.items)), NOT_FOUND);
+
+    res.json({ msg: 'Productos del pedido actualizados', data });
+}, 'Error al actualizar los productos del pedido');
+
 // PUT y PATCH comparten handler y solo cambian `estado`. Los productos no se editan por aquí:
 // se responde 400 en lugar de ignorarlos para que el cliente sepa qué ruta usar.
 const updateOrder = asyncHandler(async (req, res) => {
@@ -57,6 +66,7 @@ export {
     getOrders,
     getOrder,
     addOrderItems,
+    replaceOrderItems,
     updateOrder,
     deleteOrder
 };

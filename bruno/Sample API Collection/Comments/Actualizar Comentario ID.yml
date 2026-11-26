@@ -13,7 +13,7 @@ http:
     type: json
     data: |-
       // PRUEBA: requiere {{commentId}} (Registrar Comentario). Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
-      // Cambia "comentario" o "calificacion". codigo, venta, usuario e isActive se ignoran
+      // Cambia "comentario" o "calificacion". codigo, venta, usuario e status se ignoran
       // (la visibilidad se cambia en Cambiar Estado Comentario ID).
       // Esperado 200. "calificacion": 9 → 400. ID inexistente → 404; ID mal formado → 400.
       {

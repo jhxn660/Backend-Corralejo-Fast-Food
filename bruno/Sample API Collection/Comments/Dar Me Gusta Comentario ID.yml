@@ -1,0 +1,24 @@
+info:
+  name: Dar Me Gusta Comentario ID
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "http://localhost:3000/api/comments/{{commentId}}/like"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+docs: |-
+  PRUEBA: requiere {{commentId}}. Token: Owner, Administrador o Cliente (ejecuta Authentication/Login Usuario con esa cuenta).
+  Esperado 200 con { _id, likes, likedByMe: true }. Repetirla no vuelve a sumar (un "me gusta" por persona).
+  Sin token → 401; Empleado → 403; comentario inexistente u oculto → 404.

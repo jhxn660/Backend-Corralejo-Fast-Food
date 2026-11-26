@@ -1,3 +1,6 @@
+import { addDays, countDays, shiftDayKey, startOfMonth, startOfYear } from '../helpers/business-date.helper.js';
+import { toComparison, toGoal, toKpis, toMetrics, toPanel, toProductIndicators, toReviews } from '../dtos/indicators.dto.js';
+
 import {
     dbGetMonthsWithSales,
     dbGetProductReviews,
@@ -5,9 +8,7 @@ import {
     dbGetSalesGoal,
     dbGetSeries,
     dbGetTotalsByRanges
-} from "./indicators.services.js";
-import { toComparison, toGoal, toKpis, toMetrics, toPanel, toProductIndicators, toReviews } from "../dtos/indicators.dto.js";
-import { addDays, countDays, shiftDayKey, startOfMonth, startOfYear } from "../helpers/business-date.helper.js";
+} from './indicators.services.js';
 
 /**
  * Casos de uso de Indicadores: deciden qué rangos se comparan, piden los totales a la capa

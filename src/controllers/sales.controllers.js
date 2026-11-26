@@ -1,15 +1,17 @@
-import mongoose from "mongoose";
-import asyncHandler from "../helpers/async-handler.helper.js";
-import { parseItems } from "../helpers/order-items.helper.js";
-import { assertFound, HttpError } from "../helpers/http-error.helper.js";
-import { isValidDayKey } from "../helpers/business-date.helper.js";
+import mongoose from 'mongoose';
+
+import { STAFF_ROLES } from '../config/roles.config.js';
+import asyncHandler from '../helpers/async-handler.helper.js';
+import { isValidDayKey } from '../helpers/business-date.helper.js';
+import { assertFound, HttpError } from '../helpers/http-error.helper.js';
+import { parseItems } from '../helpers/order-items.helper.js';
 import {
     dbDeleteSale,
     dbReadSaleById,
     dbReadSales,
     dbRegisterSale,
     dbUpdateSale
-} from "../services/sales.services.js";
+} from '../services/sales.services.js';
 
 const NOT_FOUND = 'Venta no encontrada';
 
@@ -66,7 +68,19 @@ const getSales = asyncHandler(async (req, res) => {
         }
     }
 
-    res.json({ msg: 'Ventas obtenidas', data: await dbReadSales({ from, to }) });
+    const sales = await dbReadSales({ from, to });
+
+    // El personal ve todo; para los demás, solo lo necesario para contar lo más vendido.
+    const isStaff = STAFF_ROLES.includes(req.userFound?.role);
+    const data = isStaff
+        ? sales
+        : sales.map((sale) => ({
+            fecha: sale.fecha,
+            estadoPedido: sale.estadoPedido,
+            detalles: sale.detalles.map(({ producto, cantidad }) => ({ producto, cantidad }))
+        }));
+
+    res.json({ msg: 'Ventas obtenidas', data });
 }, 'Error al obtener las ventas');
 
 const getSale = asyncHandler(async (req, res) => {

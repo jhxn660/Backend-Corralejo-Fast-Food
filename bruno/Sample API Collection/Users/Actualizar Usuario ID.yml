@@ -19,7 +19,7 @@ http:
         "role": "Empleado",
         "name": "Mateo",
         "email": "mateo{{$timestamp}}@correo.com",
-        "state": true,
+        "status": true,
         "empleado_rol": "Mesero"
       }
   auth: inherit

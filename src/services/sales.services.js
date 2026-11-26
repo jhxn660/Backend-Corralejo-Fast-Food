@@ -1,9 +1,11 @@
-import saleModel from "../models/sale.model.js";
-import orderModel from "../models/order.model.js";
-import { dbConsolidateDays } from "./indicators.services.js";
-import { HttpError } from "../helpers/http-error.helper.js";
-import { addDays, parseBusinessDate, toDayKey } from "../helpers/business-date.helper.js";
-import { assertOrderOpen, dbBuildDetails, mergeDetails, ORDER_STATES, SELLABLE_STATES } from "./order-details.services.js";
+import { addDays, parseBusinessDate, toDayKey } from '../helpers/business-date.helper.js';
+import { HttpError } from '../helpers/http-error.helper.js';
+import orderModel from '../models/order.model.js';
+import saleModel from '../models/sale.model.js';
+
+import { dbConsolidateDays } from './indicators.services.js';
+import { assertOrderOpen, dbBuildDetails, mergeDetails, ORDER_STATES, SELLABLE_STATES } from './order-details.services.js';
+import { dbAssertSuppliesAvailable, dbDiscountSupplies, dbGetSuppliesUsage, dbReturnSupplies } from './recipes.services.js';
 
 /**
  * Flujo de una venta:  [Pedido ─▶] Venta ─▶ Indicadores
@@ -30,6 +32,50 @@ const syncIndicators = async (...dates) => {
 };
 
 /**
+ * INVENTARIO: descuenta los insumos de las recetas de una venta recién creada y los anota en
+ * `suppliesUsed`. Si no alcanzan (otra venta se llevó el stock entre la comprobación previa y
+ * este punto), elimina la venta y lanza el 409: no queda una venta sin sus insumos descontados.
+ *
+ * @param {Map<string, number>} [usage] - Consumo ya calculado para estas mismas líneas (lo devuelve
+ *        dbAssertSuppliesAvailable). Si no llega, se calcula aquí.
+ */
+const discountSaleSupplies = async (sale, usage) => {
+    try {
+        const used = await dbDiscountSupplies(usage ?? await dbGetSuppliesUsage(sale.detalles));
+
+        if (used.length) {
+            await saleModel.updateOne({ _id: sale._id }, { $set: { suppliesUsed: used } });
+            sale.suppliesUsed = used;
+        }
+
+        return sale;
+    } catch (error) {
+        await saleModel.deleteOne({ _id: sale._id });
+        throw error;
+    }
+};
+
+/**
+ * Devuelve al inventario, UNA sola vez, lo que descontó una venta (su pedido se canceló).
+ * Vaciar `suppliesUsed` y leer lo que tenía es una sola operación: dos cancelaciones a la vez
+ * no devuelven el doble.
+ */
+const returnSaleSupplies = async (saleId) => {
+    const before = await saleModel.findOneAndUpdate(
+        { _id: saleId, 'suppliesUsed.0': { $exists: true } },
+        { $set: { suppliesUsed: [] } },
+        { returnDocument: 'before' }
+    );
+
+    if (before) await dbReturnSupplies(before.suppliesUsed);
+};
+
+// ¿Dos listas de líneas piden lo mismo (mismos productos, mismas cantidades, mismo orden)?
+const sameLines = (a, b) => a.length === b.length && a.every((line, index) => (
+    String(line.productId) === String(b[index].productId) && line.cantidad === b[index].cantidad
+));
+
+/**
  * Registra la venta de un pedido: valida, añade los items extra (si llegan) y crea la venta con sus líneas.
  *
  * Sin transacciones, la exclusión entre dos cajas que venden el mismo pedido la da el paso 3:
@@ -38,12 +84,15 @@ const syncIndicators = async (...dates) => {
  * Si crear la venta falla después, el pedido vuelve a su estado anterior (compensación).
  */
 const sellOrder = async (orderId, items, saleFields) => {
-    // 1. Validaciones con mensajes claros
-    const order = await orderModel.findById(orderId);
+    // 1. Validaciones con mensajes claros. El pedido y su posible venta se leen a la vez
+    //    (el controlador ya comprobó que orderId es un ObjectId válido)
+    const [ order, existingSale ] = await Promise.all([
+        orderModel.findById(orderId),
+        saleModel.findOne({ orderId })
+    ]);
 
     if (!order) throw new HttpError(404, 'El pedido asociado no existe');
 
-    const existingSale = await saleModel.findOne({ orderId: order._id });
     if (existingSale) {
         throw new HttpError(409, 'El pedido ya tiene una venta registrada', { data: existingSale });
     }
@@ -54,12 +103,17 @@ const sellOrder = async (orderId, items, saleFields) => {
 
     // 2. Productos de último momento: entran al pedido con las mismas reglas que /orders/:id/items
     if (items) {
-        await assertOrderOpen(order);
+        // Ya se sabe que no tiene venta (paso 1): no hace falta volver a preguntarlo
+        await assertOrderOpen(order, false);
         mergeDetails(order, await dbBuildDetails(items));
         await order.save();
     }
 
-    // 3. Reclamo atómico. $inc de __v: un "añadir productos" leído antes de este punto fallará con 409
+    // 3. ¿Alcanzan los insumos de las recetas? Si no, 409 con la lista de faltantes y el pedido
+    //    queda como estaba (todavía no se reclamó). Se guarda el consumo para reutilizarlo en el paso 5.
+    const usage = await dbAssertSuppliesAvailable(order.detalles);
+
+    // 4. Reclamo atómico. $inc de __v: un "añadir productos" leído antes de este punto fallará con 409
     const previousState = order.estado;
     const finished = await orderModel.findOneAndUpdate(
         { _id: order._id, estado: { $in: SELLABLE_STATES } },
@@ -69,14 +123,19 @@ const sellOrder = async (orderId, items, saleFields) => {
 
     if (!finished) throw new HttpError(409, 'El pedido cambió mientras se registraba la venta. Vuelve a cargarlo e inténtalo de nuevo');
 
-    // 4. La venta copia las líneas del pedido ya reclamado (incluye cualquier cambio previo al reclamo)
+    // 5. La venta copia las líneas del pedido ya reclamado (incluye cualquier cambio previo al reclamo)
+    //    y descuenta sus insumos. Si algo falla, el pedido vuelve a su estado anterior.
     try {
-        return await saleModel.create({
+        const sale = await saleModel.create({
             ...saleFields,
             orderId: finished._id,
             estadoPedido: ORDER_STATES.FINISHED,
             detalles: finished.detalles.map((detalle) => detalle.toObject())
         });
+
+        // Si las líneas no cambiaron desde el paso 3, el consumo ya calculado sirve; si cambiaron
+        // (alguien añadió productos justo antes del reclamo), se recalcula con las líneas reales
+        return await discountSaleSupplies(sale, sameLines(order.detalles, finished.detalles) ? usage : undefined);
     } catch (error) {
         await orderModel.updateOne(
             { _id: finished._id, estado: ORDER_STATES.FINISHED },
@@ -84,6 +143,16 @@ const sellOrder = async (orderId, items, saleFields) => {
         );
         throw error;
     }
+};
+
+// Venta directa en caja (sin pedido): mismas reglas de inventario que la venta de un pedido
+const sellDirect = async (items, saleFields) => {
+    const detalles = await dbBuildDetails(items);
+
+    const usage = await dbAssertSuppliesAvailable(detalles);
+
+    // La venta lleva exactamente estas líneas: el consumo comprobado es el que se descuenta
+    return await discountSaleSupplies(await saleModel.create({ ...saleFields, detalles }), usage);
 };
 
 /**
@@ -101,12 +170,16 @@ const dbRegisterSale = async ({ orderId, items, fields }, employee) => {
 
     const created = orderId
         ? await sellOrder(orderId, items, saleFields)
-        : await saleModel.create({ ...saleFields, detalles: await dbBuildDetails(items) });
+        : await sellDirect(items, saleFields);
 
-    // Se devuelve con el pedido resuelto, igual que GET /api/sales/:id
-    const sale = await created.populate('orderId');
+    // Se devuelve con el pedido resuelto, igual que GET /api/sales/:id. Resolver el pedido y
+    // consolidar los indicadores no dependen uno del otro: van a la vez
+    const [ sale, indicatorsUpdated ] = await Promise.all([
+        created.populate('orderId'),
+        syncIndicators(created.fecha)
+    ]);
 
-    return { sale, indicatorsUpdated: await syncIndicators(sale.fecha) };
+    return { sale, indicatorsUpdated };
 };
 
 // Con el pedido resuelto en `orderId` (null en una venta directa)
@@ -162,7 +235,14 @@ const dbSyncOrderStatus = async (order) => {
         { returnDocument: 'after' }
     );
 
-    if (sale) await syncIndicators(sale.fecha);
+    if (!sale) return sale;
+
+    // Reconsolidar el día y, si el pedido vendido se canceló, devolver al inventario los insumos
+    // que gastó su venta. Son independientes: van a la vez
+    await Promise.all([
+        syncIndicators(sale.fecha),
+        order.estado === ORDER_STATES.CANCELLED && returnSaleSupplies(sale._id)
+    ]);
 
     return sale;
 };
@@ -177,14 +257,20 @@ const dbDeleteSale = async (id) => {
 
     if (!sale) return null;
 
-    if (sale.orderId) {
-        await orderModel.updateOne(
+    // Tres pasos independientes, a la vez:
+    //   - lo que la venta descontó vuelve al inventario (si su pedido se canceló, ya volvió y está vacío);
+    //   - el pedido 'Finalizado' vuelve a 'Listo';
+    //   - se reconsolida el día de la venta.
+    const [ , , indicatorsUpdated ] = await Promise.all([
+        dbReturnSupplies(sale.suppliesUsed),
+        sale.orderId && orderModel.updateOne(
             { _id: sale.orderId, estado: ORDER_STATES.FINISHED },
             { $set: { estado: 'Listo' }, $inc: { __v: 1 } }
-        );
-    }
+        ),
+        syncIndicators(sale.fecha)
+    ]);
 
-    return { sale, indicatorsUpdated: await syncIndicators(sale.fecha) };
+    return { sale, indicatorsUpdated };
 };
 
 export {

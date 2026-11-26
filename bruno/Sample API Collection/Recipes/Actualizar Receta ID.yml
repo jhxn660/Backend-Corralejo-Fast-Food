@@ -1,0 +1,29 @@
+info:
+  name: Actualizar Receta ID
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "http://localhost:3000/api/recipes/{{recipeId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      // PRUEBA: requiere {{recipeId}}. Token: Owner o Administrador (Empleado → 403).
+      // Solo cambian los insumos ("items" completo); el producto de la receta no cambia.
+      {
+        "items": [
+          { "supply": "{{supplyId}}", "quantity": 0.2 }
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

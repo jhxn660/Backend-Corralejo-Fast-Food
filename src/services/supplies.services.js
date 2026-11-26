@@ -10,7 +10,6 @@ const dbCreateSupply = async (newSupply) => {
     ]);
 };
 
-// Obtener un insumo por su ID
 const dbGetSupply = async (id) => {
     return await SupplyModel
         .findOne({ _id: id })
@@ -19,14 +18,14 @@ const dbGetSupply = async (id) => {
 };
 
 // Listar insumos con filtro opcional por estado de stock
-const dbGetSupplies = async (state) => {
+const dbGetSupplies = async (status) => {
     let filter = {};
 
     const availableStates = ['Con_Stock', 'Sin_Stock'];
 
     // Filtrar por estado (solo si se envia y es un estado valido)
-    if (state && availableStates.includes(state)) {
-        filter.state = state;
+    if (status && availableStates.includes(status)) {
+        filter.status = status;
     }
 
     return await SupplyModel
@@ -35,7 +34,6 @@ const dbGetSupplies = async (state) => {
         .populate('createdBy', 'name email role');
 };
 
-// Actualizar un insumo por su ID
 const dbUpdateSupply = async (id, supplyUpdated) => {
     return await SupplyModel.findOneAndUpdate(
         { _id: id },
@@ -47,7 +45,6 @@ const dbUpdateSupply = async (id, supplyUpdated) => {
     );
 };
 
-// Eliminar un insumo por su ID
 const dbDeleteSupply = async (id) => {
     return await SupplyModel.findOneAndDelete({ _id: id });
 };

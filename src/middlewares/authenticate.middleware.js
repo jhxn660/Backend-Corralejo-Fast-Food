@@ -14,7 +14,7 @@ const reject = (res, msg) => res.status(401).json({ msg });
  * Autenticación: ¿quién hace la petición?
  * 1. Lee el token de la cabecera.
  * 2. Comprueba firma y expiración (sin tocar la BD).
- * 3. Busca al usuario en la BD. Por esto un usuario eliminado o con state=false queda fuera
+ * 3. Busca al usuario en la BD. Por esto un usuario eliminado o con status=false queda fuera
  *    al instante, aunque su token siga sin vencer: el JWT solo dice quién era al firmarse.
  * 4. Deja el usuario (sin contraseña) en req.userFound para autorización y controladores.
  * Todo rechazo es 401; "no tienes permiso" (403) es asunto de authorizationMiddleware.

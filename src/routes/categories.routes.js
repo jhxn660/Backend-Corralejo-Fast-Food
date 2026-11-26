@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { createCategory, getCategory, getCategories, updateCategory, deleteCategory } from '../controllers/categories.controllers.js';
-import { requireRoles } from '../middlewares/authorization.middleware.js';
+
 import { ADMIN_ROLES, STAFF_ROLES } from '../config/roles.config.js';
+import { requireRoles } from '../middlewares/authorization.middleware.js';
+import { createCategory, getCategory, getCategories, updateCategory, deleteCategory } from '../controllers/categories.controllers.js';
 
 /**
  * CAPA DE RUTAS. Un archivo de rutas solo responde "¿quién atiende esta URL?"; no tiene lógica.

@@ -1,8 +1,10 @@
-import { randomBytes } from "node:crypto";
-import { Schema, model } from "mongoose";
-import { computeDetailTotals } from "./order.model.js";
-import { nextFreeSequence } from "./counter.model.js";
-import { parseBusinessDate } from "../helpers/business-date.helper.js";
+import { randomBytes } from 'node:crypto';
+import { Schema, model } from 'mongoose';
+
+import { parseBusinessDate } from '../helpers/business-date.helper.js';
+
+import { nextFreeSequence } from './counter.model.js';
+import { computeDetailTotals } from './order.model.js';
 
 // Código del QR: 8 bytes aleatorios (64 bits) en hexadecimal. Es la "llave" para comentar,
 // así que debe ser imposible de adivinar; por eso no se deriva de saleId ni de ticketId.
@@ -113,6 +115,17 @@ const saleSchema = new Schema({
             },
             message: 'Venta inválida: debe contener al menos un producto.'
         }
+    },
+    // Insumos que esta venta descontó del inventario según las recetas (lo pone el servidor al
+    // venderla). Al eliminar la venta o cancelar su pedido se devuelve EXACTAMENTE esto, aunque la
+    // receta haya cambiado después. Las ventas anteriores a las recetas no descontaron nada.
+    suppliesUsed: {
+        type: [{
+            supply: { type: Schema.Types.ObjectId, ref: 'Supply' },
+            quantity: Number
+        }],
+        _id: false,
+        default: []
     }
 }, { timestamps: true });
 
@@ -135,8 +148,11 @@ saleSchema.pre('validate', function () {
 saleSchema.pre('save', async function () {
     if (!this.isNew) return;
 
-    this.saleId = await nextFreeSequence(this.constructor, 'saleId', 'sales');
-    this.ticketId = await nextFreeSequence(this.constructor, 'ticketId', 'tickets');
+    // Son dos secuencias distintas ('sales' y 'tickets'): se piden a la vez, una sola espera a la BD
+    [ this.saleId, this.ticketId ] = await Promise.all([
+        nextFreeSequence(this.constructor, 'saleId', 'sales'),
+        nextFreeSequence(this.constructor, 'ticketId', 'tickets')
+    ]);
     this.qr = generateQrCode();
 });
 

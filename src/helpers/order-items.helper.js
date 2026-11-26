@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+
 import { HttpError } from './http-error.helper.js';
 
 /**

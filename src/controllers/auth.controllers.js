@@ -1,8 +1,8 @@
-import asyncHandler from "../helpers/async-handler.helper.js";
-import { HttpError } from "../helpers/http-error.helper.js";
-import { verifyPassword } from "../helpers/bcrypt.helper.js";
-import { generateToken } from "../helpers/jwt.helper.js";
-import { dbGetUserByEmail } from "../services/users.services.js";
+import asyncHandler from '../helpers/async-handler.helper.js';
+import { verifyPassword } from '../helpers/bcrypt.helper.js';
+import { HttpError } from '../helpers/http-error.helper.js';
+import { generateToken } from '../helpers/jwt.helper.js';
+import { dbGetUserByEmail } from '../services/users.services.js';
 
 // Login y renovación emiten exactamente el mismo payload; el middleware lo resuelve por `_id`.
 const buildTokenPayload = (user) => ({
@@ -10,7 +10,7 @@ const buildTokenPayload = (user) => ({
     name: user.name,
     email: user.email,
     role: user.role,
-    state: user.state
+    status: user.status
 });
 
 // Documento de Mongoose → objeto plano sin la contraseña

@@ -20,4 +20,4 @@ settings:
   forwardAuthorizationHeader: false
 
 docs: |-
-  PRUEBA: sin token. Esperado 200 solo con productos isActive: true.
+  PRUEBA: sin token. Esperado 200 solo con productos status: true.

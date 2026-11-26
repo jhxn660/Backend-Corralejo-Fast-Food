@@ -1,7 +1,10 @@
-import ProductModel from "../models/product.model.js";
-import saleModel from "../models/sale.model.js";
-import { ONLY_ACTIVE } from "../helpers/visibility.helper.js";
-import { HttpError } from "../helpers/http-error.helper.js";
+import mongoose from 'mongoose';
+
+import { HttpError } from '../helpers/http-error.helper.js';
+import { ONLY_ACTIVE } from '../helpers/visibility.helper.js';
+import orderModel from '../models/order.model.js';
+import ProductModel from '../models/product.model.js';
+import saleModel from '../models/sale.model.js';
 
 /**
  * Ciclo de un pedido:
@@ -23,14 +26,14 @@ const SELLABLE_STATES = Object.freeze([ ...OPEN_STATES, 'Entregado' ]);
  * Convierte items ya validados (parseItems) en líneas de detalle con el nombre y el precio
  * ACTUALES del catálogo. El precio se copia en la línea: si el catálogo cambia después, el
  * pedido conserva el precio con el que se pidió. subtotal y total los calcula el hook del modelo.
- * Un producto inexistente u oculto (isActive: false) → 400.
+ * Un producto inexistente u oculto (status: false) → 400.
  *
  * @param {{ productId: string, quantity: number }[]} items
  */
 const dbBuildDetails = async (items) => {
     const products = await ProductModel
         .find({ _id: { $in: items.map((item) => item.productId) }, ...ONLY_ACTIVE })
-        .select('nombre price')
+        .select('name price')
         .lean();
     const byId = new Map(products.map((product) => [ String(product._id), product ]));
 
@@ -41,21 +44,43 @@ const dbBuildDetails = async (items) => {
     }
 
     return items.map(({ productId, quantity }) => {
-        const { nombre, price } = byId.get(productId);
+        const { name, price } = byId.get(productId);
 
-        return { productId, producto: nombre, cantidad: quantity, precio_unitario: price };
+        return { productId, producto: name, cantidad: quantity, precio_unitario: price };
     });
 };
 
-// 409 si el pedido ya no admite productos (cerrado o con venta)
-const assertOrderOpen = async (order) => {
+/**
+ * 409 si el pedido ya no admite productos (cerrado o con venta).
+ * @param {boolean} [hasSale] - Si quien llama ya sabe si el pedido tiene venta (dbFindOrderWithSale),
+ *        se usa ese dato; si no lo pasa, se consulta aquí.
+ */
+const assertOrderOpen = async (order, hasSale) => {
     if (!OPEN_STATES.includes(order.estado)) {
         throw new HttpError(409, `El pedido está "${order.estado}" y ya no admite productos`);
     }
 
-    if (await saleModel.exists({ orderId: order._id })) {
+    if (hasSale ?? await saleModel.exists({ orderId: order._id })) {
         throw new HttpError(409, 'El pedido ya tiene una venta registrada y no admite productos');
     }
+};
+
+/**
+ * Lee un pedido y, A LA VEZ, si ya tiene venta: dos consultas en paralelo = una sola espera a la BD.
+ * Con un id de formato inválido no se adelanta nada: findById falla con el mismo error de siempre
+ * y `hasSale` queda undefined (quien lo necesite lo consulta después, como antes).
+ *
+ * @returns {Promise<{ order: Object|null, hasSale: boolean|undefined }>}
+ */
+const dbFindOrderWithSale = async (id) => {
+    if (!mongoose.isObjectIdOrHexString(id)) return { order: await orderModel.findById(id), hasSale: undefined };
+
+    const [ order, sale ] = await Promise.all([
+        orderModel.findById(id),
+        saleModel.exists({ orderId: id })
+    ]);
+
+    return { order, hasSale: Boolean(sale) };
 };
 
 /**
@@ -77,6 +102,7 @@ export {
     OPEN_STATES,
     SELLABLE_STATES,
     dbBuildDetails,
+    dbFindOrderWithSale,
     assertOrderOpen,
     mergeDetails
 };

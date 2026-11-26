@@ -1,5 +1,6 @@
-import { Schema, model } from "mongoose";
-import { nextFreeSequence } from "./counter.model.js";
+import { Schema, model } from 'mongoose';
+
+import { nextFreeSequence } from './counter.model.js';
 
 // Los detalles se embeben (sin _id propio) y copian nombre y precio del producto al momento
 // de pedirlo: el pedido debe conservar el precio con el que se vendió aunque el catálogo cambie.

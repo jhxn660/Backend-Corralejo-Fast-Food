@@ -19,7 +19,6 @@ const phoneRegex = /^(?:\+57)?3[0-9]{9}$/;
 const USER_ROLE_VALUES = Object.freeze(['Owner', 'Administrador', 'Empleado', 'Cliente']);
 
 const UserSchema = new Schema(
-    // Definición de los campos del documento
     {
         // Reemplaza la tabla roles del MER
         role: {
@@ -62,12 +61,12 @@ const UserSchema = new Schema(
             match: [phoneRegex, 'Por favor ingrese un número de teléfono válido']
         },
         // true = activo, false = inactivo
-        state: {
+        status: {
             type: Boolean,
             required: false,
             default: true
         },
-        // Cargo del empleado. Pendiente: redefinir el tipo
+        // Cargo del empleado (texto libre, opcional)
         empleado_rol: {
             type: String,
             required: false,
@@ -83,9 +82,9 @@ const UserSchema = new Schema(
         // BAJA LÓGICA (eliminación de Administrador / Empleado por el Owner).
         // Users es referenciado por createdBy en categories, products, supplies, users,
         // y por pqrs y comments: un findOneAndDelete dejaría esas referencias colgando y
-        // el populate devolvería null. La baja se marca aquí (state=false + deletedAt) y
+        // el populate devolvería null. La baja se marca aquí (status=false + deletedAt) y
         // el documento se conserva; dbGetUserByEmail y dbGetActiveUserById ya filtran
-        // state:true, así que una cuenta dada de baja no puede iniciar sesión.
+        // status:true, así que una cuenta dada de baja no puede iniciar sesión.
         deletedAt: {
             type: Date,
             default: null

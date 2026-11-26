@@ -13,14 +13,14 @@ http:
     type: json
     data: |-
       // PRUEBA: requiere {{categoryId}} de una categoría "type": "Producto" (Categories/Crear Categoria). Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
-      // "nombre" es único y de al menos 5 caracteres. createdBy lo asigna el servidor. Nace visible (isActive: true).
+      // "name" es único y de al menos 5 caracteres. createdBy lo asigna el servidor. Nace visible (status: true).
       // Esperado 201; guarda {{productId}}. Nombre repetido → 400. Con otro rol → 403; sin token o vencido → 401.
       {
-        "nombre": "Hamburguesa de res {{$timestamp}}",
+        "name": "Hamburguesa de res {{$timestamp}}",
         "description": "Deliciosa hamburguesa de carne de res para tu paladar",
         "price": 18000,
         "stock": 138,
-        "state": "disponible",
+        "images": [{ "url": "/uploads/hamburguesa-de-res.jpg", "isMain": true }],
         "category": "{{categoryId}}"
       }
   auth: inherit

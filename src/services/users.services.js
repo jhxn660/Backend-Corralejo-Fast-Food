@@ -1,7 +1,7 @@
-import { generatePassword } from "../helpers/bcrypt.helper.js";
-import { HttpError } from "../helpers/http-error.helper.js";
-import userModel from "../models/user.model.js";
-import { USER_ROLES } from "../config/roles.config.js";
+import { USER_ROLES } from '../config/roles.config.js';
+import { generatePassword } from '../helpers/bcrypt.helper.js';
+import { HttpError } from '../helpers/http-error.helper.js';
+import userModel from '../models/user.model.js';
 
 // La política se valida aquí y no en el Schema porque el Schema solo ve el hash (60 caracteres),
 // nunca la contraseña en claro. Mayúscula, minúscula, dígito y símbolo; 7 a 60 caracteres, sin espacios.
@@ -36,8 +36,8 @@ const dbGetUsers = async (page = 1, limit = 10, status = 'true', role) => {
 
     const filter = {};
 
-    if (status === 'false' || status === false) filter.state = false;
-    else if (status !== 'all') filter.state = true;
+    if (status === 'false' || status === false) filter.status = false;
+    else if (status !== 'all') filter.status = true;
 
     if (role && USER_ROLES.includes(role)) filter.role = role;
 
@@ -70,12 +70,12 @@ const dbDeleteUser = async (id) => {
  * Nunca usar en respuestas al cliente. Solo usuarios activos: uno deshabilitado no puede entrar.
  */
 const dbGetUserByEmail = async (email) => {
-    return await userModel.findOne({ email: email.trim().toLowerCase(), state: true });
+    return await userModel.findOne({ email: email.trim().toLowerCase(), status: true });
 };
 
 // Para el middleware de autenticación: el usuario vigente del token, sin contraseña.
 const dbGetActiveUserById = async (id) => {
-    return await userModel.findOne({ _id: id, state: true }).select('-password');
+    return await userModel.findOne({ _id: id, status: true }).select('-password');
 };
 
 export {

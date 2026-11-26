@@ -1,6 +1,6 @@
-import orderModel from "../models/order.model.js";
-import saleModel, { generateQrCode } from "../models/sale.model.js";
-import { raiseSequence } from "../models/counter.model.js";
+import { raiseSequence } from '../models/counter.model.js';
+import orderModel from '../models/order.model.js';
+import saleModel, { generateQrCode } from '../models/sale.model.js';
 
 /**
  * Migración de identificadores (pedidos y ventas creados antes de los consecutivos):

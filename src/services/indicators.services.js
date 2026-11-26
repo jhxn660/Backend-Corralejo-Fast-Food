@@ -1,9 +1,9 @@
-import saleModel from "../models/sale.model.js";
-import CommentModel from "../models/comment.model.js";
-import dailyIndicatorModel from "../models/daily-indicator.model.js";
-import salesGoalModel from "../models/sales-goal.model.js";
-import { BUSINESS_TIMEZONE, DAY_MS, keyToUtc } from "../helpers/business-date.helper.js";
-import { ONLY_ACTIVE } from "../helpers/visibility.helper.js";
+import { BUSINESS_TIMEZONE, DAY_MS, keyToUtc } from '../helpers/business-date.helper.js';
+import { ONLY_ACTIVE } from '../helpers/visibility.helper.js';
+import CommentModel from '../models/comment.model.js';
+import dailyIndicatorModel from '../models/daily-indicator.model.js';
+import saleModel from '../models/sale.model.js';
+import salesGoalModel from '../models/sales-goal.model.js';
 
 /**
  * Capa de datos de Indicadores.
@@ -190,8 +190,9 @@ const dbGetSeries = async ({ from, to }, groupBy) => {
 
 /**
  * Productos mejor valorados. La calificación es del ticket, así que se atribuye a cada
- * producto distinto de esa venta. Solo cuentan los comentarios visibles (isActive).
+ * producto distinto de esa venta. Solo cuentan los comentarios visibles (status).
  */
+// Sin `limit` devuelve todos los productos calificados (lo usa la carta pública: products.services)
 const dbGetProductReviews = async (limit) => {
     return await CommentModel.aggregate([
         { $match: { ...ONLY_ACTIVE, calificacion: { $gte: 1 } } },
@@ -201,7 +202,7 @@ const dbGetProductReviews = async (limit) => {
         { $unwind: '$product' },
         { $group: { _id: '$product', count: { $sum: 1 }, score: { $avg: '$calificacion' } } },
         { $sort: { score: -1, count: -1, _id: 1 } },
-        { $limit: limit },
+        ...(limit ? [ { $limit: limit } ] : []),
         { $project: { _id: 0, name: '$_id', count: 1, score: { $round: [ '$score', 1 ] } } }
     ]);
 };

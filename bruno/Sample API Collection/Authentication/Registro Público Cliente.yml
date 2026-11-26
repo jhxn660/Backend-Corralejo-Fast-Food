@@ -18,7 +18,7 @@ http:
         "email": "45547383w3@gmail.com",
         "password": "Hol@hoal12",
         "phone": "3185278932",
-        "state": true
+        "status": true
       }
   auth: inherit
 
