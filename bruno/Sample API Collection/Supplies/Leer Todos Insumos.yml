@@ -20,4 +20,4 @@ settings:
 
 docs: |-
   PRUEBA: Token: Owner, Administrador o Empleado (ejecuta Authentication/Login Usuario con esa cuenta).
-  Filtro opcional ?state=Con_Stock|Sin_Stock. Esperado 200.
+  Filtro opcional ?status=Con_Stock|Sin_Stock. Esperado 200.

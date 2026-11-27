@@ -70,7 +70,7 @@ before(async () => {
     const category = expectStatus(await call('POST', '/api/categories', { name: 'Menú', type: 'Producto' }, tokens.owner), 201).data._id;
 
     for (const [ key, [ nombre, priceValue ] ] of Object.entries(CATALOG)) {
-        product[key] = expectStatus(await call('POST', '/api/products', { nombre, price: priceValue, category }, tokens.owner), 201).data._id;
+        product[key] = expectStatus(await call('POST', '/api/products', { name: nombre, price: priceValue, category }, tokens.owner), 201).data._id;
     }
 });
 

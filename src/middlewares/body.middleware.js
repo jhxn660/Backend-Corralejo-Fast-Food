@@ -16,7 +16,7 @@ const ensureBody = (req, res, next) => {
  *
  * POR QUÉ: los servicios actualizan con findOneAndUpdate(filtro, body). Mongoose trata toda clave
  * del body que empieza por "$" como una orden de actualización, no como un dato. Los controladores
- * quitan los campos protegidos por su nombre (`role`, `password`, `isActive`...), pero
+ * quitan los campos protegidos por su nombre (`role`, `password`, `status`...), pero
  * { "$set": { "role": "Owner" } } no tiene ningún campo llamado `role` en el primer nivel:
  * pasaba el filtro y Mongoose lo aplicaba. Un Cliente recién registrado podía volverse Owner.
  *

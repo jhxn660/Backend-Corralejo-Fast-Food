@@ -1,0 +1,24 @@
+info:
+  name: Quitar Me Gusta Comentario ID
+  type: http
+  seq: 11
+
+http:
+  method: DELETE
+  url: "http://localhost:3000/api/comments/{{commentId}}/like"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+docs: |-
+  PRUEBA: requiere {{commentId}} y haber ejecutado antes Dar Me Gusta Comentario ID con la misma cuenta.
+  Token: Owner, Administrador o Cliente. Esperado 200 con { _id, likes, likedByMe: false }.
+  Repetirla no vuelve a restar: solo se quita el "me gusta" de quien lo dio.

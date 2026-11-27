@@ -1,16 +1,17 @@
-import mongoose from "mongoose";
-import asyncHandler from "../helpers/async-handler.helper.js";
-import { parseItems } from "../helpers/order-items.helper.js";
-import { assertFound, HttpError } from "../helpers/http-error.helper.js";
-import { isValidDayKey } from "../helpers/business-date.helper.js";
-import { STAFF_ROLES } from "../config/roles.config.js";
+import mongoose from 'mongoose';
+
+import { STAFF_ROLES } from '../config/roles.config.js';
+import asyncHandler from '../helpers/async-handler.helper.js';
+import { isValidDayKey } from '../helpers/business-date.helper.js';
+import { assertFound, HttpError } from '../helpers/http-error.helper.js';
+import { parseItems } from '../helpers/order-items.helper.js';
 import {
     dbDeleteSale,
     dbReadSaleById,
     dbReadSales,
     dbRegisterSale,
     dbUpdateSale
-} from "../services/sales.services.js";
+} from '../services/sales.services.js';
 
 const NOT_FOUND = 'Venta no encontrada';
 
@@ -69,8 +70,7 @@ const getSales = asyncHandler(async (req, res) => {
 
     const sales = await dbReadSales({ from, to });
 
-    // El personal ve todo. Para los demás se arma una versión reducida: solo lo necesario
-    // para contar qué producto se vendió más, sin datos de personas.
+    // El personal ve todo; para los demás, solo lo necesario para contar lo más vendido.
     const isStaff = STAFF_ROLES.includes(req.userFound?.role);
     const data = isStaff
         ? sales

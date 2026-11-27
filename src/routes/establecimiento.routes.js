@@ -1,4 +1,7 @@
 import { Router } from 'express';
+
+import { ADMIN_ROLES } from '../config/roles.config.js';
+import { requireRoles } from '../middlewares/authorization.middleware.js';
 import {
     createEstablecimiento,
     getEstablecimiento,
@@ -14,12 +17,15 @@ import {
     getUbicacion,
     getUbicaciones,
     updateUbicacion,
-    deleteUbicacion
+    deleteUbicacion,
+    createCierre,
+    getCierre,
+    getCierres,
+    updateCierre,
+    deleteCierre
 } from '../controllers/establecimiento.controllers.js';
-import { requireRoles } from '../middlewares/authorization.middleware.js';
-import { ADMIN_ROLES } from '../config/roles.config.js';
 
-// Este router se monta en /api (no en un prefijo propio) porque expone tres
+// Este router se monta en /api (no en un prefijo propio) porque expone cuatro
 // recursos hermanos del mismo dominio; cada ruta declara su prefijo completo.
 const router = Router();
 
@@ -33,7 +39,7 @@ router.delete('/establecimiento/:id', requireRoles(ADMIN_ROLES), deleteEstableci
 
 // Horarios
 router.post('/horarios', requireRoles(ADMIN_ROLES), createHorario);
-// LECTURA PÚBLICA: el calendario de atención de la portada.
+// LECTURA PÚBLICA: el horario de atención de la portada.
 router.get('/horarios/:id', getHorario);
 router.get('/horarios', getHorarios);
 router.patch('/horarios/:id', requireRoles(ADMIN_ROLES), updateHorario);
@@ -46,5 +52,13 @@ router.get('/ubicaciones/:id', getUbicacion);
 router.get('/ubicaciones', getUbicaciones);
 router.patch('/ubicaciones/:id', requireRoles(ADMIN_ROLES), updateUbicacion);
 router.delete('/ubicaciones/:id', requireRoles(ADMIN_ROLES), deleteUbicacion);
+
+// Cierres: fechas concretas en las que el local no abre (aparte del horario semanal)
+router.post('/cierres', requireRoles(ADMIN_ROLES), createCierre);
+// LECTURA PÚBLICA: el calendario de atención de la portada los marca como cerrados.
+router.get('/cierres/:id', getCierre);
+router.get('/cierres', getCierres);
+router.patch('/cierres/:id', requireRoles(ADMIN_ROLES), updateCierre);
+router.delete('/cierres/:id', requireRoles(ADMIN_ROLES), deleteCierre);
 
 export default router;

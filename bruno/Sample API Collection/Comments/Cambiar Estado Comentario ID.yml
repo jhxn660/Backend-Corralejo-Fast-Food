@@ -14,8 +14,8 @@ http:
     data: |-
       // PRUEBA: requiere {{commentId}}. Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
       // false lo oculta: sale de Listar Comentarios Publicos y deja de contar en las valoraciones.
-      // true lo vuelve a mostrar. Esperado 200. "isActive" que no sea booleano → 400.
-      { "isActive": false }
+      // true lo vuelve a mostrar. Esperado 200. "status" que no sea booleano → 400.
+      { "status": false }
   auth: inherit
 
 settings:

@@ -15,10 +15,10 @@ http:
       // Variante: una password sin mayúscula, número o símbolo → 400.
       {
         "name": "JuanS",
-        "email": "455477383w3@gmail.com",
-        "password": "Hol@7hoal12",
-        "phone": "3115278932",
-        "state": true
+        "email": "45547383w3@gmail.com",
+        "password": "Hol@hoal12",
+        "phone": "3185278932",
+        "status": true
       }
   auth: inherit
 

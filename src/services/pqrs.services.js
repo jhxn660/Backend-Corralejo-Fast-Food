@@ -1,4 +1,4 @@
-import PQRSModel from "../models/pqrs.model.js";
+import PQRSModel from '../models/pqrs.model.js';
 
 // Del autor solo viaja lo necesario para mostrarlo (nunca el hash de la contraseña)
 const AUTHOR = [ 'usuario', '_id name email' ];
@@ -13,9 +13,17 @@ const dbGetPQRS = async (id) => {
     return await PQRSModel.findOne({ _id: id }).populate(...AUTHOR);
 };
 
-// `filter` vacío = todas; { usuario: id } = solo las de ese cliente
-const dbGetPQRSList = async (filter = {}) => {
-    return await PQRSModel.find(filter).sort({ createdAt: -1 }).populate(...AUTHOR);
+const dbGetPQRSList = async () => {
+    return await PQRSModel.find().sort({ createdAt: -1 }).populate(...AUTHOR);
+};
+
+// Las PQRS de UN usuario (GET /api/pqrs/mine). Misma forma que el listado del personal, salvo
+// `respondedBy`: el Cliente ve la respuesta y su fecha, no qué cuenta del personal la escribió.
+const dbGetPQRSListByUser = async (usuarioId) => {
+    return await PQRSModel.find({ usuario: usuarioId })
+        .select('-respondedBy')
+        .sort({ createdAt: -1 })
+        .populate(...AUTHOR);
 };
 
 const dbUpdatePQRS = async (id, pqrsUpdate) => {
@@ -34,6 +42,7 @@ export {
     dbCreatePQRS,
     dbGetPQRS,
     dbGetPQRSList,
+    dbGetPQRSListByUser,
     dbUpdatePQRS,
     dbDeletePQRS
 };

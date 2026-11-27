@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 
-const TOKEN_TTL = '1h';
+// La sesión dura 2 horas. El frontend pide un token nuevo después de cada petición al backend;
+// sin peticiones durante 2 horas, el token vence y la sesión se cierra.
+const TOKEN_TTL = '2h';
 
 /**
  * Firma un token HS256 con JWT_SECRET. El payload NO va cifrado (es Base64): cualquiera puede

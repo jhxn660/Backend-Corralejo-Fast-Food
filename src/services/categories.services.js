@@ -16,21 +16,18 @@ const dbCreateCategory = async (newCategory) => {
     return await category.populate('createdBy', 'name email role');
 };
 
-// Obtener una categoria por su ID
 const dbGetCategory = async (id) => {
     return await CategoryModel
         .findOne({ _id: id })
         .populate('createdBy', 'name email role');
 };
 
-// Listar todas las categorias
 const dbGetCategories = async () => {
     return await CategoryModel
         .find()
         .populate('createdBy', 'name email role');
 };
 
-// Actualizar uno o mas campos de una categoria (PATCH)
 const dbUpdateCategory = async (id, categoryUpdated) => {
     return await CategoryModel.findOneAndUpdate(
         { _id: id },
@@ -42,7 +39,6 @@ const dbUpdateCategory = async (id, categoryUpdated) => {
     );
 };
 
-// Eliminar una categoria por su ID
 const dbDeleteCategory = async (id) => {
     return await CategoryModel.findOneAndDelete({ _id: id });
 };

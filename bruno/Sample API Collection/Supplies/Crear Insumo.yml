@@ -13,7 +13,7 @@ http:
     type: json
     data: |-
       // PRUEBA: requiere {{categoryId}} de una categoría "type": "Insumo" (Categories/Crear Categoria). Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
-      // createdBy lo asigna el servidor. "state" por defecto "Con_Stock".
+      // createdBy lo asigna el servidor. "status" por defecto "Con_Stock".
       // Esperado 201; guarda {{supplyId}}. Categoría de tipo Producto → 400. Con otro rol → 403; sin token o vencido → 401.
       {
         "name": "Pan brioche {{$timestamp}}",

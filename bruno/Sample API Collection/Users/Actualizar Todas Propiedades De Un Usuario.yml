@@ -4,7 +4,7 @@ info:
   seq: 5
 
 http:
-  method: PUT
+  method: PATCH
   url: "http://localhost:3000/api/users/{{userId}}"
   headers:
     - name: X-Token
@@ -18,7 +18,7 @@ http:
         "role": "Empleado",
         "name": "Mateo Chaves",
         "email": "mateo.chaves{{$timestamp}}@correo.com",
-        "state": true,
+        "status": true,
         "empleado_rol": "Cocinero"
       }
   auth: inherit

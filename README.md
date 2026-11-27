@@ -14,7 +14,7 @@ colección de Bruno). No sirve ni depende de ninguna interfaz.
 | **Node.js 22+** | Entorno de ejecución. Se usan `--env-file`, `--watch` y `node --test` (no hay `dotenv` ni `nodemon`). |
 | **Express 5** | Servidor HTTP y enrutamiento. |
 | **MongoDB + Mongoose 9** | Base de datos y modelos (validación, hooks, índices). |
-| **jsonwebtoken** | Autenticación con JWT (HS256, 1 hora). |
+| **jsonwebtoken** | Autenticación con JWT (HS256, 2 horas). |
 | **bcrypt** | Hash de contraseñas. |
 | **cors** | Orígenes permitidos. |
 | **mongodb-memory-server** *(dev)* | MongoDB en memoria para las pruebas: nunca tocan la base real. |
@@ -83,6 +83,11 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 
 Comprobar que está arriba: `GET http://localhost:3000/health`.
 
+**Rendimiento con Atlas.** Cada consulta a MongoDB Atlas (AWS us-east-1) tarda ~100 ms en ir y volver,
+así que una escritura que encadena consultas se nota (registrar una venta: ~1,6 s). Para desarrollar
+rápido, usa un MongoDB local en `URI_MONGO` (cada consulta < 1 ms). En producción, despliega el backend
+en la misma región que el clúster de Atlas. Ver [ARQUITECTURA.md](ARQUITECTURA.md), sección 3.
+
 ## 5. Guía rápida
 
 ### Flujo de autenticación
@@ -92,7 +97,7 @@ Comprobar que está arriba: `GET http://localhost:3000/health`.
 2. POST /api/auth/login      { email, password }           → devuelve { token, data }
 3. Cada petición protegida envía el token en una cabecera:
       X-Token: <token>          o          Authorization: Bearer <token>
-4. El token dura 1 hora. GET /api/auth/renew-token (con el token vigente) entrega uno nuevo.
+4. El token dura 2 horas. GET /api/auth/renew-token (con el token vigente) entrega uno nuevo; el frontend lo pide después de cada petición al backend.
 ```
 
 - **401** = no se sabe quién eres (falta el token, venció o el usuario está inactivo) → iniciar sesión.
@@ -113,38 +118,44 @@ Todas las respuestas correctas tienen la forma `{ msg, data }`; los errores, `{ 
 | POST | `/api/auth/register` | Público | Registro (siempre como Cliente) |
 | POST | `/api/auth/login` | Público | Inicio de sesión: devuelve el token |
 | GET | `/api/auth/renew-token` | Con token | Renueva el token |
-| GET · POST | `/api/users` | Admin | Listar (`?page&limit&state&role`) · crear usuario |
-| GET · PATCH · PUT | `/api/users/:id` | Admin o el propio usuario | Ver · editar |
+| GET · POST | `/api/users` | Admin | Listar (`?page&limit&status&role`; `status` = `true`, `false` o `all`, por defecto `all`) · crear usuario |
+| GET · PATCH | `/api/users/:id` | Admin o el propio usuario | Ver · editar |
 | DELETE | `/api/users/:id` | Admin | Eliminar (solo un Owner gestiona cuentas Owner) |
 | GET | `/api/categories` · `/:id` | Personal | Listar · ver categoría |
 | POST · PATCH · DELETE | `/api/categories` · `/:id` | Admin | Crear · editar · eliminar |
-| GET | `/api/products/public` | Público | Carta: solo productos visibles |
-| GET | `/api/products` · `/:id` | Personal | Listar (`?isActive=true\|false\|all`) · ver |
-| POST · PATCH · DELETE | `/api/products` · `/:id` | Admin | Crear · editar · eliminar |
-| PATCH | `/api/products/:id/status` | Admin | Mostrar / ocultar: `{ "isActive": boolean }` |
-| GET | `/api/supplies` · `/:id` | Personal | Listar (`?state=Con_Stock\|Sin_Stock`) · ver insumo |
-| POST · PATCH · DELETE | `/api/supplies` · `/:id` | Admin | Crear · editar · eliminar |
+| GET | `/api/products/public` | Público | Carta: solo productos visibles, con `rating` { score 1-5, count } de los comentarios por QR |
+| GET | `/api/products` · `/:id` | Personal | Listar (`?status=true\|false\|all`) · ver |
+| POST · PATCH · DELETE | `/api/products` · `/:id` | Admin | Crear · editar · eliminar. Combo = producto con `comboItems` [{ product, quantity }] y `comboPriceMode` `sum` (suma de sus productos) o `custom` |
+| PATCH | `/api/products/:id/status` | Admin | Mostrar / ocultar: `{ "status": boolean }` |
+| GET | `/api/supplies` · `/:id` | Personal | Listar (`?status=Con_Stock\|Sin_Stock`) · ver insumo |
+| POST · PATCH · DELETE | `/api/supplies` · `/:id` | Admin | Crear · editar · eliminar (incluye `minStock`, el stock mínimo de reposición) |
+| GET | `/api/recipes` · `/:id` | Personal | Recetas: qué insumos gasta cada producto |
+| POST · PATCH · DELETE | `/api/recipes` · `/:id` | Admin | Crear `{ product, items: [{ supply, quantity }] }` · cambiar `items` · eliminar |
 | POST | `/api/orders` | Personal | Crear pedido: `{ items: [{ productId, quantity }] }` |
 | GET | `/api/orders` · `/:id` | Personal | Listar (`?estado=`) · ver |
 | POST | `/api/orders/:id/items` | Personal | Añadir productos a un pedido abierto |
-| PATCH · PUT | `/api/orders/:id` | Personal | Cambiar solo el `estado` |
+| PUT | `/api/orders/:id/items` | Personal | Reemplazar la lista completa de productos de un pedido abierto (quitar y cambiar cantidades) |
+| PATCH | `/api/orders/:id` | Personal | Cambiar solo el `estado` |
 | DELETE | `/api/orders/:id` | Admin | Eliminar (si no tiene venta) |
-| POST | `/api/sales` | Personal | Registrar venta: con `orderId` (de un pedido) o directa con `items` |
-| GET | `/api/sales` · `/:id` | Personal | Listar (`?from&to` en `YYYY-MM-DD`) · ver |
-| PATCH · PUT · DELETE | `/api/sales/:id` | Admin | Corregir `fecha`, `cliente`, `direccionEntrega` · eliminar |
+| POST | `/api/sales` | Personal | Registrar venta: con `orderId` (de un pedido) o directa con `items`. Descuenta los insumos de las recetas (409 `missingSupplies` si no alcanzan) |
+| GET | `/api/sales` | Público o Personal | Listar (`?from&to` en `YYYY-MM-DD`). El personal recibe la venta completa; sin token (o con otro rol) solo `fecha`, `estadoPedido` y producto + cantidad de cada línea, para contar lo más vendido |
+| GET | `/api/sales/:id` | Personal | Ver una venta |
+| PATCH · DELETE | `/api/sales/:id` | Admin | Corregir `fecha`, `cliente`, `direccionEntrega` · eliminar |
 | GET | `/api/indicators/panel` | Admin | Panel de indicadores (`?month&compareA&compareB&yearA&yearB`) |
 | GET | `/api/indicators/dashboard` · `/metrics` | Admin | Dashboard por fecha · métricas por rango |
 | PUT | `/api/indicators/goal/:year` | Admin | Definir la meta anual: `{ "target": number }` |
 | POST | `/api/indicators/rebuild` | Admin | Regenerar los indicadores desde las ventas |
-| POST | `/api/comments` | Público o Cliente | Comentar con el código QR del ticket: `{ codigo, comentario, valoracion }` |
-| GET | `/api/comments/public` | Público | Comentarios visibles |
-| GET | `/api/comments` · `/:id` | Personal | Moderación: listar (`?isActive=`) · ver |
+| POST | `/api/comments` | Público o Cliente | Comentar con el código QR del ticket: `{ codigo, comentario, calificacion (1-5) o valoracion (1-10) }` |
+| GET | `/api/comments/public` | Público | Comentarios visibles; con token, cada uno trae `likedByMe` |
+| POST · DELETE | `/api/comments/:id/like` | Admin y Cliente | Dar · quitar "me gusta" (uno por persona; repetir no suma ni resta) |
+| GET | `/api/comments` · `/:id` | Personal | Moderación: listar (`?status=`) · ver |
 | PATCH · DELETE | `/api/comments/:id` · `/:id/status` | Admin | Editar · mostrar/ocultar · eliminar |
-| POST | `/api/pqrs` | Cliente | Registrar una PQRS |
+| POST | `/api/pqrs` | Cliente | Registrar una PQRS: `{ tipo, asunto, descripcion }` |
+| GET | `/api/pqrs/mine` | Cliente | Sus propias PQRS, con la respuesta del restaurante |
 | GET | `/api/pqrs` · `/:id` | Personal | Listar · ver |
-| PATCH · DELETE | `/api/pqrs/:id` | Admin | Cambiar estado · eliminar |
-| GET | `/api/establecimiento` · `/api/horarios` · `/api/ubicaciones` (y `/:id`) | Personal | Consultar información del local |
-| POST · PATCH · DELETE | `/api/establecimiento` · `/api/horarios` · `/api/ubicaciones` (y `/:id`) | Admin | Gestionar información del local |
+| PATCH · DELETE | `/api/pqrs/:id` | Admin | Responder y cambiar estado: `{ estado?, respuesta? }` · eliminar |
+| GET | `/api/establecimiento` · `/api/horarios` · `/api/ubicaciones` · `/api/cierres` (y `/:id`) | Público | Consultar información del local |
+| POST · PATCH · DELETE | `/api/establecimiento` · `/api/horarios` · `/api/ubicaciones` · `/api/cierres` (y `/:id`) | Admin | Gestionar información del local. `/api/cierres` `{ fecha: "AAAA-MM-DD", estaAbierto?, horaApertura?, horaCierre?, motivo? }` define UNA fecha (cerrada por defecto, o abierta con su propio horario "HH:MM") sin tocar el horario semanal |
 
 ### Flujo de negocio principal
 
@@ -166,18 +177,13 @@ Comentario (POST /api/comments { codigo: <qr> } — uno por ticket)
 Abre la carpeta `bruno/Sample API Collection` en [Bruno](https://www.usebruno.com/). Cada carpeta
 corresponde a un recurso de la tabla anterior. Inicia sesión primero y usa el token devuelto.
 
-## 6. Integración con el frontend (cambios)
+## 6. Nombres de campos (convención del FrontEnd de referencia)
 
-Ajustes hechos para que el frontend (`FrontEnd-Corralejo-Fast-Food`) funcione contra esta API.
-Cada cambio está comentado en el código donde vive.
-
-| Fase | Qué cambió | Dónde |
+| Modelo | Antes | Ahora |
 |---|---|---|
-| 1. Lecturas públicas | `GET` de `/api/categories`, `/api/establecimiento`, `/api/horarios` y `/api/ubicaciones` ya no piden token. `GET /api/sales` responde a todos: el personal recibe las ventas completas; clientes y visitantes solo fecha, estado y productos (para "el más vendido del día"). | `routes/*.routes.js`, `controllers/sales.controllers.js` |
-| 2. Productos | Nuevos campos `imagen`, `precioCombo`, `calificacion` y `receta`. Las categorías tienen `icono`. Un pedido o venta puede llevar líneas en combo (`combo: true`), con el precio del combo del catálogo. El body JSON admite hasta 2 MB (fotos en base64). | `models/product.model.js`, `models/category.model.js`, `services/order-details.services.js`, `app.js` |
-| 3. Inventario (en insumos) | `GET /api/supplies/availability`: unidades que se pueden preparar de cada producto. Registrar una venta **descuenta** del stock lo que gasta su receta (400 con `faltantes` si no alcanza); eliminar la venta lo **devuelve**. La venta guarda `consumoInsumos`. | `services/supplies.services.js`, `services/sales.services.js` |
-| 4. Pedidos | Un pedido abierto puede crearse vacío. `PUT /api/orders/:id/items` reemplaza sus productos (quitar o cambiar cantidades). Un pedido vacío no se puede vender. | `models/order.model.js`, `controllers/orders.controllers.js`, `services/orders.services.js` |
-| 4. PQRS | El Cliente puede leer **solo sus** PQRS (`GET /api/pqrs` y `/:id`); el personal lee todas. Nuevo campo `respuesta` para el administrador. | `routes/pqrs.routes.js`, `controllers/pqrs.controllers.js`, `models/pqrs.model.js` |
-| 5. "Me gusta" | `PATCH /api/comments/:id/like` suma o resta 1 al contador `likes` (Cliente, Administrador, Owner). `GET /api/comments/public` con token indica `meGusta` por comentario. Los comentarios siguen naciendo solo desde el QR del tiquete. | `services/comments.services.js`, `routes/comments.routes.js` |
+| Producto | `nombre`, `isActive`, `state` (logístico) | `name`, `status` (visible u oculto), `images: [{ url, isMain }]`; sin `state` |
+| Usuario | `state` | `status` (activo o inactivo) |
+| Comentario | `isActive` | `status` (visible u oculto) |
+| Insumo | `state` | `status` (`Con_Stock` / `Sin_Stock`) |
 
-La receta se edita como cualquier campo del producto: `PATCH /api/products/:id { "receta": [{ "supply": "<_id insumo>", "cantidad": 0.2 }] }`.
+Los filtros y cuerpos siguen el mismo nombre: `?status=` y `PATCH /:id/status { "status": boolean }`.

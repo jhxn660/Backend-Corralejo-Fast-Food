@@ -13,11 +13,14 @@ http:
     type: json
     data: |-
       // PRUEBA: requiere {{pqrsId}} (Registrar PQRS). Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // Solo se aceptan "estado" y "respuesta"; tipo, asunto y descripcion (lo que escribió el Cliente) se ignoran.
       // "estado": Pendiente | En proceso | Resuelto | Cerrado (otro → 400).
+      // "respuesta": texto de 10 a 1000 caracteres (fuera de rango o no texto → 400). El servidor guarda
+      // quién respondió (respondedBy) y cuándo (respondedAt). El Cliente la lee en Listar Mis PQRS.
       // Esperado 200. ID inexistente → 404; ID mal formado → 400.
       {
-        "estado": "En proceso",
-        "asunto": "Consulta de horarios actualizada"
+        "estado": "Resuelto",
+        "respuesta": "Atendemos de martes a domingo de 2:00 p. m. a 9:30 p. m. ¡Te esperamos!"
       }
   auth: inherit
 

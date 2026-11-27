@@ -1,5 +1,5 @@
-import { createCrudController } from "../helpers/crud.helper.js";
-import { establecimientoService, horarioService, ubicacionService } from "../services/establecimiento.services.js";
+import { createCrudController } from '../helpers/crud.helper.js';
+import { cierreService, establecimientoService, horarioService, ubicacionService } from '../services/establecimiento.services.js';
 
 const establecimiento = createCrudController(establecimientoService, {
     create: 'Registrar información',
@@ -49,6 +49,22 @@ const ubicacion = createCrudController(ubicacionService, {
     }
 });
 
+const cierre = createCrudController(cierreService, {
+    create: 'Registrar cierre',
+    getById: 'Obtener cierre por ID',
+    getAll: 'Listar total de cierres',
+    update: 'Actualizar cierre',
+    remove: 'Eliminar cierre',
+    notFound: 'Cierre no encontrado',
+    errors: {
+        create: 'No se pudo registrar el cierre',
+        getById: 'No se pudo obtener el cierre',
+        getAll: 'No se pueden listar los cierres',
+        update: 'No se pudo actualizar el cierre',
+        remove: 'No se pudo eliminar el cierre'
+    }
+});
+
 export const {
     create: createEstablecimiento,
     getById: getEstablecimiento,
@@ -72,3 +88,11 @@ export const {
     update: updateUbicacion,
     remove: deleteUbicacion
 } = ubicacion;
+
+export const {
+    create: createCierre,
+    getById: getCierre,
+    getAll: getCierres,
+    update: updateCierre,
+    remove: deleteCierre
+} = cierre;

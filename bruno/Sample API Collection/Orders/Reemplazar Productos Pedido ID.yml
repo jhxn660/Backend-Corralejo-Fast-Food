@@ -1,0 +1,32 @@
+info:
+  name: Reemplazar Productos Pedido ID
+  type: http
+  seq: 7
+
+http:
+  method: PUT
+  url: "http://localhost:3000/api/orders/{{orderId}}/items"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      // PRUEBA: requiere {{orderId}} (Crear Pedido) y {{productId}}. Token: Owner, Administrador o Empleado.
+      // "items" es la lista COMPLETA de productos: lo que no venga se quita del pedido y las
+      // cantidades se reemplazan. Un producto que ya estaba conserva su precio; uno nuevo entra con
+      // el precio actual. Lista vacía → 400 (para vaciar un pedido, se cancela).
+      // Pedido cerrado o con venta → 409. Esperado 200 con subtotales y total recalculados.
+      {
+        "items": [
+          { "productId": "{{productId}}", "quantity": 1 }
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

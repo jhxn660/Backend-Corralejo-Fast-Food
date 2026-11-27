@@ -1,6 +1,6 @@
-import asyncHandler from "../helpers/async-handler.helper.js";
-import { assertFound } from "../helpers/http-error.helper.js";
-import { dbCreateSupply, dbGetSupply, dbGetSupplies, dbUpdateSupply, dbDeleteSupply, dbGetAvailability } from '../services/supplies.services.js';
+import asyncHandler from '../helpers/async-handler.helper.js';
+import { assertFound } from '../helpers/http-error.helper.js';
+import { dbCreateSupply, dbGetSupply, dbGetSupplies, dbUpdateSupply, dbDeleteSupply } from '../services/supplies.services.js';
 
 const NOT_FOUND = 'Insumo no encontrado';
 
@@ -15,13 +15,13 @@ const getSupply = asyncHandler(async (req, res) => {
     res.json({ msg: 'Obtiene un Insumo', data: assertFound(await dbGetSupply(req.params.id), NOT_FOUND) });
 }, 'No se pudo obtener el insumo por id');
 
-// ?state=Con_Stock|Sin_Stock (opcional)
+// ?status=Con_Stock|Sin_Stock (opcional)
 const getSupplies = asyncHandler(async (req, res) => {
-    res.json({ msg: 'Lista de Insumos', data: await dbGetSupplies(req.query.state) });
+    res.json({ msg: 'Lista de Insumos', data: await dbGetSupplies(req.query.status) });
 }, 'No se ha podido obtener los insumos');
 
 const updateSupply = asyncHandler(async (req, res) => {
-    // CAMBIO: antes se sobrescribía createdBy con quien editaba y se perdía el autor original
+    // El autor original no cambia al editar: `createdBy` se descarta del body.
     const { createdBy, ...changes } = req.body;
 
     res.json({ msg: 'Insumo Actualizado', data: assertFound(await dbUpdateSupply(req.params.id, changes), NOT_FOUND) });
@@ -31,13 +31,7 @@ const deleteSupply = asyncHandler(async (req, res) => {
     res.json({ msg: 'Insumo Eliminado', data: assertFound(await dbDeleteSupply(req.params.id), NOT_FOUND) });
 }, 'No se ha podido eliminar el insumo');
 
-// GET /api/supplies/availability
-const getAvailability = asyncHandler(async (req, res) => {
-    res.json({ msg: 'Disponibilidad según inventario', data: await dbGetAvailability() });
-}, 'No se pudo calcular la disponibilidad del inventario');
-
 export {
-    getAvailability,
     createSupply,
     getSupply,
     getSupplies,

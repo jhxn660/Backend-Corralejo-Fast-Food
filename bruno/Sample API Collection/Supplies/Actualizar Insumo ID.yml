@@ -13,7 +13,7 @@ http:
     type: json
     data: |-
       // PRUEBA: requiere {{supplyId}} (Crear Insumo). Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
-      // "state": Con_Stock | Sin_Stock. createdBy no cambia aunque lo envíes.
+      // "status": Con_Stock | Sin_Stock. createdBy no cambia aunque lo envíes.
       // Esperado 200. ID inexistente → 404; ID mal formado → 400.
       {
         "name": "Harina de trigo {{$timestamp}}",
@@ -21,7 +21,7 @@ http:
         "medida": "10 KG",
         "cost": 30000,
         "stock": 3,
-        "state": "Con_Stock"
+        "status": "Con_Stock"
       }
   auth: inherit
 

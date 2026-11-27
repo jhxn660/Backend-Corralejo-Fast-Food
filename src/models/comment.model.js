@@ -3,15 +3,13 @@ import { Schema, model } from 'mongoose';
 const CommentSchema = new Schema({
     usuario: {
         type: Schema.Types.ObjectId,
-        // CAMBIO: antes apuntaba a 'Usuario', un modelo que ya no está registrado (ahora es 'User');
-        // con la referencia antigua cualquier populate fallaba con MissingSchemaError.
         ref: 'User',
-        // CAMBIO: deja de ser obligatorio. Un visitante sin cuenta ('Usuario') también puede
-        // comentar; en ese caso el autor queda en null y la legitimidad la aporta el ticket.
+        // No es obligatorio: un visitante sin cuenta ('Usuario') también puede comentar; en ese caso
+        // el autor queda en null y la legitimidad la aporta el ticket.
         default: null
     },
-    // CAMBIO: venta que respalda el comentario. La resuelve el Backend a partir del QR;
-    // nunca se acepta desde el body.
+    // Venta que respalda el comentario. La resuelve el backend a partir del QR; nunca se acepta
+    // desde el body.
     venta: {
         type: Schema.Types.ObjectId,
         ref: 'Sale',
@@ -22,8 +20,8 @@ const CommentSchema = new Schema({
         // Contenido leído del QR del ticket de compra (`qr` de la venta)
         required: [true, 'El código del comentario es obligatorio']
     },
-    // CAMBIO: deja de ser obligatorio. El Frontend permite puntuar sin escribir
-    // ("puntuación sola"); lo que se exige es texto O valoración (ver pre('validate')).
+    // No es obligatorio: se puede puntuar sin escribir. Lo que se exige es texto O valoración
+    // (ver pre('validate')).
     comentario: {
         type: String,
         trim: true,
@@ -32,22 +30,22 @@ const CommentSchema = new Schema({
     },
     // Contador desnormalizado de "me gusta". La fuente de verdad es `likedBy`:
     // un número suelto lo infla cualquiera; con un registro por usuario el
-    // segundo clic quita el suyo. PENDIENTE: rutas POST/DELETE /:id/like que
-    // mantengan los dos campos ($addToSet / $pull + $inc).
+    // segundo clic quita el suyo. Lo mantienen POST / DELETE /api/comments/:id/like
+    // (dbLikeComment / dbUnlikeComment: $addToSet / $pull + $inc en una sola operación).
     likes: {
         type: Number,
         default: 0,
         min: [0, 'Los likes no pueden ser negativos']
     },
-    // NUEVO: quién dio "me gusta". Solo usuarios con cuenta: un visitante sin
-    // token no tiene identidad a la que atribuirlo.
+    // Quién dio «me gusta». Solo usuarios con cuenta: un visitante sin token no tiene identidad a
+    // la que atribuirlo.
     likedBy: {
         type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
         default: [],
-        select: false  // no viaja en los listados; se resuelve como `miMeGusta`
+        select: false  // no viaja en los listados; se resuelve como `likedByMe` (dbGetPublicComments)
     },
-    // NUEVO: valoración de la compra, entero 1-10 sobre 5 estrellas (cada unidad
-    // es media estrella: 1 = ½★ … 10 = 5★). Es la escala del Frontend.
+    // Valoración de la compra: entero 1-10 sobre 5 estrellas (cada unidad es media estrella:
+    // 1 = ½★ … 10 = 5★). Es la escala del frontend.
     valoracion: {
         type: Number,
         min: [1, 'La valoración mínima es 1'],
@@ -57,10 +55,8 @@ const CommentSchema = new Schema({
             message: 'La valoración debe ser un número entero entre 1 y 10'
         }
     },
-    // LEGADO: valoración 1-5. Alimenta "Productos Mejor Valorados" en Indicadores.
-    // Si llega `valoracion`, se deriva de ella (pre('validate')) para que los
-    // indicadores sigan funcionando. PENDIENTE: que Indicadores promedie
-    // valoracion / 2 y retirar este campo.
+    // Valoración 1-5 (escala anterior). Alimenta las estrellas por producto y «Productos mejor
+    // valorados» en Indicadores. Si llega `valoracion`, se deriva de ella (pre('validate')).
     calificacion: {
         type: Number,
         min: [1, 'La calificación mínima es 1'],
@@ -72,7 +68,7 @@ const CommentSchema = new Schema({
     },
     // Visibilidad en el Frontend (moderación): true = se muestra, false = oculto.
     // Solo se cambia desde PATCH /api/comments/:id/status.
-    isActive: {
+    status: {
         type: Boolean,
         default: true,
         index: true

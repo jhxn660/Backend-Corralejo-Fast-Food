@@ -1,0 +1,41 @@
+info:
+  name: Crear Receta
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "http://localhost:3000/api/recipes"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      // PRUEBA: requiere {{productId}} (Products/Crear Producto) y {{supplyId}} (Supplies). Token: Owner o Administrador.
+      // "quantity" está en la unidad de medida del insumo y es lo que gasta UNA unidad del producto.
+      // Esperado 201 con el producto y los insumos. Segunda receta del mismo producto, sin insumos,
+      // insumo inexistente o repetido, o cantidad 0 → 400. Producto que es un combo → 400. Empleado → 403.
+      {
+        "product": "{{productId}}",
+        "items": [
+          { "supply": "{{supplyId}}", "quantity": 0.15 }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("recipeId", res.body.data._id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

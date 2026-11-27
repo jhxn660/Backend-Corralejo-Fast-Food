@@ -1,4 +1,7 @@
 import { Router } from 'express';
+
+import { ADMIN_ROLES, STAFF_ROLES } from '../config/roles.config.js';
+import { requireRoles } from '../middlewares/authorization.middleware.js';
 import {
     createProduct,
     getProduct,
@@ -8,8 +11,6 @@ import {
     setProductStatus,
     deleteProduct
 } from '../controllers/products.controllers.js';
-import { requireRoles } from '../middlewares/authorization.middleware.js';
-import { ADMIN_ROLES, STAFF_ROLES } from '../config/roles.config.js';
 
 const router = Router();
 
@@ -20,7 +21,7 @@ router.post('/', requireRoles(ADMIN_ROLES), createProduct);
 router.get('/', requireRoles(STAFF_ROLES), getProducts);
 router.get('/:id', requireRoles(STAFF_ROLES), getProduct);
 router.patch('/:id', requireRoles(ADMIN_ROLES), updateProduct);
-// Habilitar / deshabilitar (soft-toggle): { "isActive": boolean }
+// Habilitar / deshabilitar (soft-toggle): { "status": boolean }
 router.patch('/:id/status', requireRoles(ADMIN_ROLES), setProductStatus);
 router.delete('/:id', requireRoles(ADMIN_ROLES), deleteProduct);
 

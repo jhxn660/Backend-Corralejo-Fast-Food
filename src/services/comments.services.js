@@ -1,5 +1,5 @@
-import CommentModel from "../models/comment.model.js";
-import { ONLY_ACTIVE } from "../helpers/visibility.helper.js";
+import { ONLY_ACTIVE } from '../helpers/visibility.helper.js';
+import CommentModel from '../models/comment.model.js';
 
 // `usuarioId` puede ser null cuando comenta un visitante sin cuenta.
 const dbCreateComment = async (bodyData, usuarioId, ventaId) => {
@@ -11,8 +11,8 @@ const dbGetComment = async (id) => {
 };
 
 // Moderación (personal): todos o filtrados por visibilidad (ver buildVisibilityFilter).
-// Trae el ticket y los productos de la venta: solo Administrador y Owner ven qué
-// productos se calificaron (la vista pública no los incluye).
+// Trae el ticket y los productos de la venta: solo el personal ve qué productos se calificaron
+// (la vista pública no los incluye).
 const dbGetComments = async (filter = {}) => {
     return await CommentModel.find(filter)
         .sort({ createdAt: -1 })
@@ -20,57 +20,70 @@ const dbGetComments = async (filter = {}) => {
         .populate('venta', 'ticketId detalles.producto detalles.cantidad');
 };
 
-// Vista pública: solo comentarios visibles, sin el código del ticket ni la venta
 /**
- * Comentarios visibles para la portada. Si quien pregunta tiene sesión, cada comentario trae
- * `meGusta: true/false` para pintar el botón encendido o apagado. La lista `likedBy` (quién dio
- * me gusta) nunca sale del servidor: solo se usa aquí para calcular ese booleano.
+ * Vista pública: solo comentarios visibles, sin el código del ticket ni la venta.
+ * `likedByMe` dice si quien pide (cuando trae sesión) ya le dio "me gusta" a cada comentario.
+ * La lista `likedBy` se lee para calcularlo, pero nunca sale del backend: es de quién dio cada uno.
  */
-const dbGetPublicComments = async (userId = null) => {
+const dbGetPublicComments = async (usuarioId = null) => {
     const comments = await CommentModel.find(ONLY_ACTIVE)
-        .select('comentario valoracion calificacion likes usuario isActive createdAt +likedBy')
+        .select('comentario valoracion calificacion likes likedBy usuario status createdAt')
         .sort({ createdAt: -1 })
-        .populate('usuario', 'name');
+        .populate('usuario', 'name')
+        .lean();
 
-    return comments.map((comment) => {
-        const { likedBy = [], ...data } = comment.toObject();
-        const meGusta = Boolean(userId) && likedBy.some((id) => String(id) === String(userId));
+    return comments.map(({ likedBy = [], ...comment }) => ({
+        ...comment,
+        likedByMe: Boolean(usuarioId) && likedBy.some((id) => id.equals(usuarioId))
+    }));
+};
 
-        return { ...data, meGusta };
-    });
+// Lo que responden las rutas de "me gusta": el contador y si quien pidió lo tiene dado
+const toLikeSummary = (comment, likedByMe) => (comment ? { _id: comment._id, likes: comment.likes, likedByMe } : null);
+
+// Un comentario que se puede valorar: existe y está visible (uno oculto por moderación no se toca)
+const dbGetVisibleComment = async (id) => {
+    return await CommentModel.findOne({ _id: id, ...ONLY_ACTIVE });
 };
 
 /**
- * Da o quita el "me gusta" de un usuario (el mismo botón hace las dos cosas).
- * Cada paso es una sola operación atómica de MongoDB, así dos clics rápidos no cuentan doble:
- *   1. Si el usuario NO está en likedBy → se agrega y likes sube 1.
- *   2. Si ya estaba → se quita y likes baja 1.
- * @returns {{ likes: number, meGusta: boolean } | null} null si el comentario no existe
+ * Da "me gusta" (POST /:id/like). Es UNA operación atómica: el filtro `likedBy: { $ne: usuarioId }`
+ * solo encuentra el comentario si esa persona aún no lo había dado; entonces la añade a likedBy y
+ * suma 1. Dos clics seguidos, o dos pestañas a la vez, no cuentan doble.
+ * Si no se actualizó nada, o ya lo tenía dado (se responde igual: idempotente) o el comentario no
+ * existe / está oculto (null → 404).
  */
-const dbToggleCommentLike = async (id, userId) => {
+const dbLikeComment = async (id, usuarioId) => {
     const liked = await CommentModel.findOneAndUpdate(
-        { _id: id, likedBy: { $ne: userId } },
-        { $addToSet: { likedBy: userId }, $inc: { likes: 1 } },
+        { _id: id, ...ONLY_ACTIVE, likedBy: { $ne: usuarioId } },
+        { $addToSet: { likedBy: usuarioId }, $inc: { likes: 1 } },
         { returnDocument: 'after' }
     );
-    if (liked) return { likes: liked.likes, meGusta: true };
 
+    return toLikeSummary(liked ?? await dbGetVisibleComment(id), true);
+};
+
+/**
+ * Quita el "me gusta" (DELETE /:id/like). El espejo de dbLikeComment: el filtro `likedBy: usuarioId`
+ * solo encuentra el comentario si esa persona lo había dado; entonces la quita y resta 1. Así el
+ * contador nunca baja por alguien que no lo dio.
+ */
+const dbUnlikeComment = async (id, usuarioId) => {
     const unliked = await CommentModel.findOneAndUpdate(
-        { _id: id, likedBy: userId },
-        { $pull: { likedBy: userId }, $inc: { likes: -1 } },
+        { _id: id, ...ONLY_ACTIVE, likedBy: usuarioId },
+        { $pull: { likedBy: usuarioId }, $inc: { likes: -1 } },
         { returnDocument: 'after' }
     );
-    if (unliked) return { likes: unliked.likes, meGusta: false };
 
-    return null;
+    return toLikeSummary(unliked ?? await dbGetVisibleComment(id), false);
 };
 
 const dbUpdateComment = async (id, commentUpdate) => {
     return await CommentModel.findByIdAndUpdate(id, commentUpdate, { returnDocument: 'after', runValidators: true });
 };
 
-const dbSetCommentStatus = async (id, isActive) => {
-    return await CommentModel.findByIdAndUpdate(id, { $set: { isActive } }, { returnDocument: 'after' });
+const dbSetCommentStatus = async (id, status) => {
+    return await CommentModel.findByIdAndUpdate(id, { $set: { status } }, { returnDocument: 'after' });
 };
 
 const dbDeleteComment = async (id) => {
@@ -89,7 +102,8 @@ export {
     dbGetPublicComments,
     dbUpdateComment,
     dbSetCommentStatus,
-    dbToggleCommentLike,
     dbDeleteComment,
-    dbGetCommentByCodigo
+    dbGetCommentByCodigo,
+    dbLikeComment,
+    dbUnlikeComment
 };

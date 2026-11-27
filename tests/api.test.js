@@ -18,6 +18,7 @@ const { default: dailyIndicatorModel } = await import('../src/models/daily-indic
 const { default: counterModel } = await import('../src/models/counter.model.js');
 const { default: productModel } = await import('../src/models/product.model.js');
 const { default: orderModel } = await import('../src/models/order.model.js');
+const { default: pqrsModel } = await import('../src/models/pqrs.model.js');
 
 const PASSWORD = 'Clave#2026';
 const DAY = '2026-11-13'; // día de referencia de los indicadores
@@ -166,10 +167,10 @@ describe('Auth y Usuarios', () => {
             token: tokens.admin, body: { name: 'Temporal', email: 'temporal@cff.test', password: PASSWORD, role: ROLES.EMPLOYEE }
         }), 201).data;
 
-        assert.ok(expectStatus(await request('GET', '/api/users?state=all', { token: tokens.owner }), 200).data.total >= 5);
+        assert.ok(expectStatus(await request('GET', '/api/users?status=all', { token: tokens.owner }), 200).data.total >= 5);
         expectStatus(await request('GET', `/api/users/${created._id}`, { token: tokens.admin }), 200);
         assert.equal(expectStatus(await request('PATCH', `/api/users/${created._id}`, { token: tokens.admin, body: { name: 'Editado' } }), 200).data.name, 'Editado');
-        expectStatus(await request('PUT', `/api/users/${created._id}`, { token: tokens.admin, body: { name: 'Editado PUT' } }), 200);
+        expectStatus(await request('PATCH', `/api/users/${created._id}`, { token: tokens.admin, body: { name: 'Editado PUT' } }), 200);
         expectStatus(await request('DELETE', `/api/users/${created._id}`, { token: tokens.admin }), 200);
         expectStatus(await request('GET', `/api/users/${created._id}`, { token: tokens.admin }), 404);
     });
@@ -194,7 +195,7 @@ describe('Auth y Usuarios', () => {
         const self = `/api/users/${ids.client}`;
 
         expectStatus(await request('PATCH', self, { token: tokens.client, body: { $set: { role: ROLES.OWNER } } }), 400);
-        expectStatus(await request('PUT', self, { token: tokens.client, body: { name: 'x', $set: { password: 'en-claro' } } }), 400);
+        expectStatus(await request('PATCH', self, { token: tokens.client, body: { name: 'x', $set: { password: 'en-claro' } } }), 400);
         expectStatus(await request('PATCH', self, { token: tokens.client, body: { $unset: { password: '' } } }), 400);
 
         assert.equal(expectStatus(await request('GET', self, { token: tokens.client }), 200).data.role, ROLES.CLIENT);
@@ -232,19 +233,23 @@ describe('Categorías e Insumos', () => {
         const updated = expectStatus(await request('PATCH', `/api/supplies/${supply._id}`, { token: tokens.owner, body: { stock: 5, createdBy: ids.owner } }), 200).data;
         assert.equal(updated.stock, 5);
         assert.equal(String(updated.createdBy), ids.admin);
-        assert.equal(expectStatus(await request('GET', '/api/supplies?state=Sin_Stock', { token: tokens.employee }), 200).data.length, 0);
+        // Stock mínimo de reposición: por defecto 0, se guarda y no admite negativos
+        assert.equal(supply.minStock, 0);
+        assert.equal(expectStatus(await request('PATCH', `/api/supplies/${supply._id}`, { token: tokens.admin, body: { minStock: 3 } }), 200).data.minStock, 3);
+        expectStatus(await request('PATCH', `/api/supplies/${supply._id}`, { token: tokens.admin, body: { minStock: -1 } }), 400);
+        assert.equal(expectStatus(await request('GET', '/api/supplies?status=Sin_Stock', { token: tokens.employee }), 200).data.length, 0);
         expectStatus(await request('DELETE', `/api/supplies/${supply._id}`, { token: tokens.admin }), 200);
     });
 });
 
-describe('Productos: visibilidad (isActive)', () => {
+describe('Productos: visibilidad (status)', () => {
     test('nace visible y aparece en la carta pública', async () => {
         const product = expectStatus(await request('POST', '/api/products', {
-            token: tokens.admin, body: { nombre: 'Hamburguesa de res', price: 18000, category: ids.productCategory }
+            token: tokens.admin, body: { name: 'Hamburguesa de res', price: 18000, category: ids.productCategory }
         }), 201).data;
 
         ids.product = product._id;
-        assert.equal(product.isActive, true);
+        assert.equal(product.status, true);
 
         const publicList = expectStatus(await request('GET', '/api/products/public'), 200).data;
         assert.ok(publicList.some((item) => item._id === ids.product));
@@ -252,43 +257,43 @@ describe('Productos: visibilidad (isActive)', () => {
     });
 
     test('PATCH /:id/status oculta el producto en la carta pública', async () => {
-        const body = expectStatus(await request('PATCH', `/api/products/${ids.product}/status`, { token: tokens.admin, body: { isActive: false } }), 200);
+        const body = expectStatus(await request('PATCH', `/api/products/${ids.product}/status`, { token: tokens.admin, body: { status: false } }), 200);
 
-        assert.equal(body.data.isActive, false);
+        assert.equal(body.data.status, false);
         assert.equal(body.msg, 'Producto deshabilitado');
         assert.ok(!expectStatus(await request('GET', '/api/products/public'), 200).data.some((item) => item._id === ids.product));
     });
 
-    test('filtros de gestión ?isActive=true|false|all', async () => {
-        const hidden = expectStatus(await request('GET', '/api/products?isActive=false', { token: tokens.employee }), 200).data;
-        const visible = expectStatus(await request('GET', '/api/products?isActive=true', { token: tokens.employee }), 200).data;
+    test('filtros de gestión ?status=true|false|all', async () => {
+        const hidden = expectStatus(await request('GET', '/api/products?status=false', { token: tokens.employee }), 200).data;
+        const visible = expectStatus(await request('GET', '/api/products?status=true', { token: tokens.employee }), 200).data;
         const all = expectStatus(await request('GET', '/api/products', { token: tokens.employee }), 200).data;
 
         assert.equal(hidden.length, 1);
         assert.equal(visible.length, 0);
         assert.equal(all.length, 1);
-        expectStatus(await request('GET', '/api/products?isActive=quizas', { token: tokens.employee }), 400);
+        expectStatus(await request('GET', '/api/products?status=quizas', { token: tokens.employee }), 400);
     });
 
     test('validaciones del toggle y del PATCH general', async () => {
-        expectStatus(await request('PATCH', `/api/products/${ids.product}/status`, { token: tokens.admin, body: { isActive: 'true' } }), 400);
+        expectStatus(await request('PATCH', `/api/products/${ids.product}/status`, { token: tokens.admin, body: { status: 'true' } }), 400);
         expectStatus(await request('PATCH', `/api/products/${ids.product}/status`, { token: tokens.admin, body: {} }), 400);
-        expectStatus(await request('PATCH', `/api/products/${ids.product}/status`, { token: tokens.employee, body: { isActive: true } }), 403);
-        expectStatus(await request('PATCH', '/api/products/64b7f0c2a1b2c3d4e5f60718/status', { token: tokens.admin, body: { isActive: true } }), 404);
+        expectStatus(await request('PATCH', `/api/products/${ids.product}/status`, { token: tokens.employee, body: { status: true } }), 403);
+        expectStatus(await request('PATCH', '/api/products/64b7f0c2a1b2c3d4e5f60718/status', { token: tokens.admin, body: { status: true } }), 404);
 
-        // El PATCH general ignora isActive: la visibilidad solo cambia por /status
-        const updated = expectStatus(await request('PATCH', `/api/products/${ids.product}`, { token: tokens.admin, body: { price: 19000, isActive: true } }), 200).data;
+        // El PATCH general ignora status: la visibilidad solo cambia por /status
+        const updated = expectStatus(await request('PATCH', `/api/products/${ids.product}`, { token: tokens.admin, body: { price: 19000, status: true } }), 200).data;
         assert.equal(updated.price, 19000);
-        assert.equal(updated.isActive, false);
+        assert.equal(updated.status, false);
 
-        assert.equal(expectStatus(await request('PATCH', `/api/products/${ids.product}/status`, { token: tokens.admin, body: { isActive: true } }), 200).data.isActive, true);
+        assert.equal(expectStatus(await request('PATCH', `/api/products/${ids.product}/status`, { token: tokens.admin, body: { status: true } }), 200).data.status, true);
     });
 
     test('obtener y eliminar producto', async () => {
         expectStatus(await request('GET', `/api/products/${ids.product}`, { token: tokens.employee }), 200);
 
         const temporal = expectStatus(await request('POST', '/api/products', {
-            token: tokens.admin, body: { nombre: 'Producto temporal', category: ids.productCategory }
+            token: tokens.admin, body: { name: 'Producto temporal', category: ids.productCategory }
         }), 201).data;
         expectStatus(await request('DELETE', `/api/products/${temporal._id}`, { token: tokens.admin }), 200);
     });
@@ -297,12 +302,12 @@ describe('Productos: visibilidad (isActive)', () => {
 describe('Pedidos', () => {
     before(async () => {
         // 'Hamburguesa de res' ya existe (suite de Productos, donde su precio quedó en 19000)
-        await productModel.updateOne({ nombre: HAMBURGUESA.producto }, { price: HAMBURGUESA.precio_unitario });
+        await productModel.updateOne({ name: HAMBURGUESA.producto }, { price: HAMBURGUESA.precio_unitario });
         catalog[HAMBURGUESA.producto] = ids.product;
 
         for (const { producto, precio_unitario } of [ PERRO, GASEOSA ]) {
             catalog[producto] = expectStatus(await request('POST', '/api/products', {
-                token: tokens.admin, body: { nombre: producto, price: precio_unitario, category: ids.productCategory }
+                token: tokens.admin, body: { name: producto, price: precio_unitario, category: ids.productCategory }
             }), 201).data._id;
         }
     });
@@ -340,7 +345,7 @@ describe('Pedidos', () => {
         expectStatus(await request('PATCH', `/api/orders/${temporal._id}`, { token: tokens.employee, body: { detalles: [] } }), 400);
         expectStatus(await request('PATCH', `/api/orders/${temporal._id}`, { token: tokens.employee, body: { items: [] } }), 400);
 
-        expectStatus(await request('PUT', `/api/orders/${temporal._id}`, { token: tokens.employee, body: { estado: 'Inventado' } }), 400);
+        expectStatus(await request('PATCH', `/api/orders/${temporal._id}`, { token: tokens.employee, body: { estado: 'Inventado' } }), 400);
         expectStatus(await request('DELETE', `/api/orders/${temporal._id}`, { token: tokens.employee }), 403);
         expectStatus(await request('DELETE', `/api/orders/${temporal._id}`, { token: tokens.admin }), 200);
         expectStatus(await request('GET', `/api/orders/${temporal._id}`, { token: tokens.employee }), 404);
@@ -349,12 +354,10 @@ describe('Pedidos', () => {
     test('items inválidos se rechazan con el detalle de cada error', async () => {
         const create = (items) => request('POST', '/api/orders', { token: tokens.employee, body: { items } });
 
-        // Un pedido abierto puede nacer vacío: en caja se crea y luego se le suman productos
-        assert.deepEqual(expectStatus(await create([]), 201).data.detalles, []);
-        assert.deepEqual(expectStatus(await create(undefined), 201).data.detalles, []);
-        // `detalles` con precios del cliente se ignora: el pedido queda vacío, sin esos precios
-        const ignorado = expectStatus(await request('POST', '/api/orders', { token: tokens.employee, body: { detalles: [ { ...HAMBURGUESA, cantidad: 1 } ] } }), 201).data;
-        assert.equal(ignorado.totalPedido, 0);
+        expectStatus(await create([]), 400);
+        expectStatus(await create(undefined), 400);
+        // detalles con precios del cliente ya no crean pedidos
+        expectStatus(await request('POST', '/api/orders', { token: tokens.employee, body: { detalles: [ { ...HAMBURGUESA, cantidad: 1 } ] } }), 400);
 
         const invalid = expectStatus(await create([
             { productId: 'abc', quantity: 1 },
@@ -368,11 +371,11 @@ describe('Pedidos', () => {
     });
 
     test('un producto oculto no se puede pedir', async () => {
-        const status = (isActive) => request('PATCH', `/api/products/${catalog[GASEOSA.producto]}/status`, { token: tokens.admin, body: { isActive } });
+        const setStatus = (status) => request('PATCH', `/api/products/${catalog[GASEOSA.producto]}/status`, { token: tokens.admin, body: { status } });
 
-        expectStatus(await status(false), 200);
+        expectStatus(await setStatus(false), 200);
         expectStatus(await request('POST', '/api/orders', { token: tokens.employee, body: { items: toItems([ { ...GASEOSA, cantidad: 1 } ]) } }), 400);
-        expectStatus(await status(true), 200);
+        expectStatus(await setStatus(true), 200);
     });
 
     test('las líneas repetidas del mismo producto se unen', async () => {
@@ -715,7 +718,7 @@ describe('Indicadores: editar y eliminar ventas', () => {
 
     test('las líneas, el total y el estado de una venta registrada no se editan', async () => {
         for (const body of [ { detalles: [] }, { items: [] }, { totalPagado: 1 }, { estadoPedido: 'Entregado' } ]) {
-            expectStatus(await request('PUT', `/api/sales/${ids.saleLateOctober._id}`, { token: tokens.admin, body }), 400);
+            expectStatus(await request('PATCH', `/api/sales/${ids.saleLateOctober._id}`, { token: tokens.admin, body }), 400);
         }
 
         assert.equal(kpi(await dashboard(), 'k1').value, '$74.000');
@@ -742,13 +745,13 @@ describe('Indicadores: editar y eliminar ventas', () => {
     });
 });
 
-describe('Comentarios: ticket QR y visibilidad (isActive)', () => {
+describe('Comentarios: ticket QR y visibilidad (status)', () => {
     test('un visitante comenta con el QR del ticket', async () => {
         const comment = expectStatus(await request('POST', '/api/comments', {
-            body: { codigo: ids.saleA.qr, comentario: 'Excelente hamburguesa', calificacion: 5, isActive: false, likes: 99 }
+            body: { codigo: ids.saleA.qr, comentario: 'Excelente hamburguesa', calificacion: 5, status: false, likes: 99 }
         }), 201).data;
 
-        assert.equal(comment.isActive, true);
+        assert.equal(comment.status, true);
         assert.equal(comment.likes, 0);
         assert.equal(comment.usuario, null);
         ids.commentA = comment._id;
@@ -773,6 +776,39 @@ describe('Comentarios: ticket QR y visibilidad (isActive)', () => {
         expectStatus(await request('POST', '/api/comments', { body: { codigo: { $ne: null }, comentario: 'x' } }), 400);
     });
 
+    test('"me gusta": uno por persona, solo Owner, Administrador y Cliente', async () => {
+        const like = (token) => request('POST', `/api/comments/${ids.commentB}/like`, { token });
+        const unlike = (token) => request('DELETE', `/api/comments/${ids.commentB}/like`, { token });
+        const summary = (response) => {
+            const { likes, likedByMe } = expectStatus(response, 200).data;
+
+            return { likes, likedByMe };
+        };
+
+        expectStatus(await like(), 401);
+        expectStatus(await like(tokens.employee), 403);
+
+        // El mismo Cliente dos veces cuenta una sola; otra persona suma
+        assert.deepEqual(summary(await like(tokens.client)), { likes: 1, likedByMe: true });
+        assert.deepEqual(summary(await like(tokens.client)), { likes: 1, likedByMe: true });
+        assert.deepEqual(summary(await like(tokens.admin)), { likes: 2, likedByMe: true });
+
+        // La lista pública dice a cada quien si ya lo dio y nunca expone likedBy
+        const findB = (list) => list.find((comment) => comment._id === ids.commentB);
+        const asClient = findB(expectStatus(await request('GET', '/api/comments/public', { token: tokens.client }), 200).data);
+        assert.equal(asClient.likes, 2);
+        assert.equal(asClient.likedByMe, true);
+        assert.equal(asClient.likedBy, undefined);
+        assert.equal(findB(expectStatus(await request('GET', '/api/comments/public'), 200).data).likedByMe, false);
+
+        // Quitarlo dos veces resta una sola; quien no lo dio no resta nada
+        assert.deepEqual(summary(await unlike(tokens.client)), { likes: 1, likedByMe: false });
+        assert.deepEqual(summary(await unlike(tokens.client)), { likes: 1, likedByMe: false });
+        assert.deepEqual(summary(await unlike(tokens.owner)), { likes: 1, likedByMe: false });
+
+        expectStatus(await request('POST', `/api/comments/${new mongoose.Types.ObjectId()}/like`, { token: tokens.client }), 404);
+    });
+
     test('reseñas por producto en indicadores', async () => {
         const reviews = expectStatus(await request('GET', '/api/indicators/reviews', { token: tokens.admin }), 200);
 
@@ -784,10 +820,13 @@ describe('Comentarios: ticket QR y visibilidad (isActive)', () => {
     });
 
     test('PATCH /:id/status oculta el comentario de la vista pública y de las reseñas', async () => {
-        expectStatus(await request('PATCH', `/api/comments/${ids.commentA}/status`, { token: tokens.employee, body: { isActive: false } }), 403);
+        expectStatus(await request('PATCH', `/api/comments/${ids.commentA}/status`, { token: tokens.employee, body: { status: false } }), 403);
 
-        const body = expectStatus(await request('PATCH', `/api/comments/${ids.commentA}/status`, { token: tokens.admin, body: { isActive: false } }), 200);
+        const body = expectStatus(await request('PATCH', `/api/comments/${ids.commentA}/status`, { token: tokens.admin, body: { status: false } }), 200);
         assert.equal(body.msg, 'Comentario oculto');
+
+        // Un comentario oculto tampoco recibe "me gusta"
+        expectStatus(await request('POST', `/api/comments/${ids.commentA}/like`, { token: tokens.client }), 404);
 
         const publicList = expectStatus(await request('GET', '/api/comments/public'), 200).data;
         assert.deepEqual(publicList.map((comment) => comment._id), [ ids.commentB ]);
@@ -799,15 +838,15 @@ describe('Comentarios: ticket QR y visibilidad (isActive)', () => {
     });
 
     test('gestión: filtros, obtener, actualizar y eliminar', async () => {
-        assert.equal(expectStatus(await request('GET', '/api/comments?isActive=false', { token: tokens.employee }), 200).data.length, 1);
+        assert.equal(expectStatus(await request('GET', '/api/comments?status=false', { token: tokens.employee }), 200).data.length, 1);
         assert.equal(expectStatus(await request('GET', '/api/comments', { token: tokens.employee }), 200).data.length, 2);
         expectStatus(await request('GET', `/api/comments/${ids.commentA}`, { token: tokens.employee }), 200);
 
         const updated = expectStatus(await request('PATCH', `/api/comments/${ids.commentA}`, {
-            token: tokens.admin, body: { comentario: 'Editado', isActive: true, codigo: 'otro' }
+            token: tokens.admin, body: { comentario: 'Editado', status: true, codigo: 'otro' }
         }), 200).data;
         assert.equal(updated.comentario, 'Editado');
-        assert.equal(updated.isActive, false);
+        assert.equal(updated.status, false);
         assert.equal(updated.codigo, ids.saleA.qr);
 
         expectStatus(await request('PATCH', `/api/comments/${ids.commentA}`, { token: tokens.admin, body: { calificacion: 9 } }), 400);
@@ -857,13 +896,62 @@ describe('PQRS', () => {
         assert.equal(expectStatus(await request('PATCH', `/api/pqrs/${pqrs._id}`, { token: tokens.admin, body: { estado: 'Resuelto' } }), 200).data.estado, 'Resuelto');
         expectStatus(await request('DELETE', `/api/pqrs/${pqrs._id}`, { token: tokens.admin }), 200);
     });
+
+    test('el Cliente no puede crear una PQRS ya resuelta ni respondida', async () => {
+        const pqrs = expectStatus(await request('POST', '/api/pqrs', {
+            token: tokens.client,
+            body: { tipo: 'Queja', asunto: 'Pedido frío', descripcion: 'Llegó frío', estado: 'Resuelto', respuesta: 'Me la respondo yo mismo' }
+        }), 201).data;
+
+        assert.equal(pqrs.estado, 'Pendiente');
+        assert.equal(pqrs.respuesta, undefined);
+        ids.pqrsClient = pqrs._id;
+    });
+
+    test('la administración responde; lo que escribió el Cliente no cambia', async () => {
+        const patch = (body) => request('PATCH', `/api/pqrs/${ids.pqrsClient}`, { token: tokens.admin, body });
+
+        expectStatus(await patch({ respuesta: 'corta' }), 400);
+        expectStatus(await patch({ respuesta: 12345678901 }), 400);
+        expectStatus(await request('PATCH', `/api/pqrs/${ids.pqrsClient}`, { token: tokens.employee, body: { respuesta: 'Ya lo revisamos con cocina.' } }), 403);
+
+        const answered = expectStatus(await patch({
+            estado: 'Resuelto',
+            respuesta: 'Te reponemos el pedido en tu próxima compra.',
+            asunto: 'Asunto cambiado',
+            respondedBy: ids.owner
+        }), 200).data;
+
+        assert.equal(answered.estado, 'Resuelto');
+        assert.equal(answered.asunto, 'Pedido frío');
+        assert.equal(String(answered.respondedBy), ids.admin);
+        assert.ok(answered.respondedAt);
+    });
+
+    test('GET /mine: el Cliente lee solo las suyas, con la respuesta', async () => {
+        // Una PQRS de otra persona no debe aparecer en "mis PQRS"
+        await pqrsModel.create({ usuario: ids.employee, tipo: 'Petición', asunto: 'Ajena', descripcion: 'No es del Cliente' });
+
+        expectStatus(await request('GET', '/api/pqrs/mine'), 401);
+        expectStatus(await request('GET', '/api/pqrs/mine', { token: tokens.employee }), 403);
+
+        const mine = expectStatus(await request('GET', '/api/pqrs/mine', { token: tokens.client }), 200).data;
+        assert.ok(mine.length > 0);
+        assert.ok(mine.every((item) => item.usuario.email === 'cliente@cff.test'));
+
+        const own = mine.find((item) => item._id === ids.pqrsClient);
+        assert.equal(own.respuesta, 'Te reponemos el pedido en tu próxima compra.');
+        assert.ok(own.respondedAt);
+        assert.equal(own.respondedBy, undefined);
+    });
 });
 
 describe('Establecimiento, horarios y ubicaciones', () => {
     const resources = {
         establecimiento: { titulo: 'Misión', contenido: 'Servir', categoria: 'Misión' },
         horarios: { dia: 'Lunes', horaApertura: '08:00', horaCierre: '22:00' },
-        ubicaciones: { titulo: 'Sede', descripcion: 'Principal', direccion: 'Cl. 32 Sur', telefono: '3118370904' }
+        ubicaciones: { titulo: 'Sede', descripcion: 'Principal', direccion: 'Cl. 32 Sur', telefono: '3118370904' },
+        cierres: { fecha: '2026-12-24', motivo: 'Nochebuena' }
     };
 
     for (const [ path, body ] of Object.entries(resources)) {
@@ -880,6 +968,37 @@ describe('Establecimiento, horarios y ubicaciones', () => {
             expectStatus(await request('GET', `/api/${path}/${created._id}`, { token: tokens.admin }), 404);
         });
     }
+
+    test('cierres: una fecha concreta, válida y una sola vez; leer es público y cerrar es de administración', async () => {
+        expectStatus(await request('POST', '/api/cierres', { token: tokens.admin, body: { fecha: '27/11/2026' } }), 400);
+        expectStatus(await request('POST', '/api/cierres', { token: tokens.admin, body: { fecha: '2026-13-01' } }), 400);
+
+        const cierre = expectStatus(await request('POST', '/api/cierres', {
+            token: tokens.admin, body: { fecha: '2026-11-27', motivo: 'Inventario' }
+        }), 201).data;
+        assert.equal(cierre.fecha, '2026-11-27');
+
+        // La misma fecha no se cierra dos veces
+        expectStatus(await request('POST', '/api/cierres', { token: tokens.admin, body: { fecha: '2026-11-27' } }), 400);
+
+        // El calendario de la portada lo lee sin sesión; el Empleado no puede cerrar días
+        const publicos = expectStatus(await request('GET', '/api/cierres'), 200).data;
+        assert.ok(publicos.some((c) => c.fecha === '2026-11-27'));
+        expectStatus(await request('POST', '/api/cierres', { token: tokens.employee, body: { fecha: '2026-11-28' } }), 403);
+        expectStatus(await request('POST', '/api/cierres', { body: { fecha: '2026-11-28' } }), 401);
+
+        // Por defecto la fecha queda cerrada; se puede abrir con su propio horario
+        assert.equal(cierre.estaAbierto, false);
+        const abierto = expectStatus(await request('PATCH', `/api/cierres/${cierre._id}`, {
+            token: tokens.admin, body: { estaAbierto: true, horaApertura: '10:00', horaCierre: '14:00' }
+        }), 200).data;
+        assert.equal(abierto.horaApertura, '10:00');
+        expectStatus(await request('PATCH', `/api/cierres/${cierre._id}`, {
+            token: tokens.admin, body: { horaApertura: '25:00' }
+        }), 400);
+
+        expectStatus(await request('DELETE', `/api/cierres/${cierre._id}`, { token: tokens.admin }), 200);
+    });
 });
 
 // saleId/ticketId consecutivos, qr aleatorio, campos immutable e índice parcial de orderId
@@ -1020,5 +1139,152 @@ describe('Ventas: venta de pedidos y ventas directas', () => {
 
     test('Cliente no registra ventas', async () => {
         expectStatus(await sell({ items: toItems([ { ...PERRO, cantidad: 1 } ]) }, tokens.client), 403);
+    });
+});
+
+describe('Recetas, inventario, combos y calificaciones', () => {
+    const local = {};
+    const admin = (method, path, body) => request(method, path, { token: tokens.admin, body });
+    const newProduct = async (name, price) => expectStatus(await admin('POST', '/api/products', { name, price, category: ids.productCategory }), 201).data;
+    const newSupply = async (name, stock) => expectStatus(await admin('POST', '/api/supplies', { name, stock, medida: 'Unidades (u)', category: ids.supplyCategory }), 201).data;
+    const stockOf = async (supply) => expectStatus(await request('GET', `/api/supplies/${supply._id}`, { token: tokens.employee }), 200).data.stock;
+    const newOrder = async (items) => expectStatus(await request('POST', '/api/orders', { token: tokens.employee, body: { items } }), 201).data;
+    const sellOrderId = (orderId) => request('POST', '/api/sales', { token: tokens.employee, body: { orderId } });
+
+    test('recetas: CRUD de administración y solo lectura para el Empleado', async () => {
+        local.pan = await newSupply('Pan brioche', 10);
+        local.carne = await newSupply('Carne de res 150 g', 4);
+        local.burger = await newProduct('Hamburguesa con receta', 15000);
+        local.papas = await newProduct('Papas a la francesa', 6000);
+
+        const body = { product: local.burger._id, items: [ { supply: local.pan._id, quantity: 1 }, { supply: local.carne._id, quantity: 2 } ] };
+
+        expectStatus(await request('POST', '/api/recipes', { body }), 401);
+        expectStatus(await request('POST', '/api/recipes', { token: tokens.employee, body }), 403);
+
+        const recipe = expectStatus(await admin('POST', '/api/recipes', body), 201).data;
+        assert.equal(recipe.product.name, 'Hamburguesa con receta');
+        assert.equal(recipe.items[0].supply.name, 'Pan brioche');
+        local.recipe = recipe._id;
+
+        // Una receta por producto; sin insumos, insumo inexistente, repetido o cantidad 0 → 400
+        expectStatus(await admin('POST', '/api/recipes', body), 400);
+        expectStatus(await admin('POST', '/api/recipes', { product: local.papas._id, items: [] }), 400);
+        expectStatus(await admin('POST', '/api/recipes', { product: local.papas._id, items: [ { supply: String(new mongoose.Types.ObjectId()), quantity: 1 } ] }), 400);
+        expectStatus(await admin('POST', '/api/recipes', { product: local.papas._id, items: [ { supply: local.pan._id, quantity: 1 }, { supply: local.pan._id, quantity: 2 } ] }), 400);
+        expectStatus(await admin('POST', '/api/recipes', { product: local.papas._id, items: [ { supply: local.pan._id, quantity: 0 } ] }), 400);
+
+        // El Empleado lee; no crea, edita ni elimina. El Cliente no ve recetas
+        assert.ok(expectStatus(await request('GET', '/api/recipes', { token: tokens.employee }), 200).data.length >= 1);
+        expectStatus(await request('GET', `/api/recipes/${local.recipe}`, { token: tokens.employee }), 200);
+        expectStatus(await request('PATCH', `/api/recipes/${local.recipe}`, { token: tokens.employee, body: { items: body.items } }), 403);
+        expectStatus(await request('DELETE', `/api/recipes/${local.recipe}`, { token: tokens.employee }), 403);
+        expectStatus(await request('GET', '/api/recipes', { token: tokens.client }), 403);
+
+        // El Owner edita los insumos; el producto de la receta no cambia
+        const updated = expectStatus(await request('PATCH', `/api/recipes/${local.recipe}`, {
+            token: tokens.owner,
+            body: { product: local.papas._id, items: [ { supply: local.pan._id, quantity: 1 }, { supply: local.carne._id, quantity: 1 } ] }
+        }), 200).data;
+        assert.equal(updated.items[1].quantity, 1);
+        assert.equal(updated.product._id, local.burger._id);
+    });
+
+    test('vender descuenta los insumos; si no alcanzan → 409 con los faltantes y nada cambia', async () => {
+        const order = await newOrder([ { productId: local.burger._id, quantity: 2 } ]);
+        const sale = expectStatus(await sellOrderId(order._id), 201).data;
+
+        assert.equal(await stockOf(local.pan), 8);
+        assert.equal(await stockOf(local.carne), 2);
+        assert.deepEqual(sale.suppliesUsed.map(({ quantity }) => quantity).sort(), [ 2, 2 ]);
+        local.sale = sale;
+
+        // 3 hamburguesas necesitan 3 de carne y solo quedan 2
+        const big = await newOrder([ { productId: local.burger._id, quantity: 3 } ]);
+        const rejected = expectStatus(await sellOrderId(big._id), 409);
+
+        assert.deepEqual(rejected.missingSupplies.map(({ name, needed, available }) => ({ name, needed, available })), [
+            { name: 'Carne de res 150 g', needed: 3, available: 2 }
+        ]);
+        assert.equal(expectStatus(await request('GET', `/api/orders/${big._id}`, { token: tokens.employee }), 200).data.estado, 'En preparación');
+        assert.equal(await stockOf(local.pan), 8);
+    });
+
+    test('eliminar la venta devuelve los insumos; cancelar un pedido vendido también, una sola vez', async () => {
+        const orderId = local.sale.orderId._id;
+
+        expectStatus(await admin('DELETE', `/api/sales/${local.sale._id}`), 200);
+        assert.equal(await stockOf(local.pan), 10);
+        assert.equal(await stockOf(local.carne), 4);
+
+        // El pedido volvió a "Listo": se vende otra vez y luego se cancela
+        const again = expectStatus(await sellOrderId(orderId), 201).data;
+        assert.equal(await stockOf(local.carne), 2);
+
+        expectStatus(await admin('PATCH', `/api/orders/${orderId}`, { estado: 'Cancelado' }), 200);
+        assert.equal(await stockOf(local.carne), 4);
+
+        expectStatus(await admin('PATCH', `/api/orders/${orderId}`, { estado: 'Cancelado' }), 200);
+        expectStatus(await admin('DELETE', `/api/sales/${again._id}`), 200);
+        assert.equal(await stockOf(local.carne), 4);
+        assert.equal(await stockOf(local.pan), 10);
+    });
+
+    test('combos: "Sumar Precio Productos" sigue a sus productos y "Determinar Precio" se respeta', async () => {
+        const items = [ { product: local.burger._id, quantity: 1 }, { product: local.papas._id, quantity: 2 } ];
+        const combo = expectStatus(await admin('POST', '/api/products', { name: 'Combo con receta', category: ids.productCategory, price: 1, comboPriceMode: 'sum', comboItems: items }), 201).data;
+
+        assert.equal(combo.price, 27000);
+
+        expectStatus(await admin('PATCH', `/api/products/${local.papas._id}`, { price: 7000 }), 200);
+        assert.equal(expectStatus(await request('GET', `/api/products/${combo._id}`, { token: tokens.employee }), 200).data.price, 29000);
+
+        const fixed = expectStatus(await admin('POST', '/api/products', { name: 'Combo precio fijo', category: ids.productCategory, price: 25000, comboPriceMode: 'custom', comboItems: items }), 201).data;
+        assert.equal(fixed.price, 25000);
+
+        // Reglas: sin combos dentro de combos, productos que existan, cantidades enteras ≥ 1
+        expectStatus(await admin('POST', '/api/products', { name: 'Combo de combos', category: ids.productCategory, comboItems: [ { product: combo._id, quantity: 1 } ] }), 400);
+        expectStatus(await admin('POST', '/api/products', { name: 'Combo fantasma', category: ids.productCategory, comboItems: [ { product: String(new mongoose.Types.ObjectId()), quantity: 1 } ] }), 400);
+        expectStatus(await admin('POST', '/api/products', { name: 'Combo sin cantidad', category: ids.productCategory, comboItems: [ { product: local.papas._id, quantity: 0 } ] }), 400);
+
+        // Un producto que está en un combo no se elimina, y un combo no lleva receta
+        expectStatus(await admin('DELETE', `/api/products/${local.papas._id}`), 409);
+        expectStatus(await admin('POST', '/api/recipes', { product: combo._id, items: [ { supply: local.pan._id, quantity: 1 } ] }), 400);
+
+        // Vender el combo gasta las recetas de sus productos: 1 hamburguesa = 1 pan + 1 carne
+        expectStatus(await sellOrderId((await newOrder([ { productId: combo._id, quantity: 1 } ]))._id), 201);
+        assert.equal(await stockOf(local.pan), 9);
+        assert.equal(await stockOf(local.carne), 3);
+
+        // La carta pública dice qué incluye el combo
+        const publicCombo = expectStatus(await request('GET', '/api/products/public'), 200).data.find((product) => product._id === combo._id);
+        assert.deepEqual(publicCombo.comboItems.map(({ product, quantity }) => [ product.name, quantity ]), [
+            [ 'Hamburguesa con receta', 1 ],
+            [ 'Papas a la francesa', 2 ]
+        ]);
+    });
+
+    test('PUT /orders/:id/items: quitar productos y cambiar cantidades de un pedido abierto', async () => {
+        const order = await newOrder([ { productId: local.burger._id, quantity: 2 }, { productId: local.papas._id, quantity: 1 } ]);
+        const replace = (items, token = tokens.employee) => request('PUT', `/api/orders/${order._id}/items`, { token, body: { items } });
+
+        const updated = expectStatus(await replace([ { productId: local.burger._id, quantity: 1 } ]), 200).data;
+        assert.deepEqual(updated.detalles.map(({ producto, cantidad }) => [ producto, cantidad ]), [ [ 'Hamburguesa con receta', 1 ] ]);
+        assert.equal(updated.totalPedido, 15000);
+
+        expectStatus(await replace([]), 400);
+        expectStatus(await replace([ { productId: local.burger._id, quantity: 1 } ], tokens.client), 403);
+
+        expectStatus(await sellOrderId(order._id), 201);
+        expectStatus(await replace([ { productId: local.burger._id, quantity: 3 } ]), 409);
+    });
+
+    test('la carta pública trae la calificación de cada producto (estrellas de los comentarios)', async () => {
+        const products = expectStatus(await request('GET', '/api/products/public'), 200).data;
+        const perro = products.find((product) => product.name === 'Perro Ranchero');
+        const papas = products.find((product) => product.name === 'Papas a la francesa');
+
+        assert.deepEqual(perro.rating, { score: 3, count: 1 });
+        assert.deepEqual(papas.rating, { score: 0, count: 0 });
     });
 });

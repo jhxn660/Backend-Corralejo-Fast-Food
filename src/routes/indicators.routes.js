@@ -1,4 +1,7 @@
 import { Router } from 'express';
+
+import { ADMIN_ROLES } from '../config/roles.config.js';
+import { requireRoles } from '../middlewares/authorization.middleware.js';
 import {
     getPanel,
     getDashboard,
@@ -12,8 +15,6 @@ import {
     setGoal,
     rebuildIndicators
 } from '../controllers/indicators.controllers.js';
-import { requireRoles } from '../middlewares/authorization.middleware.js';
-import { ADMIN_ROLES } from '../config/roles.config.js';
 
 // Los indicadores NO se crean a mano: se consolidan solos con cada venta (ver sales.services).
 const router = Router();

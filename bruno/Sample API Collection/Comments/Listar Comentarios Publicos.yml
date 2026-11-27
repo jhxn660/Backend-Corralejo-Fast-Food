@@ -21,3 +21,4 @@ settings:
 
 docs: |-
   PRUEBA: sin token. Esperado 200 solo con los comentarios visibles y sin el código del ticket.
+  Con token, cada comentario trae "likedByMe": true si esa cuenta ya le dio "me gusta" (sin token, siempre false).

@@ -1,5 +1,6 @@
-import { Schema, model } from "mongoose";
-import { nextFreeSequence } from "./counter.model.js";
+import { Schema, model } from 'mongoose';
+
+import { nextFreeSequence } from './counter.model.js';
 
 // Los detalles se embeben (sin _id propio) y copian nombre y precio del producto al momento
 // de pedirlo: el pedido debe conservar el precio con el que se vendió aunque el catálogo cambie.
@@ -29,11 +30,6 @@ const orderDetailSchema = new Schema({
     subtotal: {
         type: Number,
         required: [true, 'El subtotal del producto es obligatorio.']
-    },
-    // true = la línea se vendió como combo (precio_unitario es el precio del combo)
-    combo: {
-        type: Boolean,
-        default: false
     }
 }, { _id: false });
 
@@ -63,10 +59,9 @@ const orderSchema = new Schema({
     detalles: {
         type: [orderDetailSchema],
         validate: {
-            // Un pedido ABIERTO puede estar vacío: en caja se crea primero y se le van sumando
-            // productos. Lo que no puede estar vacío es la VENTA (lo comprueba sales.services).
-            validator: (detalles) => detalles != null,
-            message: 'Los detalles del pedido deben ser una lista (puede estar vacía).'
+            // `required` no basta en arreglos: Mongoose los inicializa como [] y pasarían vacíos
+            validator: (detalles) => detalles != null && detalles.length > 0,
+            message: 'Un pedido no puede estar vacío. Debes agregar al menos 1 producto en los detalles.'
         }
     }
 }, {

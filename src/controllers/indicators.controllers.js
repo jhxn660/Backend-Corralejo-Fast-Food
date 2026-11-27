@@ -1,8 +1,8 @@
-import asyncHandler from "../helpers/async-handler.helper.js";
-import { HttpError } from "../helpers/http-error.helper.js";
-import { countDays, isValidDayKey, startOfMonth, toDayKey } from "../helpers/business-date.helper.js";
-import * as reports from "../services/indicators-reports.services.js";
-import { dbRebuildIndicators, dbSetSalesGoal } from "../services/indicators.services.js";
+import asyncHandler from '../helpers/async-handler.helper.js';
+import { countDays, isValidDayKey, startOfMonth, toDayKey } from '../helpers/business-date.helper.js';
+import { HttpError } from '../helpers/http-error.helper.js';
+import * as reports from '../services/indicators-reports.services.js';
+import { dbRebuildIndicators, dbSetSalesGoal } from '../services/indicators.services.js';
 
 const COMPARE_MODES = [ 'previous_period', 'previous_year', 'custom', 'none' ];
 const GROUP_BY = [ 'day', 'month' ];

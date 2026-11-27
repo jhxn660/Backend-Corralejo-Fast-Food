@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { createCategory, getCategory, getCategories, updateCategory, deleteCategory } from '../controllers/categories.controllers.js';
+
+import { ADMIN_ROLES, STAFF_ROLES } from '../config/roles.config.js';
 import { requireRoles } from '../middlewares/authorization.middleware.js';
-import { ADMIN_ROLES } from '../config/roles.config.js';
+import { createCategory, getCategory, getCategories, updateCategory, deleteCategory } from '../controllers/categories.controllers.js';
 
 /**
  * CAPA DE RUTAS. Un archivo de rutas solo responde "¿quién atiende esta URL?"; no tiene lógica.
@@ -16,10 +17,8 @@ import { ADMIN_ROLES } from '../config/roles.config.js';
 const router = Router();
 
 router.post('/', requireRoles(ADMIN_ROLES),  createCategory);
-// LECTURA PÚBLICA: la carta de clientes y visitantes agrupa los productos por categoría,
-// así que cualquiera puede leerlas. Crear, editar y borrar sigue siendo de administración.
-router.get('/', getCategories);
-router.get('/:id', getCategory);
+router.get('/', requireRoles(STAFF_ROLES), getCategories);
+router.get('/:id', requireRoles(STAFF_ROLES), getCategory);
 router.patch('/:id', requireRoles(ADMIN_ROLES), updateCategory);
 router.delete('/:id', requireRoles(ADMIN_ROLES), deleteCategory);
 

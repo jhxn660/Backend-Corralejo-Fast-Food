@@ -1,6 +1,6 @@
-import asyncHandler from "../helpers/async-handler.helper.js";
-import { assertFound } from "../helpers/http-error.helper.js";
-import { buildVisibilityFilter, parseIsActiveBody } from "../helpers/visibility.helper.js";
+import asyncHandler from '../helpers/async-handler.helper.js';
+import { assertFound } from '../helpers/http-error.helper.js';
+import { buildVisibilityFilter, parseStatusBody } from '../helpers/visibility.helper.js';
 import {
     dbCreateProduct,
     dbDeleteProduct,
@@ -9,7 +9,7 @@ import {
     dbGetPublicProducts,
     dbSetProductStatus,
     dbUpdateProduct
-} from "../services/products.services.js";
+} from '../services/products.services.js';
 
 const NOT_FOUND = 'Producto no encontrado';
 
@@ -24,9 +24,9 @@ const getProduct = asyncHandler(async (req, res) => {
     res.json({ msg: 'Obtiene un producto', data: assertFound(await dbGetProduct(req.params.id), NOT_FOUND) });
 }, 'No se pudo obtener el producto por ID');
 
-// Gestión: ?isActive=true|false|all (por defecto all)
+// Gestión: ?status=true|false|all (por defecto all)
 const getProducts = asyncHandler(async (req, res) => {
-    const data = await dbGetProducts(buildVisibilityFilter(req.query.isActive));
+    const data = await dbGetProducts(buildVisibilityFilter(req.query.status));
 
     res.json({ msg: 'Listar total o parcialmente los productos', data });
 }, 'No se pueden listar el total o parcialmente los productos');
@@ -38,18 +38,18 @@ const getPublicProducts = asyncHandler(async (req, res) => {
 
 const updateProduct = asyncHandler(async (req, res) => {
     // La visibilidad y el autor no se cambian por aquí: hay un endpoint dedicado para el estado
-    const { isActive, createdBy, ...changes } = req.body;
+    const { status, createdBy, ...changes } = req.body;
     const data = assertFound(await dbUpdateProduct(req.params.id, changes), NOT_FOUND);
 
     res.json({ msg: 'Producto actualizado', data });
 }, 'No se ha podido actualizar');
 
-// PATCH /:id/status  { "isActive": true | false }
+// PATCH /:id/status  { "status": true | false }
 const setProductStatus = asyncHandler(async (req, res) => {
-    const isActive = parseIsActiveBody(req.body);
-    const data = assertFound(await dbSetProductStatus(req.params.id, isActive), NOT_FOUND);
+    const status = parseStatusBody(req.body);
+    const data = assertFound(await dbSetProductStatus(req.params.id, status), NOT_FOUND);
 
-    res.json({ msg: isActive ? 'Producto habilitado' : 'Producto deshabilitado', data });
+    res.json({ msg: status ? 'Producto habilitado' : 'Producto deshabilitado', data });
 }, 'No se pudo cambiar el estado del producto');
 
 const deleteProduct = asyncHandler(async (req, res) => {

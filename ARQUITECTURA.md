@@ -64,6 +64,16 @@ ruta; si cambia la forma de un dato, **un** modelo. Y cada capa se puede probar 
 capa sin abrir el archivo. Archivos de referencia para aprender el patrón (el CRUD más simple):
 `categories.routes.js` → `categories.controllers.js` → `categories.services.js` → `category.model.js`.
 
+**Orden de los imports:** tres grupos separados por una línea en blanco, con comillas simples:
+1. paquetes (`node:*`, `express`, `mongoose`…);
+2. el proyecto por capas: `config` → `helpers` → `middlewares` → `models` → `dtos` →
+   `migrations` → `services` → `controllers` → `routes`;
+3. archivos de la misma carpeta (`./…`).
+
+**Comentarios:** explican el *porqué* y el contrato (qué entra, qué sale, qué regla aplica) de
+cómo funciona el código HOY. La historia de los cambios ("antes…", "CAMBIO:", "NUEVO:") va en
+los commits, no en el código. Todo el código usa finales de línea LF.
+
 ---
 
 ## 1. Flujo de seguridad
@@ -89,10 +99,10 @@ Petición ─▶ authMiddleware ──401──▶ fin
    - Sin token → **401** `Cadena de token vacia`.
 2. Comprueba que tenga 3 partes separadas por `.` (header.payload.firma). Filtra basura sin coste criptográfico.
    - Mal formado → **401**.
-3. `validateToken` (`jwt.verify`): verifica firma HS256 con `JWT_SECRET` y expiración (`exp`, 1 h).
+3. `validateToken` (`jwt.verify`): verifica firma HS256 con `JWT_SECRET` y expiración (`exp`, 2 h).
    - Firma inválida, alterado o vencido → `null` → **401** `Token invalido o inactivo`.
-4. `dbGetActiveUserById(payload._id)`: **consulta a la BD en cada petición** (`{ _id, state: true }`, sin `password`).
-   - Usuario eliminado o con `state: false` → **401**, aunque el token siga vigente.
+4. `dbGetActiveUserById(payload._id)`: **consulta a la BD en cada petición** (`{ _id, status: true }`, sin `password`).
+   - Usuario eliminado o con `status: false` → **401**, aunque el token siga vigente.
 5. Guarda el usuario en `req.userFound` y llama a `next()`.
 6. Cualquier excepción (BD caída, `_id` corrupto) → **401** (falla cerrado, nunca deja pasar).
 
@@ -108,10 +118,10 @@ Petición ─▶ authMiddleware ──401──▶ fin
 
 | Middleware | Dónde | Comportamiento |
 |---|---|---|
-| `requireSelfOrRoles(roles)` | `GET/PATCH/PUT /api/users/:id` | Autentica; pasa si el rol está en la lista **o** si `:id` es el propio `_id`. |
-| `optionalAuthMiddleware` | `POST /api/comments` | Sin token → sigue como anónimo (`req.userFound` undefined). Con token → igual que authMiddleware; un token inválido **sí** da 401. |
+| `requireSelfOrRoles(roles)` | `GET/PATCH /api/users/:id` | Autentica; pasa si el rol está en la lista **o** si `:id` es el propio `_id`. |
+| `optionalAuthMiddleware` | `POST /api/comments`, `GET /api/comments/public`, `GET /api/sales` | Sin token → sigue como anónimo (`req.userFound` undefined). Con token → igual que authMiddleware; un token inválido **sí** da 401. |
 | `withoutRoleMiddleware` | `POST /api/auth/register` | Sobrescribe `req.body.role = 'Cliente'`. Nadie se auto-asigna un rol desde el registro público. |
-| sin middleware | `/health`, `/api/auth/login`, `/api/products/public`, `/api/comments/public` | Públicas. |
+| sin middleware | `/health`, `/api/auth/login`, `/api/products/public`, lectura de `/api/establecimiento`, `/api/horarios`, `/api/ubicaciones` y `/api/cierres` | Públicas. |
 
 ### 1.3 Roles
 
@@ -120,14 +130,14 @@ Petición ─▶ authMiddleware ──401──▶ fin
 - `ADMIN_ROLES = [Owner, Administrador]` · `STAFF_ROLES = [...ADMIN_ROLES, Empleado]`.
 - Reglas en controladores (no expresables en la ruta):
   - Solo un **Owner** crea, edita o elimina cuentas Owner, o asciende a alguien a Owner.
-  - Quien edita su propia cuenta sin ser admin no puede cambiarse `role` ni `state`.
+  - Quien edita su propia cuenta sin ser admin no puede cambiarse `role` ni `status`.
   - Solo un `Cliente` o un visitante comenta; el personal recibe 403.
 
 ### 1.4 Login
 
 `POST /api/auth/login` → exige `email` y `password` **como string** (un objeto `{ "$ne": null }`
 sería un operador de Mongo) → busca usuario activo por correo normalizado (`trim + lowercase`) →
-`bcrypt.compareSync` → firma token. Correo inexistente y contraseña mala devuelven el **mismo 401**
+`verifyPassword` (`bcrypt.compare`, asíncrono) → firma token. Correo inexistente y contraseña mala devuelven el **mismo 401**
 para no revelar qué correos existen.
 
 ### 1.5 Operadores de MongoDB en el body (inyección NoSQL)
@@ -161,17 +171,22 @@ Ejemplo real: `POST /api/sales` con `{ "orderId": "<id>" }`.
                    ├─ pickEditable(body): solo fecha, cliente, direccionEntrega
                    └─ dbRegisterSale({ orderId, items, fields }, req.userFound)
 6. service       sales.services.dbRegisterSale → sellOrder (con orderId)
-                   ├─ orderModel.findById            ¿existe? 404
-                   ├─ saleModel.findOne              ¿ya vendido? 409 { data: venta existente }
+                   ├─ a la vez: orderModel.findById + saleModel.findOne({ orderId })
+                   │     ¿existe? 404 · ¿ya vendido? 409 { data: venta existente }
                    ├─ ¿admite venta?                 Cancelado/Finalizado → 409
                    ├─ items → assertOrderOpen + mergeDetails + order.save()   (Entregado → 409)
+                   ├─ dbAssertSuppliesAvailable      ¿alcanzan los insumos? 409 missingSupplies
+                   │     (devuelve el consumo calculado para no recalcularlo al descontar)
                    ├─ findOneAndUpdate condicional   estado que admite venta → 'Finalizado' (reclamo atómico)
                    ├─ saleModel.create({ fields, líneas del pedido reclamado })
                    │     └─ model: setter de `fecha` → pre('validate') subtotales y totalPagado
-                   │               → validación del Schema → pre('save') asigna saleId, ticketId y qr
+                   │               → validación del Schema → pre('save') asigna saleId y ticketId
+                   │                 (a la vez: son secuencias distintas) y qr
                    │               → insert → índices únicos
-                   │     (si falla: el pedido vuelve a su estado anterior y el error sigue su curso)
-                   └─ syncIndicators(sale.fecha)
+                   ├─ dbDiscountSupplies             todas las restas de insumos a la vez, todo o nada
+                   │     (si algo falla: se borra la venta, el pedido vuelve a su estado anterior
+                   │      y el error sigue su curso)
+                   └─ a la vez: populate('orderId') + syncIndicators(sale.fecha)
                          └─ indicators.services.dbConsolidateDays([día])
                                ├─ 2 aggregate sobre `ventas` (totales y productos del día)
                                └─ bulkWrite upsert en `indicadores_diarios` + deleteMany de días vacíos
@@ -218,16 +233,34 @@ Detalles:
 - **Las consultas de Mongoose son "thenables", no promesas.** `Model.find()` arma la consulta y no
   hace nada hasta que se hace `await` (o `.exec()`). Por eso se pueden encadenar `.populate().sort()`
   antes de esperar.
-- **Paralelismo:** donde las consultas no dependen entre sí se usa `Promise.all` (listado + conteo de
-  usuarios; las 8 consultas del panel; las 2 agregaciones de consolidación). Si una rechaza, `Promise.all`
-  rechaza con ese error y las demás siguen corriendo, pero se ignoran.
+- **Paralelismo:** donde las consultas no dependen entre sí se usa `Promise.all`. Si una rechaza,
+  `Promise.all` rechaza con ese error y las demás siguen corriendo, pero se ignoran. Dónde se usa:
+  - lecturas: listado + conteo de usuarios; las 8 consultas del panel; las 2 agregaciones de consolidación;
+  - pedidos: `dbFindOrderWithSale` lee el pedido y comprueba si tiene venta a la vez (añadir,
+    reemplazar, cambiar estado y eliminar);
+  - ventas: pedido + venta existente; `saleId` + `ticketId`; las restas y devoluciones de insumos;
+    resolver el pedido + consolidar; al eliminar una venta o cancelar su pedido, devolver insumos,
+    reabrir el pedido y reconsolidar;
+  - catálogo: productos de un combo + receta propia; guardar los combos cuyo precio se recalcula;
+    producto + insumos al validar una receta;
+  - comentarios: venta del QR + comentario que ya lo usó.
+- **Por qué importa: la latencia de Atlas.** El clúster está en AWS us-east-1 y cada consulta tarda
+  ~100 ms en ir y volver. Cada `await` en fila suma esa espera; dos consultas en un `Promise.all` cuestan
+  una sola. Con un id de formato inválido, `dbFindOrderWithSale` no adelanta la segunda consulta: así el
+  `CastError` (y su mensaje) es el mismo de siempre. Los errores se siguen revisando en el mismo orden
+  que antes (por ejemplo: 404 del pedido antes que 409 de venta existente).
+- **Lo que se deja en fila a propósito:** la consulta del usuario en `authMiddleware` (un usuario
+  desactivado queda fuera al instante) y los pasos que dependen del anterior (validar → reclamar →
+  crear → descontar). Los combos se guardan con `save()` y no con `bulkWrite`, porque `bulkWrite` se
+  salta las validaciones y los hooks de Mongoose.
 - **`syncIndicators` traga el error a propósito:** la venta ya está guardada, así que un fallo al
   consolidar no debe convertir la respuesta en 500. Devuelve `false`, la API responde
   `indicatorsUpdated: false` y el día se corrige con la siguiente venta o con `POST /api/indicators/rebuild`.
 - **Express 5** ya reenvía al errorHandler las promesas rechazadas de un handler. `asyncHandler` se
   mantiene para adjuntar el mensaje de 500 específico de cada operación (`fallbackMessage`).
-- **bcrypt y JWT son síncronos** (`hashSync`, `compareSync`, `jwt.sign/verify` sin callback): bloquean
-  el event loop unos milisegundos por login. Aceptable con este tráfico.
+- **bcrypt es asíncrono** (`bcrypt.hash` / `bcrypt.compare` en `bcrypt.helper.js`, coste 9): el
+  cálculo corre en el pool de hilos de libuv y un login no frena las demás peticiones. **JWT es
+  síncrono** (`jwt.sign/verify` sin callback): tarda microsegundos.
 - **Sin transacciones:** crear venta + consolidar son dos escrituras independientes. Lo que da
   consistencia es que la consolidación **recalcula** el día (idempotente) en vez de sumar.
 
@@ -305,16 +338,16 @@ Detalles:
     una venta. Nunca se edita a mano; `POST /api/indicators/rebuild` lo regenera completo y convierte a
     `Date` las ventas antiguas que tenían `fecha` como texto.
 15. **Valoraciones.** La nota (`calificacion`) es del ticket y se atribuye a cada producto distinto de
-    esa venta. Solo cuentan los comentarios con `isActive: true`.
-16. **Visibilidad (`isActive`).** Solo cambia por `PATCH /:id/status`; el `PATCH` general la ignora.
+    esa venta. Solo cuentan los comentarios con `status: true`.
+16. **Visibilidad (`status`).** Solo cambia por `PATCH /:id/status`; el `PATCH` general la ignora.
     Los documentos anteriores a la bandera no tienen el campo y cuentan como visibles (`{ $ne: false }`).
 17. **Borrados protegidos.** Un pedido con venta no se elimina (409). Eliminar la venta de un pedido
     `Finalizado` lo devuelve a `Listo` (si no, quedaría finalizado sin venta y bloqueado). Una categoría sí, y deja a sus
     productos con `category` huérfano: preferir `status: false`.
 
 ### Sesión
-18. **El token no se puede revocar** antes de su hora de vida. Las únicas formas de cortar el acceso
-    al instante son `state: false` o eliminar el usuario (el middleware consulta la BD). Cerrar sesión
+18. **El token no se puede revocar** antes de sus 2 horas de vida. Las únicas formas de cortar el acceso
+    al instante son `status: false` o eliminar el usuario (el middleware consulta la BD). Cerrar sesión
     es borrar el token en el cliente.
 19. **Rotar `JWT_SECRET` invalida todos los tokens emitidos** (todos deben volver a iniciar sesión).
 
@@ -345,13 +378,14 @@ Detalles:
 
 ### Ciclo
 ```
-POST /api/sales ─▶ pre('save'): saleId = $inc('sales'), ticketId = $inc('tickets'), qr = aleatorio
+POST /api/sales ─▶ pre('save'): saleId = $inc('sales') y ticketId = $inc('tickets') a la vez, qr = aleatorio
       │             (lo que venga en el body para estos campos se descarta; son immutable)
       ▼
 Frontend dibuja el QR con el enlace /calificar/<qr>  (la imagen no se guarda: se genera al imprimir)
       │
       ▼
 Cliente escanea ─▶ POST /api/comments { codigo: <qr> }
+                     │  (venta y comentario se buscan a la vez; se revisan en este orden)
                      ├─ ¿existe una venta con ese qr?          no → 404
                      ├─ ¿ya hay un comentario con ese codigo?  sí → 400
                      └─ guarda el comentario con venta = sale._id
@@ -398,17 +432,30 @@ refactorización.
 | El servidor calcula precios, subtotales, totales y consecutivos | Lo que envía el cliente no es de fiar; un total mal calculado en el navegador acabaría en los indicadores. |
 | Indicadores consolidados por día (`indicadores_diarios`) | El dashboard lee como mucho un documento por día en vez de recorrer todas las ventas. Se **recalcula**, no se incrementa: es idempotente. |
 | Roles leídos del enum del modelo `User` | Una sola fuente de verdad; si falta un rol, el servidor no arranca. |
-| Fábricas `createCrudService` / `createCrudController` | Establecimiento, horarios y ubicaciones son CRUD puros: comparten una implementación en vez de tres copias. |
+| Fábricas `createCrudService` / `createCrudController` | Establecimiento, horarios, ubicaciones y cierres son CRUD puros: comparten una implementación en vez de cuatro copias. |
 | **`rejectMongoOperators` global** (`middlewares/body.middleware.js`) | Un Cliente podía volverse Owner con `PATCH /api/users/:id { "$set": { "role": "Owner" } }`, o guardar una contraseña sin hash. Se corta en un punto para toda la API (sección 1.5). |
 | **`ensureBody` salió de `error.middleware.js`** a `body.middleware.js` | Preparar el body no es manejar errores: cada archivo de middleware queda con una sola responsabilidad. |
 | **Sufijo de helpers unificado** (`bcrypt.helper.js`, `jwt.helper.js`) | Convivían `.helper.js` y `.helpers.js`; ahora el nombre del archivo predice la capa sin excepciones. |
 | **`handleMongooseError` exige `keyValue`** en el error 11000 | Un duplicado dentro de un `bulkWrite` no lo trae, y leerlo lanzaba un `TypeError` dentro del propio manejador de errores. |
 | **`ARQUITECTURA.md` visible y `README.md` nuevo** | La guía estaba oculta como `.ARQUITECTURA.md` y no había instrucciones de instalación. |
 
+### Implementados después
+
+| Cambio | Cómo |
+|---|---|
+| **"Me gusta" de comentarios** | `POST / DELETE /api/comments/:id/like` (Owner, Administrador y Cliente). `dbLikeComment` / `dbUnlikeComment` cambian `likedBy` y `likes` en UNA operación atómica, filtrando por si la persona ya estaba: repetir no suma ni resta. `GET /api/comments/public` devuelve `likedByMe` y nunca `likedBy`. |
+| **Mis PQRS** | `GET /api/pqrs/mine` (solo Cliente, declarada antes de `/:id`). El usuario sale del token; no incluye `respondedBy`. |
+| **Respuesta de PQRS** | Campos `respuesta` (10-1000 caracteres), `respondedBy` y `respondedAt`. Listas blancas: el Cliente solo envía `tipo, asunto, descripcion`; la administración solo `estado, respuesta`, y el servidor registra quién respondió y cuándo. |
+| **Recetas** (módulo `recipes`) | Modelo `Recipe` (colección `recetas`): `product` (único, inmutable) e `items: [{ supply, quantity }]`. CRUD para `ADMIN_ROLES`, lectura para `STAFF_ROLES`. Un combo no lleva receta. Al eliminar un producto, su receta se va con él. |
+| **Inventario al vender** | `recipes.services.js`: `dbGetSuppliesUsage` (receta × unidades; un combo se cambia por sus productos), `dbAssertSuppliesAvailable` (409 `missingSupplies` antes de vender; devuelve el consumo para reutilizarlo), `dbDiscountSupplies` (restas atómicas con filtro `stock >= cantidad`, lanzadas a la vez; si una falla se devuelven las demás: todo o nada) y `dbReturnSupplies` (sumas a la vez). La venta guarda `suppliesUsed` y eso es lo que vuelve al inventario al eliminarla o al cancelar su pedido (una sola vez). |
+| **Combos** | Producto con `comboItems: [{ product, quantity }]` y `comboPriceMode` (`sum` / `custom`). `prepareCombo` (products.services) valida: productos existentes, sin combos dentro de combos, sin receta propia. En modo `sum` el precio es la suma de sus productos y `dbRefreshComboPrices` lo recalcula cuando cambia el precio de uno. Un producto que está en un combo no se elimina (409). |
+| **Quitar productos de un pedido** | `PUT /api/orders/:id/items` (`dbReplaceOrderItems`): reemplaza la lista completa mientras el pedido esté abierto; los que ya estaban conservan su precio. |
+| **Stock mínimo de insumos** | Campo `minStock` (≥ 0, por defecto 0) en el modelo `Supply`: Inventario marca "Stock bajo" cuando el stock llega a ese valor. |
+| **Estrellas por producto** | `GET /api/products/public` añade `rating: { score, count }` con `dbGetProductReviews` (el mismo cálculo de reseñas de Indicadores; su `limit` ahora es opcional). |
+| **Optimización de consultas** (nov. 2026) | Las consultas independientes de las escrituras van en `Promise.all` y se quitaron las repetidas (sección 3, "Paralelismo"). Con ~100 ms de latencia por consulta: vender un pedido 2,9 s → 1,6 s, venta directa 2,5 s → 1,5 s, cancelar un pedido vendido o eliminar una venta ~40 % menos. Rutas, parámetros y respuestas no cambiaron. |
+
 ### Pendientes conocidos (anotados, no implementados)
 
-- **"Me gusta" de comentarios:** el modelo ya tiene `likes` y `likedBy`, pero faltan las rutas
-  `POST/DELETE /api/comments/:id/like`.
 - **Baja lógica de usuarios:** el modelo ya tiene `deletedAt` y `deletedBy` y existe
   `OWNER_MANAGEABLE_ROLES`, pero `DELETE /api/users/:id` todavía borra el documento.
 - **`calificacion` (1–5)** convive con `valoracion` (1–10): Indicadores aún promedia la primera.

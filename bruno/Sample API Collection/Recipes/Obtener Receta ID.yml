@@ -1,0 +1,23 @@
+info:
+  name: Obtener Receta ID
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "http://localhost:3000/api/recipes/{{recipeId}}"
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+docs: |-
+  PRUEBA: requiere {{recipeId}} (Crear Receta). Token: Owner, Administrador o Empleado.
+  Esperado 200. ID inexistente → 404; mal formado → 400.
