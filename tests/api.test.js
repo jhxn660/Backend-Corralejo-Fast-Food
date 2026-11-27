@@ -950,7 +950,8 @@ describe('Establecimiento, horarios y ubicaciones', () => {
     const resources = {
         establecimiento: { titulo: 'Misión', contenido: 'Servir', categoria: 'Misión' },
         horarios: { dia: 'Lunes', horaApertura: '08:00', horaCierre: '22:00' },
-        ubicaciones: { titulo: 'Sede', descripcion: 'Principal', direccion: 'Cl. 32 Sur', telefono: '3118370904' }
+        ubicaciones: { titulo: 'Sede', descripcion: 'Principal', direccion: 'Cl. 32 Sur', telefono: '3118370904' },
+        cierres: { fecha: '2026-12-24', motivo: 'Nochebuena' }
     };
 
     for (const [ path, body ] of Object.entries(resources)) {
@@ -967,6 +968,37 @@ describe('Establecimiento, horarios y ubicaciones', () => {
             expectStatus(await request('GET', `/api/${path}/${created._id}`, { token: tokens.admin }), 404);
         });
     }
+
+    test('cierres: una fecha concreta, válida y una sola vez; leer es público y cerrar es de administración', async () => {
+        expectStatus(await request('POST', '/api/cierres', { token: tokens.admin, body: { fecha: '27/11/2026' } }), 400);
+        expectStatus(await request('POST', '/api/cierres', { token: tokens.admin, body: { fecha: '2026-13-01' } }), 400);
+
+        const cierre = expectStatus(await request('POST', '/api/cierres', {
+            token: tokens.admin, body: { fecha: '2026-11-27', motivo: 'Inventario' }
+        }), 201).data;
+        assert.equal(cierre.fecha, '2026-11-27');
+
+        // La misma fecha no se cierra dos veces
+        expectStatus(await request('POST', '/api/cierres', { token: tokens.admin, body: { fecha: '2026-11-27' } }), 400);
+
+        // El calendario de la portada lo lee sin sesión; el Empleado no puede cerrar días
+        const publicos = expectStatus(await request('GET', '/api/cierres'), 200).data;
+        assert.ok(publicos.some((c) => c.fecha === '2026-11-27'));
+        expectStatus(await request('POST', '/api/cierres', { token: tokens.employee, body: { fecha: '2026-11-28' } }), 403);
+        expectStatus(await request('POST', '/api/cierres', { body: { fecha: '2026-11-28' } }), 401);
+
+        // Por defecto la fecha queda cerrada; se puede abrir con su propio horario
+        assert.equal(cierre.estaAbierto, false);
+        const abierto = expectStatus(await request('PATCH', `/api/cierres/${cierre._id}`, {
+            token: tokens.admin, body: { estaAbierto: true, horaApertura: '10:00', horaCierre: '14:00' }
+        }), 200).data;
+        assert.equal(abierto.horaApertura, '10:00');
+        expectStatus(await request('PATCH', `/api/cierres/${cierre._id}`, {
+            token: tokens.admin, body: { horaApertura: '25:00' }
+        }), 400);
+
+        expectStatus(await request('DELETE', `/api/cierres/${cierre._id}`, { token: tokens.admin }), 200);
+    });
 });
 
 // saleId/ticketId consecutivos, qr aleatorio, campos immutable e índice parcial de orderId

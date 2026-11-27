@@ -121,7 +121,7 @@ Petición ─▶ authMiddleware ──401──▶ fin
 | `requireSelfOrRoles(roles)` | `GET/PATCH /api/users/:id` | Autentica; pasa si el rol está en la lista **o** si `:id` es el propio `_id`. |
 | `optionalAuthMiddleware` | `POST /api/comments`, `GET /api/comments/public`, `GET /api/sales` | Sin token → sigue como anónimo (`req.userFound` undefined). Con token → igual que authMiddleware; un token inválido **sí** da 401. |
 | `withoutRoleMiddleware` | `POST /api/auth/register` | Sobrescribe `req.body.role = 'Cliente'`. Nadie se auto-asigna un rol desde el registro público. |
-| sin middleware | `/health`, `/api/auth/login`, `/api/products/public`, lectura de `/api/establecimiento`, `/api/horarios` y `/api/ubicaciones` | Públicas. |
+| sin middleware | `/health`, `/api/auth/login`, `/api/products/public`, lectura de `/api/establecimiento`, `/api/horarios`, `/api/ubicaciones` y `/api/cierres` | Públicas. |
 
 ### 1.3 Roles
 
@@ -432,7 +432,7 @@ refactorización.
 | El servidor calcula precios, subtotales, totales y consecutivos | Lo que envía el cliente no es de fiar; un total mal calculado en el navegador acabaría en los indicadores. |
 | Indicadores consolidados por día (`indicadores_diarios`) | El dashboard lee como mucho un documento por día en vez de recorrer todas las ventas. Se **recalcula**, no se incrementa: es idempotente. |
 | Roles leídos del enum del modelo `User` | Una sola fuente de verdad; si falta un rol, el servidor no arranca. |
-| Fábricas `createCrudService` / `createCrudController` | Establecimiento, horarios y ubicaciones son CRUD puros: comparten una implementación en vez de tres copias. |
+| Fábricas `createCrudService` / `createCrudController` | Establecimiento, horarios, ubicaciones y cierres son CRUD puros: comparten una implementación en vez de cuatro copias. |
 | **`rejectMongoOperators` global** (`middlewares/body.middleware.js`) | Un Cliente podía volverse Owner con `PATCH /api/users/:id { "$set": { "role": "Owner" } }`, o guardar una contraseña sin hash. Se corta en un punto para toda la API (sección 1.5). |
 | **`ensureBody` salió de `error.middleware.js`** a `body.middleware.js` | Preparar el body no es manejar errores: cada archivo de middleware queda con una sola responsabilidad. |
 | **Sufijo de helpers unificado** (`bcrypt.helper.js`, `jwt.helper.js`) | Convivían `.helper.js` y `.helpers.js`; ahora el nombre del archivo predice la capa sin excepciones. |

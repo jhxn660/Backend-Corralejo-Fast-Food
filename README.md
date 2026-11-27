@@ -154,8 +154,8 @@ Todas las respuestas correctas tienen la forma `{ msg, data }`; los errores, `{ 
 | GET | `/api/pqrs/mine` | Cliente | Sus propias PQRS, con la respuesta del restaurante |
 | GET | `/api/pqrs` · `/:id` | Personal | Listar · ver |
 | PATCH · DELETE | `/api/pqrs/:id` | Admin | Responder y cambiar estado: `{ estado?, respuesta? }` · eliminar |
-| GET | `/api/establecimiento` · `/api/horarios` · `/api/ubicaciones` (y `/:id`) | Público | Consultar información del local |
-| POST · PATCH · DELETE | `/api/establecimiento` · `/api/horarios` · `/api/ubicaciones` (y `/:id`) | Admin | Gestionar información del local |
+| GET | `/api/establecimiento` · `/api/horarios` · `/api/ubicaciones` · `/api/cierres` (y `/:id`) | Público | Consultar información del local |
+| POST · PATCH · DELETE | `/api/establecimiento` · `/api/horarios` · `/api/ubicaciones` · `/api/cierres` (y `/:id`) | Admin | Gestionar información del local. `/api/cierres` `{ fecha: "AAAA-MM-DD", estaAbierto?, horaApertura?, horaCierre?, motivo? }` define UNA fecha (cerrada por defecto, o abierta con su propio horario "HH:MM") sin tocar el horario semanal |
 
 ### Flujo de negocio principal
 

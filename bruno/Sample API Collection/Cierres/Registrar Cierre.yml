@@ -1,0 +1,38 @@
+info:
+  name: Registrar Cierre
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/cierres
+  headers:
+    - name: X-Token
+      value: "{{token}}"
+  body:
+    type: json
+    data: |-
+      // PRUEBA: Token: Owner o Administrador (ejecuta Authentication/Login Usuario con esa cuenta).
+      // Define SOLO esa fecha; el horario semanal no cambia. Sin estaAbierto queda cerrada. Esperado 201; guarda {{cierreId}}.
+      // Fecha mal formada → 400; fecha repetida → 400. Con otro rol → 403; sin token o vencido → 401.
+      {
+          "fecha": "2026-12-24",
+          "motivo": "Nochebuena"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el _id creado para las peticiones por ID que siguen
+        if (res.status === 201) {
+          bru.setVar("cierreId", res.body.data._id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
